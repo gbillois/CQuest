@@ -93,7 +93,7 @@ body {
 
 .hud-info {
   display: contents;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .hud-item {
@@ -123,6 +123,10 @@ body {
   font-weight: 800;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+#hudScoreValue {
+  cursor: pointer;
 }
 
 .hud-actions {
@@ -573,6 +577,32 @@ body {
 .menu-actions {
   display: grid;
   gap: 8px;
+}
+
+.cheat-card {
+  text-align: left;
+}
+
+.cheat-card label {
+  display: block;
+  margin: 10px 0 6px;
+  font-size: 0.9rem;
+}
+
+.cheat-card select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #f7fbff;
+  padding: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  appearance: none;
+  background: rgba(8, 12, 28, 0.72);
+}
+
+.cheat-actions {
+  margin-top: 12px;
 }
 
 .game-over {

@@ -165,6 +165,8 @@ const BOSS_DRAGON_ATTACK_SW_FRAMES = Array.from(
   (_, i) => `game_assets/enemies/boss-dragon/animations/attack/south-west/frame_${String(i).padStart(3, "0")}.png`,
 );
 const BOSS_FALLBACK_DRAGON_FRAME = "game_assets/enemies/boss-dragon/rotations/south-west.png";
+const CHEAT_SCORE_TAP_WINDOW_MS = 1400;
+const CHEAT_PIECES_AMOUNT = 999;
 
 function getHeroShopConfig(heroId) {
   return HERO_SHOP_CONFIG[heroId] || { price: 9999, order: 99, defaultOwned: false };
@@ -221,6 +223,12 @@ const ui = {
   startBtn: document.getElementById("startBtn"),
   openSettingsFromTitleBtn: document.getElementById("openSettingsFromTitleBtn"),
   pauseModal: document.getElementById("pauseModal"),
+  cheatModal: document.getElementById("cheatModal"),
+  cheatLevelSelect: document.getElementById("cheatLevelSelect"),
+  cheatHeroSelect: document.getElementById("cheatHeroSelect"),
+  cheatGivePiecesBtn: document.getElementById("cheatGivePiecesBtn"),
+  cheatApplyBtn: document.getElementById("cheatApplyBtn"),
+  cheatCloseBtn: document.getElementById("cheatCloseBtn"),
   resumeBtn: document.getElementById("resumeBtn"),
   openSettingsFromPauseBtn: document.getElementById("openSettingsFromPauseBtn"),
   backToTitleBtn: document.getElementById("backToTitleBtn"),
@@ -268,6 +276,10 @@ const state = {
     left: false,
     right: false,
     jumpBuffered: false,
+  },
+  cheat: {
+    scoreTapCount: 0,
+    lastScoreTapTimeMs: 0,
   },
   runTime: 0,
   score: 0,
@@ -2038,6 +2050,31 @@ function populateSettingsPanel() {
   renderErrorList();
 }
 
+function populateCheatModal() {
+  if (!ui.cheatLevelSelect || !ui.cheatHeroSelect) {
+    return;
+  }
+
+  ui.cheatLevelSelect.innerHTML = "";
+  state.levels.forEach((level, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
+    ui.cheatLevelSelect.appendChild(option);
+  });
+
+  ui.cheatHeroSelect.innerHTML = "";
+  state.heroes.forEach((hero, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = hero.name;
+    ui.cheatHeroSelect.appendChild(option);
+  });
+
+  ui.cheatLevelSelect.value = String(state.currentLevelIndex);
+  ui.cheatHeroSelect.value = String(state.selectedHeroIndex);
+}
+
 function bindControls() {
   const setHeldState = (button, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
@@ -2158,6 +2195,22 @@ function bindControls() {
     openPauseMenu();
   });
 
+  ui.hudScoreValue?.addEventListener("click", () => {
+    if (!state.ready || state.duel?.QS.active) {
+      return;
+    }
+    const now = performance.now();
+    if (now - state.cheat.lastScoreTapTimeMs > CHEAT_SCORE_TAP_WINDOW_MS) {
+      state.cheat.scoreTapCount = 0;
+    }
+    state.cheat.lastScoreTapTimeMs = now;
+    state.cheat.scoreTapCount += 1;
+    if (state.cheat.scoreTapCount >= 3) {
+      state.cheat.scoreTapCount = 0;
+      openCheatModal();
+    }
+  });
+
   ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
@@ -2208,6 +2261,12 @@ function bindControls() {
   ui.restartBtn?.addEventListener("click", restartLevelAfterGameOver);
   ui.backToTitleFromGameOverBtn?.addEventListener("click", returnToTitleScreen);
   ui.backToTitleFromVictoryBtn?.addEventListener("click", returnToTitleScreen);
+  ui.cheatCloseBtn?.addEventListener("click", closeCheatModal);
+  ui.cheatGivePiecesBtn?.addEventListener("click", () => {
+    grantPersistentGold(CHEAT_PIECES_AMOUNT);
+    showMessage(`+${CHEAT_PIECES_AMOUNT} pieces`);
+  });
+  ui.cheatApplyBtn?.addEventListener("click", applyCheatChoices);
 
   window.addEventListener(
     "keydown",
@@ -2237,16 +2296,16 @@ function bindControls() {
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden)) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || isCheatModalOpen())) {
           event.preventDefault();
-          closeOverlayPanels();
+          closeOverlayPanelsAndCheat();
         }
         return;
       }
       if (key === "escape") {
         event.preventDefault();
-        if (!ui.settingsPanel.hidden || !ui.shopPanel.hidden) {
-          closeOverlayPanels();
+        if (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || isCheatModalOpen()) {
+          closeOverlayPanelsAndCheat();
           return;
         }
         if (isPauseModalOpen()) {
@@ -2326,6 +2385,54 @@ function isPauseModalOpen() {
   return Boolean(ui.pauseModal && !ui.pauseModal.classList.contains("hidden"));
 }
 
+function isCheatModalOpen() {
+  return Boolean(ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
+}
+
+function openCheatModal() {
+  if (!state.ready || !ui.cheatModal) {
+    return;
+  }
+  populateCheatModal();
+  ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
+  ui.cheatModal.classList.remove("hidden");
+  state.paused = true;
+}
+
+function closeCheatModal() {
+  if (!ui.cheatModal) {
+    return;
+  }
+  ui.cheatModal.classList.add("hidden");
+  if (!state.started) {
+    state.paused = false;
+    return;
+  }
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
+}
+
+function applyCheatChoices() {
+  const selectedLevelIndex = clamp(Number(ui.cheatLevelSelect?.value) || 0, 0, state.levels.length - 1);
+  const selectedHeroIndex = clamp(Number(ui.cheatHeroSelect?.value) || 0, 0, state.heroes.length - 1);
+  const selectedHero = state.heroes[selectedHeroIndex];
+  if (selectedHero) {
+    state.heroUnlocks[selectedHero.id] = true;
+    saveHeroUnlocks(state.heroUnlocks);
+    state.selectedHeroIndex = selectedHeroIndex;
+    saveSelectedHeroId(selectedHero.id);
+  }
+  closeCheatModal();
+  if (state.started) {
+    closePauseMenu();
+    state.paused = false;
+    loadLevel(selectedLevelIndex, true);
+    return;
+  }
+  loadLevel(selectedLevelIndex, true);
+  showTitleScreen();
+}
+
 function openShopPanel() {
   if (!state.ready || !ui.shopPanel) {
     return;
@@ -2384,6 +2491,11 @@ function closeOverlayPanels() {
   closeShopPanel();
 }
 
+function closeOverlayPanelsAndCheat() {
+  closeOverlayPanels();
+  closeCheatModal();
+}
+
 function openPauseMenu() {
   if (!state.started || state.gameOver || state.deathSequence.active || !ui.pauseModal) {
     return;
@@ -2391,6 +2503,7 @@ function openPauseMenu() {
   resetMovementInputs();
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -2403,7 +2516,7 @@ function closePauseMenu() {
     state.paused = false;
     return;
   }
-  state.paused = !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
+  state.paused = !ui.settingsPanel.hidden || !ui.shopPanel.hidden || isCheatModalOpen();
 }
 
 function startGameFromMenu() {
@@ -2427,6 +2540,7 @@ function startGameFromMenu() {
   ui.pauseModal?.classList.add("hidden");
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   if (state.pendingBossStart) {
     startBossMode({ sourceLevelIndex: getBossPrepLevelIndex() });
     return;
@@ -2448,6 +2562,7 @@ function showTitleScreen() {
   resetMovementInputs();
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.titleScreen?.classList.remove("hidden");
@@ -2472,6 +2587,7 @@ function showGameOverScreen() {
   resetBossState();
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.titleScreen?.classList.add("hidden");
   if (ui.gameOverTitle) {
@@ -2512,6 +2628,7 @@ function restartLevelAfterGameOver() {
   ui.gameOverPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.settingsPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   loadLevel(state.currentLevelIndex, true);
 }
 
@@ -5151,6 +5268,16 @@ function grantGold(amount) {
   if ((ui.settingsPanel && !ui.settingsPanel.hidden) || (ui.shopPanel && !ui.shopPanel.hidden)) {
     renderHeroShop();
   }
+}
+
+function grantPersistentGold(amount) {
+  const value = Math.max(0, Math.floor(Number(amount) || 0));
+  if (!value) {
+    return;
+  }
+  state.persistentGold += value;
+  savePersistentGold(state.persistentGold);
+  renderHeroShop();
 }
 
 function populatePedagogyPanel() {
