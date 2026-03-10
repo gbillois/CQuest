@@ -165,6 +165,10 @@ const BOSS_DRAGON_ATTACK_SW_FRAMES = Array.from(
   (_, i) => `game_assets/enemies/boss-dragon/animations/attack/south-west/frame_${String(i).padStart(3, "0")}.png`,
 );
 const BOSS_FALLBACK_DRAGON_FRAME = "game_assets/enemies/boss-dragon/rotations/south-west.png";
+const MAGE_FIREBALL_ICON = "game_assets/decoration/deco_cauldron_fire.png";
+const MAGE_FIREBALL_SPEED = 420;
+const MAGE_FIREBALL_RADIUS = 16;
+
 
 function getHeroShopConfig(heroId) {
   return HERO_SHOP_CONFIG[heroId] || { price: 9999, order: 99, defaultOwned: false };
@@ -214,9 +218,11 @@ const ui = {
   moveLeftBtn: document.getElementById("moveLeftBtn"),
   moveRightBtn: document.getElementById("moveRightBtn"),
   jumpBtn: document.getElementById("jumpBtn"),
+  castFireBtn: document.getElementById("castFireBtn"),
   btnLeft: document.getElementById("btnLeft"),
   btnRight: document.getElementById("btnRight"),
   btnUp: document.getElementById("btnUp"),
+  btnFire: document.getElementById("btnFire"),
   titleScreen: document.getElementById("titleScreen"),
   startBtn: document.getElementById("startBtn"),
   openSettingsFromTitleBtn: document.getElementById("openSettingsFromTitleBtn"),
@@ -269,6 +275,7 @@ const state = {
     right: false,
     jumpBuffered: false,
   },
+  fireballs: [],
   runTime: 0,
   score: 0,
   coins: 0,
@@ -421,6 +428,7 @@ async function setupUiAssets(config) {
   ui.btnLeft.src = uiAssets.button_left || "";
   ui.btnRight.src = uiAssets.button_right || "";
   ui.btnUp.src = uiAssets.button_up || "";
+  ui.btnFire.src = MAGE_FIREBALL_ICON;
 
   const uiPaths = [
     uiAssets.button_shop_top,
@@ -430,6 +438,7 @@ async function setupUiAssets(config) {
     uiAssets.button_left,
     uiAssets.button_right,
     uiAssets.button_up,
+    MAGE_FIREBALL_ICON,
   ].filter(Boolean);
 
   await Promise.all(uiPaths.map((path) => loadImage(path).catch(() => null)));
@@ -2042,6 +2051,7 @@ function populateSettingsPanel() {
   }
   renderHeroShop();
   renderErrorList();
+  syncMageActionButtonVisibility();
 }
 
 function bindControls() {
@@ -2085,6 +2095,15 @@ function bindControls() {
     setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
   });
 
+  attachTapButton(ui.castFireBtn, () => {
+    if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
+      return;
+    }
+    castMageFireball();
+    ui.castFireBtn.classList.add("active");
+    setTimeout(() => ui.castFireBtn.classList.remove("active"), 90);
+  });
+
   ui.shopBtn?.addEventListener("click", () => {
     if (!state.ready) {
       return;
@@ -2106,6 +2125,7 @@ function bindControls() {
     state.selectedHeroIndex = requestedHeroIndex;
     saveSelectedHeroId(requestedHero.id);
     renderHeroShop();
+    syncMageActionButtonVisibility();
   });
 
   ui.heroShopList?.addEventListener("click", (event) => {
@@ -2140,6 +2160,7 @@ function bindControls() {
       saveSelectedHeroId(heroId);
       showMessage(`${state.heroes[heroIndex].name} débloquée`);
       populateSettingsPanel();
+      syncMageActionButtonVisibility();
       return;
     }
 
@@ -2147,6 +2168,7 @@ function bindControls() {
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
       populateSettingsPanel();
+      syncMageActionButtonVisibility();
     }
   });
 
@@ -2178,6 +2200,7 @@ function bindControls() {
     if (profileChanged) {
       generateLevelsFromConfig(state.config);
       populateSettingsPanel();
+      syncMageActionButtonVisibility();
     }
     state.pendingBossStart = wantsBoss;
     closeSettingsPanel();
@@ -2281,6 +2304,12 @@ function bindControls() {
         ui.jumpBtn.classList.add("active");
         setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
       }
+      if (event.code === "ArrowDown" && isMageSelected()) {
+        event.preventDefault();
+        castMageFireball();
+        ui.castFireBtn?.classList.add("active");
+        setTimeout(() => ui.castFireBtn?.classList.remove("active"), 90);
+      }
     },
     { passive: false },
   );
@@ -2306,6 +2335,7 @@ function bindControls() {
     ui.moveLeftBtn.classList.remove("active");
     ui.moveRightBtn.classList.remove("active");
     ui.jumpBtn.classList.remove("active");
+    ui.castFireBtn?.classList.remove("active");
   });
 
   document.body.addEventListener(
@@ -2326,6 +2356,7 @@ function resetMovementInputs() {
   ui.moveLeftBtn?.classList.remove("active");
   ui.moveRightBtn?.classList.remove("active");
   ui.jumpBtn?.classList.remove("active");
+  ui.castFireBtn?.classList.remove("active");
 }
 
 function isPauseModalOpen() {
@@ -2545,9 +2576,11 @@ function loadLevel(levelIndex, resetScore) {
   state.towerInterior.chestRewardPieces = 0;
   state.towerInterior.chestExplodeUntil = 0;
   state.towerInterior.chestPromptUntil = 0;
+  state.fireballs = [];
   ui.gameOverPanel?.classList.add("hidden");
 
   ensureSelectedHeroIsOwned();
+  syncMageActionButtonVisibility();
   const hero = state.heroes[state.selectedHeroIndex];
   const playerW = PLAYER_HITBOX_WIDTH;
   const playerH = PLAYER_HITBOX_HEIGHT;
@@ -2666,6 +2699,7 @@ function update(delta) {
 
   updatePlayer(delta);
   updateEnemies(delta);
+  updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
   updateCamera();
@@ -2752,6 +2786,107 @@ function updatePlayer(delta) {
       respawnPlayer();
     }
     return;
+  }
+}
+
+function isMageSelected() {
+  const hero = state.heroes[state.selectedHeroIndex];
+  return hero?.id === "mage";
+}
+
+function castMageFireball() {
+  if (!isMageSelected() || !state.currentLevel || !state.player || state.towerInterior.active || state.boss.active) {
+    return false;
+  }
+  const player = state.player;
+  const forwardSign = player.facing === "south-west" ? -1 : 1;
+  const originX = player.x + player.w * 0.5;
+  const originY = player.y + player.h * 0.43;
+  const target = findClosestEnemyAhead(originX, forwardSign);
+  if (!target) {
+    return false;
+  }
+  const targetX = target.x + target.w * 0.5;
+  const targetY = target.y + target.h * 0.5;
+  const dx = targetX - originX;
+  const dy = targetY - originY;
+  const distance = Math.hypot(dx, dy) || 1;
+  state.fireballs.push({
+    x: originX,
+    y: originY,
+    vx: (dx / distance) * MAGE_FIREBALL_SPEED,
+    vy: (dy / distance) * MAGE_FIREBALL_SPEED,
+    life: Math.max(0.45, distance / MAGE_FIREBALL_SPEED + 0.15),
+    radius: MAGE_FIREBALL_RADIUS,
+  });
+  return true;
+}
+
+function findClosestEnemyAhead(originX, forwardSign) {
+  const level = state.currentLevel;
+  if (!level) {
+    return null;
+  }
+  let best = null;
+  let bestDistance = Infinity;
+  for (const enemy of level.enemySpawns) {
+    if (!enemy?.alive || enemy.battling || enemy.defeatFadeActive) {
+      continue;
+    }
+    const centerX = enemy.x + enemy.w * 0.5;
+    const distanceForward = (centerX - originX) * forwardSign;
+    if (distanceForward <= 0) {
+      continue;
+    }
+    if (distanceForward < bestDistance) {
+      best = enemy;
+      bestDistance = distanceForward;
+    }
+  }
+  return best;
+}
+
+function updateFireballs(delta) {
+  if (!state.fireballs.length || !state.currentLevel || state.duel?.QS.active || state.paused || state.gameOver || state.deathSequence.active) {
+    return;
+  }
+  const level = state.currentLevel;
+  for (let i = state.fireballs.length - 1; i >= 0; i -= 1) {
+    const fireball = state.fireballs[i];
+    fireball.life -= delta;
+    fireball.x += fireball.vx * delta;
+    fireball.y += fireball.vy * delta;
+    if (
+      fireball.life <= 0 ||
+      fireball.x < -32 ||
+      fireball.x > level.worldWidth + 32 ||
+      fireball.y < -32 ||
+      fireball.y > level.worldHeight + 32
+    ) {
+      state.fireballs.splice(i, 1);
+      continue;
+    }
+
+    let hitEnemy = null;
+    for (const enemy of level.enemySpawns) {
+      if (!enemy?.alive || enemy.battling || enemy.defeatFadeActive) {
+        continue;
+      }
+      const expanded = {
+        x: enemy.x - fireball.radius,
+        y: enemy.y - fireball.radius,
+        w: enemy.w + fireball.radius * 2,
+        h: enemy.h + fireball.radius * 2,
+      };
+      if (aabb(fireball, expanded)) {
+        hitEnemy = enemy;
+        break;
+      }
+    }
+    if (hitEnemy) {
+      state.fireballs.splice(i, 1);
+      openQuestion(hitEnemy);
+    }
   }
 }
 
@@ -3901,6 +4036,7 @@ function render(timeSeconds) {
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
     drawEnemies(level);
+    drawFireballs(level);
     drawEnemyDrops(level);
     drawGoal(level);
     drawPlayer(state.player);
@@ -4318,6 +4454,26 @@ function getEntitySpriteDrawRect(image, entity, drawW, drawH) {
   const drawX = entity.x + (entity.w - visibleW) / 2 - leftPad;
   const drawY = entity.y + entity.h - visibleH - topPad;
   return { x: drawX, y: drawY };
+}
+
+function drawFireballs(level) {
+  if (!state.fireballs.length) {
+    return;
+  }
+  const image = imageCache.get(MAGE_FIREBALL_ICON);
+  for (const fireball of state.fireballs) {
+    const size = fireball.radius * 2;
+    const drawX = fireball.x - fireball.radius;
+    const drawY = fireball.y - fireball.radius;
+    if (isImageRenderable(image)) {
+      ctx.drawImage(image, drawX, drawY, size, size);
+      continue;
+    }
+    ctx.fillStyle = "#ff8e42";
+    ctx.beginPath();
+    ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function drawEnemies(level) {
@@ -5104,6 +5260,13 @@ function isHeroOwned(heroId) {
   return Boolean(state.heroUnlocks[heroId]);
 }
 
+function syncMageActionButtonVisibility() {
+  if (!ui.castFireBtn) {
+    return;
+  }
+  ui.castFireBtn.hidden = !isMageSelected();
+}
+
 function ensureSelectedHeroIsOwned() {
   const selected = state.heroes[state.selectedHeroIndex];
   if (selected && isHeroOwned(selected.id)) {
@@ -5126,6 +5289,7 @@ function initializeHeroProgress() {
   const selectedIndex = state.heroes.findIndex((hero) => hero.id === selectedHeroId);
   state.selectedHeroIndex = selectedIndex >= 0 ? selectedIndex : getPaladinIndex();
   ensureSelectedHeroIsOwned();
+  syncMageActionButtonVisibility();
   const selected = state.heroes[state.selectedHeroIndex];
   saveHeroUnlocks(state.heroUnlocks);
   if (selected) {
