@@ -53,6 +53,7 @@ const WORLD_SCALE = 1;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
+const WORLD_ZOOM_STORAGE_KEY = "cquest_world_zoom_v1";
 const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
 const TENSE_KEYS = Object.keys(TENSE_LABEL);
@@ -195,6 +196,8 @@ const ui = {
   cheatGivePiecesBtn: document.getElementById("cheatGivePiecesBtn"),
   cheatApplyBtn: document.getElementById("cheatApplyBtn"),
   cheatCloseBtn: document.getElementById("cheatCloseBtn"),
+  worldZoomSlider: document.getElementById("worldZoomSlider"),
+  worldZoomValue: document.getElementById("worldZoomValue"),
   hudLives: document.getElementById("hudLives"),
   hudGoldValue: document.getElementById("hudGoldValue"),
   shopBtn: document.getElementById("shopBtn"),
@@ -288,6 +291,7 @@ const state = {
   coins: 0,
   persistentGold: 0,
   hearts: STARTING_HEARTS,
+  worldZoom: 1,
   scoreClickStreak: 0,
   scoreClickTimer: null,
   generationProfile: "normal",
@@ -348,6 +352,8 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
+  state.worldZoom = loadWorldZoom();
+  applyWorldZoom(state.worldZoom);
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
     verbs: getVerbSource(),
@@ -2063,6 +2069,40 @@ function populateSettingsPanel() {
   syncMageActionButtonVisibility();
 }
 
+
+function normalizeWorldZoom(value) {
+  return clamp(Number(value) || 1, 0.7, 1.6);
+}
+
+function loadWorldZoom() {
+  try {
+    return normalizeWorldZoom(Number(localStorage.getItem(WORLD_ZOOM_STORAGE_KEY) || 1));
+  } catch {
+    return 1;
+  }
+}
+
+function saveWorldZoom(value) {
+  try {
+    localStorage.setItem(WORLD_ZOOM_STORAGE_KEY, String(normalizeWorldZoom(value)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+function applyWorldZoom(value) {
+  const zoom = normalizeWorldZoom(value);
+  state.worldZoom = zoom;
+  canvas?.style?.setProperty("--world-zoom", String(zoom));
+  if (ui.worldZoomSlider) {
+    ui.worldZoomSlider.value = String(Math.round(zoom * 100));
+  }
+  if (ui.worldZoomValue) {
+    ui.worldZoomValue.textContent = `${Math.round(zoom * 100)}%`;
+  }
+  saveWorldZoom(zoom);
+}
+
 function populateCheatModalOptions() {
   if (!ui.cheatLevelSelect || !ui.cheatHeroSelect) {
     return;
@@ -2085,6 +2125,7 @@ function populateCheatModalOptions() {
 
   ui.cheatLevelSelect.value = String(state.currentLevelIndex);
   ui.cheatHeroSelect.value = String(state.selectedHeroIndex);
+  applyWorldZoom(state.worldZoom);
 }
 
 function openCheatModal() {
@@ -2224,6 +2265,9 @@ function bindControls() {
     updateHudInfo();
   });
   ui.cheatApplyBtn?.addEventListener("click", applyCheatSelections);
+  ui.worldZoomSlider?.addEventListener("input", () => {
+    applyWorldZoom((Number(ui.worldZoomSlider.value) || 100) / 100);
+  });
 
   ui.heroSelect?.addEventListener("change", () => {
     const requestedHeroIndex = clamp(Number(ui.heroSelect.value) || getPaladinIndex(), 0, state.heroes.length - 1);

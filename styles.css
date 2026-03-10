@@ -76,6 +76,8 @@ body {
   height: 100%;
   display: block;
   image-rendering: pixelated;
+  transform: scale(var(--world-zoom, 1));
+  transform-origin: center center;
 }
 
 .hud {
@@ -629,6 +631,21 @@ body {
 
 .cheat-card select {
   width: 100%;
+}
+
+.cheat-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#worldZoomSlider {
+  flex: 1;
+}
+
+#worldZoomValue {
+  min-width: 52px;
+  text-align: right;
 }
 
 .menu-actions {
