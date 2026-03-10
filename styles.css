@@ -146,10 +146,15 @@ body {
 
 .controls-zone {
   position: relative;
-  min-height: 210px;
-  padding: 18px 10px calc(34px + env(safe-area-inset-bottom));
+  padding: 12px 10px calc(20px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   background: linear-gradient(180deg, rgba(6, 10, 16, 0.92), rgba(12, 17, 25, 0.97));
+}
+
+@media (max-width: 600px) and (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  .game-shell {
+    transform: translateY(-36px);
+  }
 }
 
 .touch-controls {
