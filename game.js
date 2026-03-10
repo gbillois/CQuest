@@ -363,14 +363,14 @@ async function init() {
     },
   });
   exposeConjugationApi();
-  await preloadConfigAssetImages(config);
-  await preloadParallaxBackgrounds();
-  await preloadBossAssets();
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();
 
   generateLevelsFromConfig(config);
+  await preloadLevelAssetImages(state.levels[0]);
+  await preloadSelectedHeroSprites();
+  await preloadEnemiesForLevel(0);
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();
@@ -383,6 +383,7 @@ async function init() {
   loadLevel(0, true);
   state.ready = true;
   showTitleScreen();
+  scheduleBackgroundWarmup(config);
   requestAnimationFrame(gameLoop);
 }
 
@@ -663,6 +664,52 @@ async function preloadConfigAssetImages(config) {
     }
   }
   // Ensure key reward sprites are available even if omitted from config.
+  paths.add("game_assets/decoration/deco_jewel.png");
+  paths.add("game_assets/decoration/deco_potion.png");
+  paths.add("game_assets/bonus/bonus_mystery.png");
+  paths.add("game_assets/bonus/bonus_wall_01.png");
+  paths.add("game_assets/tower/tower_inside.png");
+  paths.add("game_assets/decoration/deco_chest.png");
+
+  await Promise.all([...paths].map((path) => loadImage(path).catch(() => null)));
+}
+
+async function preloadLevelAssetImages(level) {
+  if (!level) {
+    return;
+  }
+
+  const paths = new Set();
+  for (const row of level.tileGrid || []) {
+    for (const tile of row || []) {
+      if (tile?.path) {
+        paths.add(tile.path);
+      }
+    }
+  }
+
+  for (const deco of level.decorations || []) {
+    if (deco?.path) {
+      paths.add(deco.path);
+    }
+  }
+
+  if (level.structures?.start) {
+    paths.add(level.structures.start);
+  }
+  if (level.structures?.end) {
+    paths.add(level.structures.end);
+  }
+  if (level.structures?.tower) {
+    paths.add(level.structures.tower);
+  }
+
+  for (const block of level.bonusBlocks || []) {
+    if (block?.spritePath) {
+      paths.add(block.spritePath);
+    }
+  }
+
   paths.add("game_assets/decoration/deco_jewel.png");
   paths.add("game_assets/decoration/deco_potion.png");
   paths.add("game_assets/bonus/bonus_mystery.png");
@@ -4455,7 +4502,6 @@ async function buildHeroFromMetadata(dir, metadata) {
     return null;
   }
 
-  await preloadHeroSprites(hero);
   return hero;
 }
 
@@ -4485,7 +4531,6 @@ async function buildHeroFromConvention(dir) {
     },
   };
 
-  await preloadHeroSprites(hero);
   return hero;
 }
 
@@ -4537,7 +4582,6 @@ async function buildEnemyFromMetadata(dir, metadata) {
     enemy.sprite.idleW = enemy.sprite.idleE;
   }
 
-  await preloadEnemySprites(enemy);
   return enemy;
 }
 
@@ -4587,7 +4631,6 @@ async function buildEnemyFromConvention(dir) {
     },
   };
 
-  await preloadEnemySprites(enemy);
   return enemy;
 }
 
@@ -4596,6 +4639,34 @@ async function preloadEnemySprites(enemy) {
     Boolean,
   );
   await Promise.all(preloadList.map((path) => loadImage(path).catch(() => null)));
+}
+
+async function preloadSelectedHeroSprites() {
+  const hero = state.heroes[state.selectedHeroIndex] || state.heroes[0];
+  if (!hero) {
+    return;
+  }
+  await preloadHeroSprites(hero);
+}
+
+async function preloadEnemiesForLevel(levelIndex) {
+  const level = state.levels[levelIndex];
+  if (!level) {
+    return;
+  }
+  const biomeId = level.biomeId;
+  const targetedEnemies = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
+  await Promise.all(targetedEnemies.map((enemy) => preloadEnemySprites(enemy)));
+}
+
+function scheduleBackgroundWarmup(config) {
+  window.setTimeout(() => {
+    preloadConfigAssetImages(config).catch(() => null);
+    preloadParallaxBackgrounds().catch(() => null);
+    preloadBossAssets().catch(() => null);
+    Promise.all(state.heroes.map((hero) => preloadHeroSprites(hero))).catch(() => null);
+    Promise.all(state.enemies.map((enemy) => preloadEnemySprites(enemy))).catch(() => null);
+  }, 0);
 }
 
 async function keepLoadablePaths(paths) {
