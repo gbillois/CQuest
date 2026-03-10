@@ -9,21 +9,21 @@ const GAME = {
   friction: 0.84,
   levelCount: 5,
 };
-const HERO_SCALE = 1.5;
-const ENEMY_SCALE = 1.5;
+const HERO_SCALE = 3;
+const ENEMY_SCALE = 3;
 const STARTING_HEARTS = 3;
 const MAX_HEARTS = 3;
 const SPRITE_FALLBACK_FOOT_OFFSET_RATIO = 0.12;
 const PLAYER_RENDER_GROUND_OFFSET_PX = 0;
-const PLAYER_HITBOX_WIDTH = 27;
-const PLAYER_HITBOX_HEIGHT = 60;
+const PLAYER_HITBOX_WIDTH = 54;
+const PLAYER_HITBOX_HEIGHT = 120;
 const ENEMY_MOVE_SPEED = 52;
 const ENEMY_HITBOX_WIDTH_RATIO = 0.46;
 const ENEMY_HITBOX_HEIGHT_RATIO = 0.62;
-const ENEMY_MIN_HITBOX_W = 20;
-const ENEMY_MAX_HITBOX_W = 34;
-const ENEMY_MIN_HITBOX_H = 28;
-const ENEMY_MAX_HITBOX_H = 52;
+const ENEMY_MIN_HITBOX_W = 40;
+const ENEMY_MAX_HITBOX_W = 68;
+const ENEMY_MIN_HITBOX_H = 56;
+const ENEMY_MAX_HITBOX_H = 104;
 const ENEMY_DEFEAT_FADE_SECONDS = 0.75;
 const ENEMY_DEFEAT_RISE_PX = 10;
 const BONUS_POPUP_GRAVITY = 1250;
@@ -47,13 +47,14 @@ const GROUND_TILE_HORIZONTAL_OVERLAP_PX = 2;
 const GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO = 0.22;
 const GROUND_SURFACE_VARIATION_MAX_UP = 0;
 const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
-const TOWER_HEIGHT_SCALE = 1.5;
-const CASTLE_SCALE = 1.5;
+const TOWER_HEIGHT_SCALE = 3;
+const CASTLE_SCALE = 3;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
 const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
+const TENSE_KEYS = Object.keys(TENSE_LABEL);
 const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
 
 const KNOWN_HERO_DIRS = ["mage", "ninja", "paladin", "pirate"];
@@ -190,6 +191,7 @@ const ui = {
   pauseBtn: document.getElementById("pauseBtn"),
   pauseIcon: document.getElementById("pauseIcon"),
   settingsPanel: document.getElementById("settingsPanel"),
+  shopPanel: document.getElementById("shopPanel"),
   heroSelect: document.getElementById("heroSelect"),
   heroShopList: document.getElementById("heroShopList"),
   shopGoldValue: document.getElementById("shopGoldValue"),
@@ -208,6 +210,7 @@ const ui = {
   errorList: document.getElementById("errorList"),
   applySettingsBtn: document.getElementById("applySettingsBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+  closeShopBtn: document.getElementById("closeShopBtn"),
   moveLeftBtn: document.getElementById("moveLeftBtn"),
   moveRightBtn: document.getElementById("moveRightBtn"),
   jumpBtn: document.getElementById("jumpBtn"),
@@ -248,7 +251,7 @@ const state = {
   paused: false,
   gameOver: false,
   config: null,
-  tileSize: 32,
+  tileSize: 64,
   biomes: {},
   heroes: [],
   enemies: [],
@@ -275,7 +278,7 @@ const state = {
   screenMode: "game",
   pedagogy: {
     activeGroups: [],
-    activeTenses: ["pr", "im", "fu"],
+    activeTenses: TENSE_KEYS.slice(),
   },
   duel: null,
   message: "",
@@ -323,7 +326,7 @@ init().catch((error) => {
 async function init() {
   const config = await loadConfig();
   state.config = config;
-  state.tileSize = config.grid?.tile_size || 32;
+  state.tileSize = (config.grid?.tile_size || 32) * 2;
   enforceMinimumJumpHeight();
 
   await setupUiAssets(config);
@@ -443,7 +446,7 @@ function buildFallbackConfig() {
     schema: "fallback.dynamic-level-config.v1",
     asset_root: "game_assets",
     grid: {
-      tile_size: 32,
+      tile_size: 64,
       default_level_size_tiles: { width: 128, height: 36 },
     },
     generation: {
@@ -2083,7 +2086,20 @@ function bindControls() {
     if (state.duel?.QS.active) {
       return;
     }
-    openSettingsPanel();
+    openShopPanel();
+  });
+
+  ui.heroSelect?.addEventListener("change", () => {
+    const requestedHeroIndex = clamp(Number(ui.heroSelect.value) || getPaladinIndex(), 0, state.heroes.length - 1);
+    const requestedHero = state.heroes[requestedHeroIndex];
+    if (!requestedHero || !isHeroOwned(requestedHero.id)) {
+      ensureSelectedHeroIsOwned();
+      ui.heroSelect.value = String(state.selectedHeroIndex);
+      return;
+    }
+    state.selectedHeroIndex = requestedHeroIndex;
+    saveSelectedHeroId(requestedHero.id);
+    renderHeroShop();
   });
 
   ui.heroShopList?.addEventListener("click", (event) => {
@@ -2143,13 +2159,10 @@ function bindControls() {
   });
 
   ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
+  ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
   ui.applySettingsBtn.addEventListener("click", () => {
     const wasStarted = state.started;
-    const requestedHeroIndex = clamp(Number(ui.heroSelect.value) || getPaladinIndex(), 0, state.heroes.length - 1);
-    state.selectedHeroIndex = requestedHeroIndex;
-    ensureSelectedHeroIsOwned();
-    saveSelectedHeroId(state.heroes[state.selectedHeroIndex]?.id || "paladin");
     const requestedProfile = ui.difficultySelect ? ui.difficultySelect.value : state.generationProfile;
     const requestedLevelValue = String(ui.levelSelect.value || "0");
     const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
@@ -2219,21 +2232,21 @@ function bindControls() {
         return;
       }
       if (!state.started) {
-        if (titleVisible && ui.settingsPanel.hidden && (event.code === "Enter" || event.code === "Space")) {
+        if (titleVisible && ui.settingsPanel.hidden && ui.shopPanel.hidden && (event.code === "Enter" || event.code === "Space")) {
           event.preventDefault();
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && !ui.settingsPanel.hidden) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden)) {
           event.preventDefault();
-          closeSettingsPanel();
+          closeOverlayPanels();
         }
         return;
       }
       if (key === "escape") {
         event.preventDefault();
-        if (!ui.settingsPanel.hidden) {
-          closeSettingsPanel();
+        if (!ui.settingsPanel.hidden || !ui.shopPanel.hidden) {
+          closeOverlayPanels();
           return;
         }
         if (isPauseModalOpen()) {
@@ -2313,8 +2326,8 @@ function isPauseModalOpen() {
   return Boolean(ui.pauseModal && !ui.pauseModal.classList.contains("hidden"));
 }
 
-function openSettingsPanel() {
-  if (!state.ready || !ui.settingsPanel) {
+function openShopPanel() {
+  if (!state.ready || !ui.shopPanel) {
     return;
   }
   ensureSelectedHeroIsOwned();
@@ -2323,11 +2336,33 @@ function openSettingsPanel() {
     state.selectedHeroIndex = getPaladinIndex();
     ui.heroSelect.value = String(state.selectedHeroIndex);
   }
+  renderHeroShop();
+  ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = false;
+  state.paused = true;
+}
+
+function closeShopPanel() {
+  if (!ui.shopPanel) {
+    return;
+  }
+  ui.shopPanel.hidden = true;
+  if (!state.started) {
+    state.paused = false;
+    return;
+  }
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden;
+}
+
+function openSettingsPanel() {
+  if (!state.ready || !ui.settingsPanel) {
+    return;
+  }
   ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
   if (ui.difficultySelect) {
     ui.difficultySelect.value = state.generationProfile;
   }
-  renderHeroShop();
+  ui.shopPanel.hidden = true;
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -2341,7 +2376,12 @@ function closeSettingsPanel() {
     state.paused = false;
     return;
   }
-  state.paused = isPauseModalOpen();
+  state.paused = isPauseModalOpen() || !ui.shopPanel.hidden;
+}
+
+function closeOverlayPanels() {
+  closeSettingsPanel();
+  closeShopPanel();
 }
 
 function openPauseMenu() {
@@ -2350,6 +2390,7 @@ function openPauseMenu() {
   }
   resetMovementInputs();
   ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -2362,7 +2403,7 @@ function closePauseMenu() {
     state.paused = false;
     return;
   }
-  state.paused = !ui.settingsPanel.hidden;
+  state.paused = !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
 }
 
 function startGameFromMenu() {
@@ -2385,6 +2426,7 @@ function startGameFromMenu() {
   ui.gameOverPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
   if (state.pendingBossStart) {
     startBossMode({ sourceLevelIndex: getBossPrepLevelIndex() });
     return;
@@ -2405,6 +2447,7 @@ function showTitleScreen() {
   }
   resetMovementInputs();
   ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.titleScreen?.classList.remove("hidden");
@@ -2428,6 +2471,7 @@ function showGameOverScreen() {
   }
   resetBossState();
   ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
   ui.pauseModal?.classList.add("hidden");
   ui.titleScreen?.classList.add("hidden");
   if (ui.gameOverTitle) {
@@ -4950,6 +4994,39 @@ function getVerbSource() {
         },
       },
     },
+    irr: {
+      label: "Verbes irréguliers usuels",
+      list: {
+        etre: {
+          inf: "être",
+          pr: ["suis", "es", "est", "sommes", "êtes", "sont"],
+          im: ["étais", "étais", "était", "étions", "étiez", "étaient"],
+          fu: ["serai", "seras", "sera", "serons", "serez", "seront"],
+          pp: "été",
+        },
+        avoir: {
+          inf: "avoir",
+          pr: ["ai", "as", "a", "avons", "avez", "ont"],
+          im: ["avais", "avais", "avait", "avions", "aviez", "avaient"],
+          fu: ["aurai", "auras", "aura", "aurons", "aurez", "auront"],
+          pp: "eu",
+        },
+        aller: {
+          inf: "aller",
+          pr: ["vais", "vas", "va", "allons", "allez", "vont"],
+          im: ["allais", "allais", "allait", "allions", "alliez", "allaient"],
+          fu: ["irai", "iras", "ira", "irons", "irez", "iront"],
+          pp: "allé",
+        },
+        faire: {
+          inf: "faire",
+          pr: ["fais", "fais", "fait", "faisons", "faites", "font"],
+          im: ["faisais", "faisais", "faisait", "faisions", "faisiez", "faisaient"],
+          fu: ["ferai", "feras", "fera", "ferons", "ferez", "feront"],
+          pp: "fait",
+        },
+      },
+    },
   };
 }
 
@@ -5051,7 +5128,7 @@ function spendPersistentGold(cost) {
   }
   state.persistentGold -= amount;
   savePersistentGold(state.persistentGold);
-  if (ui.settingsPanel && !ui.settingsPanel.hidden) {
+  if ((ui.settingsPanel && !ui.settingsPanel.hidden) || (ui.shopPanel && !ui.shopPanel.hidden)) {
     renderHeroShop();
   }
   return true;
@@ -5065,7 +5142,7 @@ function grantGold(amount) {
   state.coins += value;
   state.persistentGold += value;
   savePersistentGold(state.persistentGold);
-  if (ui.settingsPanel && !ui.settingsPanel.hidden) {
+  if ((ui.settingsPanel && !ui.settingsPanel.hidden) || (ui.shopPanel && !ui.shopPanel.hidden)) {
     renderHeroShop();
   }
 }
@@ -5084,7 +5161,7 @@ function populatePedagogyPanel() {
     })
     .join("");
 
-  ui.tenseFilters.innerHTML = ["pr", "im", "fu"]
+  ui.tenseFilters.innerHTML = TENSE_KEYS
     .map((t) => {
       const checked = state.pedagogy.activeTenses.includes(t) ? "checked" : "";
       return `<label><input type="checkbox" data-tense="${t}" ${checked}/> ${TENSE_LABEL[t]}</label>`;
@@ -5101,7 +5178,7 @@ function populatePedagogyPanel() {
   ui.tenseFilters.querySelectorAll("input[data-tense]").forEach((input) => {
     input.addEventListener("change", () => {
       const selected = [...ui.tenseFilters.querySelectorAll("input[data-tense]:checked")].map((el) => el.dataset.tense);
-      state.pedagogy.activeTenses = selected.length ? selected : ["pr", "im", "fu"];
+      state.pedagogy.activeTenses = selected.length ? selected : TENSE_KEYS.slice();
       renderErrorList();
     });
   });
@@ -5368,7 +5445,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
       const fallbackPool = [];
       for (const g of Object.values(verbs || {})) {
         for (const v of Object.values(g.list || {})) {
-          for (const t of ["pr", "im", "fu"]) {
+          for (const t of TENSE_KEYS) {
             const arr = v[t];
             if (Array.isArray(arr)) {
               fallbackPool.push(...arr);
@@ -5440,7 +5517,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     const s = settingsGetter?.() || {};
     return {
       activeGroups: s.activeGroups?.length ? s.activeGroups : Object.keys(verbs || {}),
-      activeTenses: s.activeTenses?.length ? s.activeTenses : ["pr", "im", "fu"],
+      activeTenses: s.activeTenses?.length ? s.activeTenses : TENSE_KEYS.slice(),
     };
   }
 
