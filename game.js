@@ -49,6 +49,8 @@ const GROUND_SURFACE_VARIATION_MAX_UP = 0;
 const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
 const TOWER_HEIGHT_SCALE = 1.5;
 const CASTLE_SCALE = 1.5;
+const TOWER_INTERIOR_Y_OFFSET_PX = 300;
+const TOWER_INTERIOR_SPRITE_SCALE = 2;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
@@ -3603,16 +3605,20 @@ function getTowerBounds(level) {
 }
 
 function getTowerInteriorFloorY() {
-  return VIRTUAL_HEIGHT - 34;
+  return VIRTUAL_HEIGHT - 34 - TOWER_INTERIOR_Y_OFFSET_PX;
 }
 
 function getTowerInteriorChestBounds() {
-  const chestW = 84;
-  const chestH = 84;
+  const chestW = 84 * TOWER_INTERIOR_SPRITE_SCALE;
+  const chestH = 84 * TOWER_INTERIOR_SPRITE_SCALE;
   const floorY = getTowerInteriorFloorY();
   const chestX = Math.round(VIRTUAL_WIDTH * 0.68 - chestW * 0.5);
   const chestY = Math.round(floorY - chestH);
   return { x: chestX, y: chestY, w: chestW, h: chestH };
+}
+
+function getHeroRenderScale() {
+  return state.towerInterior.active ? HERO_SCALE * TOWER_INTERIOR_SPRITE_SCALE : HERO_SCALE;
 }
 
 function openTowerChestAttempt() {
@@ -4342,8 +4348,9 @@ function drawPlayer(player) {
   const deathRotation = dying ? deathT * Math.PI * 1.35 : 0;
 
   if (isImageRenderable(frameImage)) {
-    const drawW = hero.size.width * HERO_SCALE;
-    const drawH = hero.size.height * HERO_SCALE;
+    const heroScale = getHeroRenderScale();
+    const drawW = hero.size.width * heroScale;
+    const drawH = hero.size.height * heroScale;
     const rect = getEntitySpriteDrawRect(frameImage, player, drawW, drawH);
     if (player.onGround) {
       rect.y += PLAYER_RENDER_GROUND_OFFSET_PX;
