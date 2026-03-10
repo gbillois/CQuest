@@ -93,7 +93,6 @@ body {
 
 .hud-info {
   display: contents;
-  pointer-events: none;
 }
 
 .hud-item {
@@ -123,6 +122,10 @@ body {
   font-weight: 800;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+#hudScoreValue {
+  cursor: pointer;
 }
 
 .hud-actions {
@@ -610,6 +613,22 @@ body {
 
 .menu-card p {
   margin: 4px 0 12px;
+}
+
+.cheat-card {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.cheat-card label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(245, 248, 255, 0.95);
+}
+
+.cheat-card select {
+  width: 100%;
 }
 
 .menu-actions {
