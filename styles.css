@@ -154,9 +154,13 @@ body {
 
 .touch-controls {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   padding: 0;
+}
+
+#jumpBtn {
+  margin-left: auto;
 }
 
 .touch-btn {
