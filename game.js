@@ -1974,7 +1974,7 @@ function getEnemyHitboxSize(enemyDef) {
 
 function renderHeroShop() {
   if (ui.shopGoldValue) {
-    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)}`;
+    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)} pièces`;
   }
   if (!ui.heroShopList) {
     return;
@@ -1988,12 +1988,18 @@ function renderHeroShop() {
       const owned = isHeroOwned(hero.id);
       const equipped = owned && hero.id === selectedHeroId;
       const canBuy = !owned && state.persistentGold >= cfg.price;
-      const actionLabel = equipped ? "Equipped" : owned ? "Equip" : "Buy";
+      const actionLabel = equipped ? "Équipé" : owned ? "Équiper" : "Acheter";
       const actionClass = owned ? "hero-shop-btn" : "hero-shop-btn buy";
       const disabled = !owned && !canBuy ? "disabled" : "";
       const lockStateClass = owned ? "owned" : "locked";
-      const priceLabel = owned ? "Owned" : `${cfg.price} pieces`;
+      const priceLabel = owned
+        ? "Déjà débloquée"
+        : `Prix : <span class="amount">${cfg.price} pièces</span>`;
       return `<div class="hero-shop-item ${lockStateClass}">
+        <div class="hero-shop-preview">
+          <img src="${hero.sprite.idleSE}" alt="${hero.name}" loading="lazy" />
+          ${owned ? "" : '<span class="hero-shop-lock" aria-hidden="true">🔒</span>'}
+        </div>
         <div class="hero-shop-meta">
           <div class="hero-shop-name">${hero.name}</div>
           <div class="hero-shop-price">${priceLabel}</div>
@@ -2124,7 +2130,7 @@ function bindControls() {
         return;
       }
       if (!spendPersistentGold(cfg.price)) {
-        showMessage("Pas assez de pieces");
+        showMessage("Pas assez de pièces");
         renderHeroShop();
         return;
       }
@@ -2132,7 +2138,7 @@ function bindControls() {
       saveHeroUnlocks(state.heroUnlocks);
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
-      showMessage(`${state.heroes[heroIndex].name} debloque`);
+      showMessage(`${state.heroes[heroIndex].name} débloquée`);
       populateSettingsPanel();
       return;
     }
