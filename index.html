@@ -57,8 +57,8 @@
           </div>
         </div>
 
-        <aside class="panel" id="settingsPanel" hidden>
-          <h1>Settings</h1>
+        <aside class="panel" id="shopPanel" hidden>
+          <h1>Shop</h1>
 
           <label for="heroSelect">Hero</label>
           <select id="heroSelect"></select>
@@ -68,6 +68,14 @@
             <p class="shop-wallet">Gold pieces: <strong id="shopGoldValue">0</strong></p>
             <div id="heroShopList" class="hero-shop-list"></div>
           </section>
+
+          <div class="panel-actions">
+            <button id="closeShopBtn" class="secondary">Close</button>
+          </div>
+        </aside>
+
+        <aside class="panel" id="settingsPanel" hidden>
+          <h1>Settings</h1>
 
           <label for="levelSelect">Level</label>
           <select id="levelSelect"></select>
@@ -81,7 +89,9 @@
 
           <section class="pedagogy" id="pedagogyPanel">
             <h2>Conjugation Training</h2>
+            <h3>Verb types</h3>
             <div id="groupFilters" class="check-grid"></div>
+            <h3>Tenses</h3>
             <div id="tenseFilters" class="check-grid"></div>
             <div class="error-tools">
               <button id="resetErrorsBtn" class="secondary">Reset Errors</button>
