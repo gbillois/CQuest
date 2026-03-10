@@ -234,6 +234,10 @@ const ui = {
   moveRightBtn: document.getElementById("moveRightBtn"),
   jumpBtn: document.getElementById("jumpBtn"),
   castFireBtn: document.getElementById("castFireBtn"),
+  moveLeftHitBtn: document.getElementById("moveLeftHitBtn"),
+  moveRightHitBtn: document.getElementById("moveRightHitBtn"),
+  jumpHitBtn: document.getElementById("jumpHitBtn"),
+  castFireHitBtn: document.getElementById("castFireHitBtn"),
   btnLeft: document.getElementById("btnLeft"),
   btnRight: document.getElementById("btnRight"),
   btnUp: document.getElementById("btnUp"),
@@ -2244,12 +2248,12 @@ function applyCheatSelections() {
 }
 
 function bindControls() {
-  const setHeldState = (button, key, isDown) => {
+  const setHeldState = (buttons, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
       return;
     }
     state.controls[key] = isDown;
-    button.classList.toggle("active", isDown);
+    buttons.forEach((button) => button.classList.toggle("active", isDown));
   };
   const isLeftKey = (event) =>
     event.code === "ArrowLeft" ||
@@ -2273,25 +2277,34 @@ function bindControls() {
     event.key.toLowerCase() === "w" ||
     event.key.toLowerCase() === "z";
 
-  attachHoldButton(ui.moveLeftBtn, (down) => setHeldState(ui.moveLeftBtn, "left", down));
-  attachHoldButton(ui.moveRightBtn, (down) => setHeldState(ui.moveRightBtn, "right", down));
-  attachTapButton(ui.jumpBtn, () => {
-    if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
-      return;
-    }
-    state.controls.jumpBuffered = true;
-    ui.jumpBtn.classList.add("active");
-    setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
-  });
+  const leftButtons = [ui.moveLeftBtn, ui.moveLeftHitBtn].filter(Boolean);
+  const rightButtons = [ui.moveRightBtn, ui.moveRightHitBtn].filter(Boolean);
+  const jumpButtons = [ui.jumpBtn, ui.jumpHitBtn].filter(Boolean);
+  const fireButtons = [ui.castFireBtn, ui.castFireHitBtn].filter(Boolean);
 
-  attachTapButton(ui.castFireBtn, () => {
-    if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
-      return;
-    }
-    castMageFireball();
-    ui.castFireBtn.classList.add("active");
-    setTimeout(() => ui.castFireBtn.classList.remove("active"), 90);
-  });
+  leftButtons.forEach((button) => attachHoldButton(button, (down) => setHeldState(leftButtons, "left", down)));
+  rightButtons.forEach((button) => attachHoldButton(button, (down) => setHeldState(rightButtons, "right", down)));
+  jumpButtons.forEach((button) =>
+    attachTapButton(button, () => {
+      if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
+        return;
+      }
+      state.controls.jumpBuffered = true;
+      jumpButtons.forEach((jumpButton) => jumpButton.classList.add("active"));
+      setTimeout(() => jumpButtons.forEach((jumpButton) => jumpButton.classList.remove("active")), 90);
+    }),
+  );
+
+  fireButtons.forEach((button) =>
+    attachTapButton(button, () => {
+      if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
+        return;
+      }
+      castMageFireball();
+      fireButtons.forEach((fireButton) => fireButton.classList.add("active"));
+      setTimeout(() => fireButtons.forEach((fireButton) => fireButton.classList.remove("active")), 90);
+    }),
+  );
 
   ui.shopBtn?.addEventListener("click", () => {
     if (!state.ready) {
@@ -2544,6 +2557,10 @@ function bindControls() {
     ui.moveRightBtn.classList.remove("active");
     ui.jumpBtn.classList.remove("active");
     ui.castFireBtn?.classList.remove("active");
+    ui.moveLeftHitBtn?.classList.remove("active");
+    ui.moveRightHitBtn?.classList.remove("active");
+    ui.jumpHitBtn?.classList.remove("active");
+    ui.castFireHitBtn?.classList.remove("active");
   });
 
   document.body.addEventListener(
@@ -2565,6 +2582,10 @@ function resetMovementInputs() {
   ui.moveRightBtn?.classList.remove("active");
   ui.jumpBtn?.classList.remove("active");
   ui.castFireBtn?.classList.remove("active");
+  ui.moveLeftHitBtn?.classList.remove("active");
+  ui.moveRightHitBtn?.classList.remove("active");
+  ui.jumpHitBtn?.classList.remove("active");
+  ui.castFireHitBtn?.classList.remove("active");
 }
 
 function isPauseModalOpen() {
@@ -5492,7 +5513,11 @@ function syncMageActionButtonVisibility() {
   if (!ui.castFireBtn) {
     return;
   }
-  ui.castFireBtn.hidden = !isMageSelected();
+  const shouldHide = !isMageSelected();
+  ui.castFireBtn.hidden = shouldHide;
+  if (ui.castFireHitBtn) {
+    ui.castFireHitBtn.hidden = shouldHide;
+  }
 }
 
 function ensureSelectedHeroIsOwned() {
