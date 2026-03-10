@@ -300,7 +300,6 @@ const state = {
   coins: 0,
   persistentGold: 0,
   hearts: STARTING_HEARTS,
-  worldZoom: 1,
   cheatLongPressTimer: null,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
@@ -361,7 +360,7 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
-  state.worldZoom = loadWorldZoom();
+  state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
@@ -2071,6 +2070,7 @@ function setWorldZoom(nextZoom, { syncUi = true } = {}) {
     return;
   }
   state.worldZoom = clampedZoom;
+  saveWorldZoom(state.worldZoom);
   syncCameraToCurrentZoom();
   if (syncUi) {
     syncWorldZoomUi();
@@ -2151,7 +2151,6 @@ function saveWorldZoom(value) {
 
 function applyWorldZoom(value) {
   setWorldZoom(value);
-  saveWorldZoom(state.worldZoom);
 }
 
 function populateCheatModalOptions() {
