@@ -212,37 +212,73 @@ body {
 
 .hero-shop {
   margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .shop-wallet {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 213, 106, 0.45);
+  background: linear-gradient(180deg, rgba(52, 36, 6, 0.85), rgba(24, 18, 7, 0.85));
   font-size: 0.9rem;
 }
 
 .shop-wallet strong {
   color: #ffd56a;
+  font-size: 1rem;
 }
 
 .hero-shop-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .hero-shop-item {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  grid-template-columns: 68px 1fr auto;
+  gap: 10px;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(8, 12, 28, 0.55);
 }
 
-.hero-shop-item.locked {
-  opacity: 0.9;
+.hero-shop-preview {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(180deg, rgba(121, 155, 218, 0.22), rgba(47, 79, 159, 0.12));
+}
+
+.hero-shop-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.hero-shop-item.locked .hero-shop-preview img {
+  filter: grayscale(1) brightness(0.8);
+}
+
+.hero-shop-lock {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 10, 18, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 12px;
 }
 
 .hero-shop-meta {
@@ -255,7 +291,12 @@ body {
 
 .hero-shop-price {
   font-size: 0.82rem;
-  opacity: 0.9;
+  opacity: 0.95;
+}
+
+.hero-shop-price .amount {
+  color: #ffd56a;
+  font-weight: 800;
 }
 
 .hero-shop-btn {
