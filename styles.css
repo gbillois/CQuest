@@ -644,3 +644,11 @@ body {
     min-height: 600px;
   }
 }
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 430px) {
+    .controls-zone {
+      transform: translateY(-200px);
+    }
+  }
+}
