@@ -50,6 +50,8 @@ const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
 const TOWER_HEIGHT_SCALE = 3;
 const CASTLE_SCALE = 3;
 const WORLD_SCALE = 1;
+const MIN_WORLD_ZOOM = 0.1;
+const MAX_WORLD_ZOOM = 3;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
@@ -2027,6 +2029,36 @@ function formatZoomLabel(zoom) {
   return `${Number(zoom).toFixed(1)}x`;
 }
 
+function getWorldZoom(value = state.worldZoom) {
+  return clamp(Number(value) || WORLD_SCALE, MIN_WORLD_ZOOM, MAX_WORLD_ZOOM);
+}
+
+function syncCameraToCurrentZoom() {
+  if (!state.currentLevel || !state.player) {
+    return;
+  }
+  const zoom = getWorldZoom();
+  const visibleWorldWidth = VIRTUAL_WIDTH / zoom;
+  const desired = state.player.x - visibleWorldWidth * 0.35;
+  const maxX = Math.max(0, state.currentLevel.worldWidth - visibleWorldWidth);
+  state.cameraX = clamp(desired, 0, maxX);
+}
+
+function setWorldZoom(nextZoom, { syncUi = true } = {}) {
+  const clampedZoom = getWorldZoom(nextZoom);
+  if (Math.abs(clampedZoom - state.worldZoom) < 0.0001) {
+    if (syncUi) {
+      syncWorldZoomUi();
+    }
+    return;
+  }
+  state.worldZoom = clampedZoom;
+  syncCameraToCurrentZoom();
+  if (syncUi) {
+    syncWorldZoomUi();
+  }
+}
+
 function syncWorldZoomUi() {
   if (ui.worldZoomSlider) {
     ui.worldZoomSlider.value = String(state.worldZoom);
@@ -2208,9 +2240,7 @@ function bindControls() {
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
   ui.worldZoomSlider?.addEventListener("input", () => {
-    const nextZoom = clamp(Number(ui.worldZoomSlider.value) || WORLD_SCALE, 0.1, 3);
-    state.worldZoom = nextZoom;
-    syncWorldZoomUi();
+    setWorldZoom(ui.worldZoomSlider.value);
   });
 
   ui.applySettingsBtn.addEventListener("click", () => {
@@ -4013,7 +4043,7 @@ function getEndCastleDoorBounds(level) {
 }
 
 function updateCamera() {
-  const zoom = clamp(state.worldZoom || WORLD_SCALE, 0.1, 3);
+  const zoom = getWorldZoom();
   const visibleWorldWidth = VIRTUAL_WIDTH / zoom;
   const desired = state.player.x - visibleWorldWidth * 0.35;
   const maxX = Math.max(0, state.currentLevel.worldWidth - visibleWorldWidth);
@@ -4058,7 +4088,7 @@ function render(timeSeconds) {
   drawParallaxBackground(level);
 
   ctx.save();
-  const zoom = clamp(state.worldZoom || WORLD_SCALE, 0.1, 3);
+  const zoom = getWorldZoom();
   const halfW = VIRTUAL_WIDTH * 0.5;
   const halfH = VIRTUAL_HEIGHT * 0.5;
   ctx.translate(halfW, halfH);
