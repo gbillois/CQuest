@@ -1553,7 +1553,7 @@ function augmentGroundHoles({ tileGrid, groundY, startX, endX, reservedRanges, h
 function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, groundY, holes, reservedRanges, platformRails, levelIndex }) {
   const allBonus = state.config.object_pools?.bonus || [];
   const allDecor = state.config.object_pools?.decoration || [];
-  const count = clamp(Math.round((tileGrid[0].length * bonusDensity) / 95) + (levelIndex || 0) * 2, 8, 22);
+  const count = clamp(Math.round((tileGrid[0].length * bonusDensity) / 175) + Math.floor((levelIndex || 0) * 0.4), 3, 9);
   const items = [];
   if (pathNodes.length < 3 || groundY == null) {
     return items;
@@ -1569,21 +1569,16 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
   const rewardDefs = [];
   const potionDef =
     allDecor.find((d) => d.id === "deco_potion") || { id: "deco_potion", path: "game_assets/decoration/deco_potion.png", spawn_weight: 1.6 };
-  const jewelDef =
-    allDecor.find((d) => d.id === "deco_jewel") || { id: "deco_jewel", path: "game_assets/decoration/deco_jewel.png", spawn_weight: 0.9 };
   const coinDef =
     allBonus.find((b) => b.id === "bonus_coin") ||
     { id: "bonus_coin", path: "game_assets/bonus/bonus_coin.png", spawn_weight: 0.95 };
   const axeDef =
     allDecor.find((d) => d.id === "deco_double_axe") ||
     { id: "deco_double_axe", path: "game_assets/decoration/deco_double_axe.png", spawn_weight: 0.18 };
-  const helmetDef =
-    allDecor.find((d) => d.id === "deco_helmet") ||
-    { id: "deco_helmet", path: "game_assets/decoration/deco_helmet.png", spawn_weight: 0.28 };
   const royalShieldDef =
     allDecor.find((d) => d.id === "deco_royal_shield") ||
     { id: "deco_royal_shield", path: "game_assets/decoration/deco_royal_shield.png", spawn_weight: 0.08 };
-  rewardDefs.push(potionDef, jewelDef, coinDef, axeDef, helmetDef, royalShieldDef);
+  rewardDefs.push(potionDef, coinDef, axeDef, royalShieldDef);
 
   if (!mysteryBlock?.path || !usedBlock?.path || !rewardDefs.length) {
     return items;
@@ -1861,6 +1856,7 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
           battling: false,
           defeatFadeActive: false,
           defeatFadeElapsed: 0,
+          questionAttempts: 0,
           verbData: null,
         });
         break;
@@ -1901,6 +1897,7 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
         battling: false,
         defeatFadeActive: false,
         defeatFadeElapsed: 0,
+        questionAttempts: 0,
         verbData: null,
       });
     }
@@ -3190,6 +3187,9 @@ function getBonusRewardValue(rewardType) {
   if (rewardType.includes("deco_helmet")) {
     return 30;
   }
+  if (rewardType.includes("deco_flail")) {
+    return 40;
+  }
   if (rewardType.includes("jewel")) {
     return 12;
   }
@@ -3271,6 +3271,12 @@ function applyBonusReward(rewardType) {
   if (rewardType.includes("deco_helmet")) {
     grantGold(30);
     state.score += 120;
+    return;
+  }
+
+  if (rewardType.includes("deco_flail")) {
+    grantGold(40);
+    state.score += 160;
     return;
   }
 
@@ -3382,7 +3388,17 @@ function defeatEnemy(enemy) {
   state.currentLevel.defeatedEnemyCount = (state.currentLevel.defeatedEnemyCount || 0) + 1;
   state.score += 100;
   grantGold(6);
-  showMessage("+100 / +6 gold");
+
+  let rewardMessage = "+100 / +6 gold";
+  if ((enemy.questionAttempts || 0) === 1) {
+    const firstStrikeRewards = ["deco_helmet", "deco_jewel", "deco_flail"];
+    const rewardType = firstStrikeRewards[Math.floor(Math.random() * firstStrikeRewards.length)];
+    applyBonusReward(rewardType);
+    const rewardLabel = rewardType === "deco_flail" ? "flail" : rewardType.replace("deco_", "");
+    rewardMessage = `${rewardMessage} + first hit ${rewardLabel}`;
+  }
+
+  showMessage(rewardMessage);
 }
 
 function respawnPlayer() {
@@ -5320,6 +5336,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS.uiMeta = null;
     QS.resolving = false;
     enemy.battling = true;
+    enemy.questionAttempts = (enemy.questionAttempts || 0) + 1;
     selectedIndex = 0;
     uiHooks.onOpenQuestion?.(q, QS.uiMeta);
     syncSelection();
