@@ -1,0 +1,14 @@
+{
+  "name": "Conjugaison Quest",
+  "short_name": "ConjugQuest",
+  "description": "Apprends la conjugaison française en combattant des monstres !",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0d0d1a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

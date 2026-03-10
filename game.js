@@ -2,10 +2,10 @@ const VIRTUAL_WIDTH = 432;
 const VIRTUAL_HEIGHT = 768;
 
 const GAME = {
-  gravity: 1500,
-  moveSpeed: 210,
-  jumpVelocity: -560,
-  maxFallVelocity: 880,
+  gravity: 1380,
+  moveSpeed: 188,
+  jumpVelocity: -525,
+  maxFallVelocity: 810,
   friction: 0.84,
   levelCount: 5,
 };
@@ -17,7 +17,7 @@ const SPRITE_FALLBACK_FOOT_OFFSET_RATIO = 0.12;
 const PLAYER_RENDER_GROUND_OFFSET_PX = 0;
 const PLAYER_HITBOX_WIDTH = 27;
 const PLAYER_HITBOX_HEIGHT = 60;
-const ENEMY_MOVE_SPEED = 62;
+const ENEMY_MOVE_SPEED = 52;
 const ENEMY_HITBOX_WIDTH_RATIO = 0.46;
 const ENEMY_HITBOX_HEIGHT_RATIO = 0.62;
 const ENEMY_MIN_HITBOX_W = 20;
@@ -85,6 +85,16 @@ const BIOME_PARALLAX_BACKGROUNDS = {
   wood: "game_assets/backgrounds/forest-background.png",
 };
 
+const BIOME_EMOJI = {
+  castle: "🏰",
+  desert: "🏜️",
+  desolation: "💀",
+  forest: "🌳",
+  mountain: "⛰️",
+  snow: "❄️",
+  wood: "🌲",
+};
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
@@ -105,6 +115,9 @@ const ui = {
   levelSelect: document.getElementById("levelSelect"),
   difficultySelect: document.getElementById("difficultySelect"),
   questionPanel: document.getElementById("questionPanel"),
+  questionEnemy: document.getElementById("questionEnemy"),
+  questionGroup: document.getElementById("questionGroup"),
+  questionTense: document.getElementById("questionTense"),
   questionPrompt: document.getElementById("questionPrompt"),
   answerButtons: document.getElementById("answerButtons"),
   groupFilters: document.getElementById("groupFilters"),
@@ -1635,7 +1648,7 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, holes, rese
 function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes }) {
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
-  const count = clamp(5 + levelIndex * 2, 6, 15);
+  const count = clamp(4 + levelIndex * 2, 5, 12);
   const enemies = [];
 
   if (!candidates.length) {
@@ -3023,7 +3036,7 @@ function getEndCastleDoorBounds(level) {
 function updateCamera() {
   const desired = state.player.x - VIRTUAL_WIDTH * 0.35;
   const maxX = Math.max(0, state.currentLevel.worldWidth - VIRTUAL_WIDTH);
-  state.cameraX += (clamp(desired, 0, maxX) - state.cameraX) * 0.12;
+  state.cameraX += (clamp(desired, 0, maxX) - state.cameraX) * 0.08;
 }
 
 function render(timeSeconds) {
@@ -4121,14 +4134,25 @@ function buildQuestionUiHooks() {
       const inf = verbDef?.inf || question.vKey;
       const pronoun = PRONOUN_LABEL[question.pronIdx] || "";
       const tenseText = formatQuestionTense(question.tenseLabel);
-      ui.questionPrompt.textContent = `Avec le verbe ${inf} ${tenseText}, ${pronoun} ?`;
+      const groupLabel = verbs?.[question.gKey]?.label || question.gKey;
+      const biomeId = state.currentLevel?.biomeId || "forest";
+      if (ui.questionEnemy) {
+        ui.questionEnemy.textContent = BIOME_EMOJI[biomeId] || "⚔️";
+      }
+      if (ui.questionGroup) {
+        ui.questionGroup.textContent = groupLabel;
+      }
+      if (ui.questionTense) {
+        ui.questionTense.textContent = question.tenseLabel;
+      }
+      ui.questionPrompt.innerHTML = `Conjugue <span class="verb">${inf}</span> ${tenseText}<br/><span class="pronoun">${pronoun}</span> <span class="blank">???</span>`;
       ui.answerButtons.innerHTML = "";
-      question.options.forEach((option, index) => {
+      question.options.forEach((option) => {
         const btn = document.createElement("button");
         btn.className = "answer-btn";
         btn.type = "button";
         btn.dataset.answer = option;
-        btn.textContent = `${index + 1}. ${option}`;
+        btn.textContent = option;
         btn.addEventListener("click", () => {
           answerClick(option);
         });

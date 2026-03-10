@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ConjugQuest">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<title>Conjugaison Quest ⚔️</title>
+<style>
+:root{
+  --c-bg:#0d0d1a; --c-wrap:#000; --c-ctrl:#0d0d1a;
+  --c-screen:linear-gradient(180deg,#1a0a2e 0%,#0d0d1a 100%);
+  --c-overlay:rgba(0,0,0,.88);
+  --c-modal-box:linear-gradient(160deg,#1e0d3b,#0d0d1a);
+  --c-modal-border:#6d28d9; --c-modal-glow:rgba(109,40,217,.4);
+  --c-title:#ffd700; --c-title-sh1:#6d28d9; --c-title-sh2:#1a0a2e;
+  --c-sub:#a78bfa; --c-text:#f1f5f9;
+  --c-btn:linear-gradient(135deg,#7c3aed,#5b21b6);
+  --c-btn-border:#a78bfa; --c-btn-shadow:#4c1d95;
+  --c-tog-bg:rgba(109,40,217,.12); --c-tog-border:#6d28d9; --c-tog-color:#a78bfa;
+  --c-tog-on:#7c3aed; --c-tog-on-border:#c4b5fd; --c-tog-on-glow:rgba(124,58,237,.45);
+  --c-qbtn-bg:rgba(109,40,217,.15); --c-qbtn-border:#6d28d9;
+  --c-howto-bg:rgba(109,40,217,.1); --c-howto-border:#6d28d9;
+}
+body.theme-funny{
+  --c-bg:#fff8e1; --c-wrap:#fffde7; --c-ctrl:#ffe082;
+  --c-screen:linear-gradient(180deg,#ffe0b2 0%,#fff9c4 100%);
+  --c-overlay:rgba(20,5,50,.84);
+  --c-modal-box:linear-gradient(160deg,#fff3e0,#fff9c4);
+  --c-modal-border:#ff6d00; --c-modal-glow:rgba(255,109,0,.35);
+  --c-title:#e91e63; --c-title-sh1:#ff6d00; --c-title-sh2:#fff3e0;
+  --c-sub:#e65100; --c-text:#1a1a2e;
+  --c-btn:linear-gradient(135deg,#ff6d00,#e65100);
+  --c-btn-border:#ffab40; --c-btn-shadow:#bf360c;
+  --c-tog-bg:rgba(255,109,0,.1); --c-tog-border:#ff6d00; --c-tog-color:#e65100;
+  --c-tog-on:#ff6d00; --c-tog-on-border:#ffcc02; --c-tog-on-glow:rgba(255,109,0,.45);
+  --c-qbtn-bg:rgba(255,109,0,.12); --c-qbtn-border:#ff6d00;
+  --c-howto-bg:rgba(255,109,0,.08); --c-howto-border:#ff6d00;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--c-bg);font-family:'Courier New',monospace;
+}
+body{
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+}
+#gameContainer{
+  display:flex;flex-direction:column;align-items:center;
+}
+
+#wrap{
+  position:relative;
+  width:  min(100vw, 480px);
+  height: min(calc(min(100vw, 480px) * 1.3334), calc(100dvh - 190px));
+  max-height:640px;
+  overflow:hidden;
+  background:var(--c-wrap);
+}
+/* En mode écran (menus), #wrap prend toute la hauteur disponible */
+body.screen-mode{
+  justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+body.screen-mode #wrap{
+  height:min(100dvh, calc(min(100vw,480px)*1.3334));
+  max-height:100dvh;
+}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;}
+
+/* ── Touch controls ── */
+#ctrl{
+  width:  min(100vw, 480px);
+  max-width:480px;
+  height:122px;
+  flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:10px 14px 0;
+  pointer-events:none;
+  background:var(--c-ctrl);
+  overflow:visible;
+}
+.dpad{display:flex;gap:12px;pointer-events:all;align-items:flex-end;}
+.cbtn{
+  background-color:transparent;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+  border:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  pointer-events:all;touch-action:none;transition:transform .08s, filter .08s;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.35));
+}
+.cbtn.pressed{filter:brightness(1.22) drop-shadow(0 1px 0 rgba(0,0,0,.28));transform:translateY(2px) scale(.985);}
+/* Image area stays the same; padding-bottom doubles the hit zone downward */
+#leftBtn,#rightBtn{
+  width:112px;height:56px;
+  padding-bottom:56px;
+  background-size:112px 112px;
+  background-position:top center;
+}
+#jumpBtn{
+  width:92px;height:92px;
+  padding-bottom:92px;
+  background-size:92px 92px;
+  background-position:top center;
+}
+#leftBtn{background-image:url('assets/left-right.png');background-position:top center;}
+#rightBtn{background-image:url('assets/left-right.png');background-position:bottom center;}
+#jumpBtn{background-image:url('assets/up.png');}
+
+/* ── Question modal ── */
+#qModal{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:var(--c-overlay);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:15px;z-index:50;
+}
+#qModal.show{display:flex;}
+.qBox{
+  background:var(--c-modal-box);
+  border:3px solid var(--c-modal-border);border-radius:16px;
+  padding:22px 18px;width:100%;max-width:420px;text-align:center;
+  box-shadow:0 0 40px var(--c-modal-glow);
+}
+.qEnemy{font-size:54px;line-height:1;margin-bottom:6px;}
+.qGroup{color:var(--c-sub);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px;}
+.qTense{color:var(--c-sub);font-size:17px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:bold;}
+.qText{color:var(--c-text);font-size:14px;font-weight:normal;margin-bottom:14px;line-height:1.7;}
+.qText .vb{color:#f59e0b;font-weight:bold;}
+.qText .pro{color:#60a5fa;font-weight:bold;}
+.qText .blank{display:inline-block;border-bottom:3px solid #fbbf24;color:#fbbf24;min-width:70px;padding:0 6px;font-weight:bold;}
+.qAnswers{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qBtn{
+  padding:13px 8px;border:2px solid var(--c-qbtn-border);border-radius:10px;
+  background:var(--c-qbtn-bg);color:var(--c-text);
+  font-size:17px;font-weight:bold;font-family:'Courier New',monospace;
+  cursor:pointer;transition:all .15s;touch-action:manipulation;
+}
+.qBtn:disabled{cursor:default;}
+.qBtn:not(:disabled):active{background:var(--c-qbtn-bg);}
+.qBtn.kbSel{outline:3px solid #fbbf24;box-shadow:0 0 0 2px rgba(251,191,36,.35) inset;}
+.qBtn.ok{background:rgba(34,197,94,.4)!important;border-color:#22c55e!important;color:#86efac!important;}
+.qBtn.bad{background:rgba(239,68,68,.4)!important;border-color:#ef4444!important;color:#fca5a5!important;}
+.qHP{display:flex;justify-content:center;gap:8px;margin-top:14px;font-size:22px;}
+
+/* ── Screens ── */
+.screen{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--c-screen);
+  z-index:100;padding:20px;text-align:center;
+}
+.screen.hidden{display:none;}
+.sTitle{
+  font-size:clamp(26px,7vw,40px);font-weight:bold;color:var(--c-title);
+  text-shadow:3px 3px 0 var(--c-title-sh1),6px 6px 0 var(--c-title-sh2);
+  margin-bottom:8px;line-height:1.2;
+}
+.sSub{color:var(--c-sub);font-size:13px;margin-bottom:22px;line-height:1.7;max-width:360px;}
+.sDeco{font-size:40px;margin-bottom:12px;}
+.sBtn{
+  padding:13px 32px;background:var(--c-btn);
+  border:2px solid var(--c-btn-border);border-radius:12px;color:#fff;font-size:17px;
+  font-family:'Courier New',monospace;cursor:pointer;margin:5px;
+  transition:transform .1s;box-shadow:0 4px 0 var(--c-btn-shadow);
+}
+.sBtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--c-btn-shadow);}
+.sBtn.grey{background:linear-gradient(135deg,#374151,#1f2937);border-color:#6b7280;box-shadow:0 4px 0 #111827;}
+.howtoText{
+  color:var(--c-text);font-size:12px;line-height:1.9;max-width:340px;
+  background:var(--c-howto-bg);border:1px solid var(--c-howto-border);
+  border-radius:10px;padding:14px;margin-bottom:18px;text-align:left;
+}
+
+/* ── Écran Réglages ── */
+.setSection{width:100%;max-width:340px;margin-bottom:18px;text-align:left;}
+.setLabel{color:#94a3b8;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;padding-left:2px;}
+.togRow{display:flex;flex-wrap:wrap;gap:8px;}
+.tog{
+  padding:10px 16px;border-radius:22px;
+  border:2px solid var(--c-tog-border);background:var(--c-tog-bg);
+  color:var(--c-tog-color);font-size:13px;font-weight:bold;font-family:'Courier New',monospace;
+  cursor:pointer;transition:all .15s;touch-action:manipulation;user-select:none;
+}
+.tog:active{transform:scale(.95);}
+.tog.on{background:var(--c-tog-on);border-color:var(--c-tog-on-border);color:#fff;box-shadow:0 0 14px var(--c-tog-on-glow);}
+.setWarn{color:#f87171;font-size:11px;margin-top:10px;min-height:16px;text-align:center;}
+/* ── Écran Réglages scrollable ── */
+#settingsScreen{justify-content:flex-start;overflow-y:auto;padding-top:24px;padding-bottom:16px;}
+/* ── Boutons HUD in-game (overlay haut du canvas) ── */
+#gameHUDBtns{
+  position:absolute;top:5px;right:5px;
+  display:none;flex-direction:row;gap:4px;
+  z-index:10;pointer-events:none;
+}
+#gameHUDBtns button{
+  pointer-events:all;
+  width:38px;height:38px;
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:8px;
+  color:#fff;font-size:17px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+#gameHUDBtns button:active{ background:rgba(255,255,255,.2); }
+#inGamePauseBtn.active{ background:rgba(251,191,36,.35); border-color:#fbbf24; }
+/* ── Liste d'erreurs ── */
+.errorItem{
+  display:flex;align-items:center;gap:6px;padding:5px 4px;
+  border-bottom:1px solid var(--c-tog-border);font-size:13px;
+}
+.errorVerb{flex:1;color:var(--c-text);}
+.errorTense{color:var(--c-sub);font-size:11px;min-width:60px;text-align:center;}
+.errorAnswer{font-weight:bold;color:#22c55e;min-width:48px;text-align:center;}
+.errorCount{font-weight:bold;color:#ef4444;min-width:24px;text-align:right;}
+/* ── Boutique ── */
+.shopCard{
+  display:flex;align-items:center;gap:10px;
+  background:var(--c-tog-bg);border:2px solid var(--c-tog-border);border-radius:10px;
+  padding:10px 12px;margin-bottom:10px;
+}
+.shopCard.active{border-color:#fbbf24;background:rgba(251,191,36,.08);}
+.shopThumb{width:48px;height:48px;flex-shrink:0;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.shopThumb img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;}
+.shopEmoji{font-size:28px;text-align:center;}
+.shopInfo{flex:1;line-height:1.4;font-size:13px;color:var(--c-text);}
+.shopInfo small{color:var(--c-sub);font-size:11px;}
+.shopBuyBtn{font-size:11px;padding:6px 10px;min-width:72px;text-align:center;}
+.shopBuyBtn.owned{background:var(--c-tog-border);color:var(--c-sub);}
+.shopBuyBtn.equipped{background:#fbbf24;color:#1c1917;font-weight:bold;}
+/* ── PWA update banner ── */
+#updateBanner{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(90deg,#4c1d95,#7c3aed);
+  color:#fff;font-family:'Courier New',monospace;font-size:14px;
+  padding:10px 16px;align-items:center;justify-content:center;gap:12px;
+  box-shadow:0 -2px 12px rgba(124,58,237,.5);
+}
+#updateBanner.visible{display:flex;}
+#updateBanner button{
+  background:#ffd700;color:#1c1917;border:none;border-radius:8px;
+  padding:6px 14px;font-size:13px;font-weight:bold;
+  font-family:'Courier New',monospace;cursor:pointer;white-space:nowrap;
+}
+#updateBanner button:active{transform:scale(.96);}
+</style>
+</head>
+<body>
+<div id="gameContainer">
+<div id="wrap">
+  <canvas id="c"></canvas>
+
+  <!-- Boutons HUD in-game : menu / boutique / pause -->
+  <div id="gameHUDBtns">
+    <button id="inGameMenuBtn"  title="Menu">🏠</button>
+    <button id="inGameShopBtn"  title="Boutique">🛒</button>
+    <button id="inGamePauseBtn" title="Pause">⏸</button>
+  </div>
+
+  <!-- Question modal -->
+  <div id="qModal">
+    <div class="qBox">
+      <div class="qEnemy" id="qEnemy">👺</div>
+      <div class="qGroup" id="qGroup">Groupe 1</div>
+      <div class="qTense" id="qTense">Présent</div>
+      <div class="qText" id="qText"></div>
+      <div class="qAnswers" id="qAnswers"></div>
+      <div class="qHP" id="qHP"></div>
+    </div>
+  </div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="sDeco">⚔️🏰⚔️</div>
+    <div class="sTitle">CONJUGAISON<br>QUEST</div>
+    <div class="sSub">
+      Bats les monstres en conjuguant<br>les verbes correctement !<br><br>
+      🟣 Groupe 1 &nbsp;🔵 Groupe 2 &nbsp;🔴 Groupe 3
+    </div>
+    <button class="sBtn" id="playBtn">▶ JOUER</button>
+    <button class="sBtn grey" id="shopBtn">🛒 BOUTIQUE &nbsp;<span id="menuStars" style="color:#f59e0b"></span></button>
+    <button class="sBtn grey" id="settingsBtn">⚙️ RÉGLAGES</button>
+    <button class="sBtn grey" id="howtoBtn">? COMMENT JOUER</button>
+  </div>
+
+  <!-- RÉGLAGES -->
+  <div class="screen hidden" id="settingsScreen">
+    <div class="sTitle" style="font-size:22px;margin-bottom:18px">⚙️ RÉGLAGES</div>
+
+    <div class="setSection">
+      <div class="setLabel">Groupes de verbes</div>
+      <div class="togRow">
+        <button class="tog on" data-type="group" data-val="verbesBase">⭐ Essentiels<br><small style="font-size:10px;opacity:.7">être, avoir, aller…</small></button>
+        <button class="tog on" data-type="group" data-val="groupe1">🟣 Groupe 1<br><small style="font-size:10px;opacity:.7">verbes en -ER</small></button>
+        <button class="tog on" data-type="group" data-val="groupe2">🔵 Groupe 2<br><small style="font-size:10px;opacity:.7">verbes en -IR</small></button>
+        <button class="tog on" data-type="group" data-val="groupe3">🔴 Groupe 3<br><small style="font-size:10px;opacity:.7">irréguliers</small></button>
+      </div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Temps à travailler</div>
+      <div class="togRow">
+        <button class="tog on" data-type="tense" data-val="pr">Présent</button>
+        <button class="tog on" data-type="tense" data-val="im">Imparfait</button>
+        <button class="tog on" data-type="tense" data-val="fu">Futur simple</button>
+      </div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Style graphique</div>
+      <div class="togRow">
+        <button class="tog themeTog on" data-theme="sombre">🌑 Sombre</button>
+        <button class="tog themeTog" data-theme="funny">🌈 Funny</button>
+      </div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Qualité des sprites</div>
+      <div class="togRow">
+        <button class="tog sprTog" data-spr="simple">⬜ Simple</button>
+        <button class="tog sprTog on" data-spr="advanced">✨ Avancé</button>
+      </div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Sélecteur de niveau</div>
+      <div class="togRow" style="display:flex;gap:8px;align-items:center">
+        <select id="settingsLevelSelect" style="flex:1;background:var(--c-tog-bg);color:var(--c-text);border:2px solid var(--c-tog-border);border-radius:8px;padding:10px 8px;font-family:'Courier New',monospace;font-size:13px"></select>
+        <button class="sBtn" id="startSelectedLevelBtn" style="margin:0;padding:10px 12px;font-size:12px;min-width:132px">▶ LANCER</button>
+      </div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Mise à jour de l'application</div>
+      <button class="sBtn grey" id="settingsUpdateBtn" style="font-size:12px;padding:8px 14px">🔄 Vérifier / Mettre à jour</button>
+      <div id="settingsUpdateMsg" style="margin-top:8px;font-size:12px;color:var(--c-sub);min-height:16px"></div>
+    </div>
+
+    <div class="setSection">
+      <div class="setLabel">Mes difficultés <span id="errorBadge" style="color:#ef4444"></span></div>
+      <div id="errorList"></div>
+      <button class="sBtn grey" id="resetErrorsBtn" style="font-size:12px;padding:7px 14px;margin-top:8px">🗑️ Réinitialiser les erreurs</button>
+    </div>
+
+    <div class="setWarn" id="setWarn"></div>
+    <button class="sBtn" id="settingsBackBtn" style="margin-top:6px">◀ RETOUR</button>
+  </div>
+
+  <!-- HOW TO -->
+  <div class="screen hidden" id="howtoScreen">
+    <div class="sTitle" style="font-size:22px;margin-bottom:14px">COMMENT JOUER</div>
+    <div class="howtoText">
+      🕹️ <b style="color:#ffd700">Déplacer</b> : boutons ◀ ▶ (ou flèches)<br>
+      ⬆️ <b style="color:#ffd700">Sauter</b> : bouton ▲ (ou Espace / ↑)<br><br>
+      👾 <b style="color:#a78bfa">Touche un monstre</b> pour déclencher un duel !<br>
+      📝 <b style="color:#a78bfa">Choisis la bonne conjugaison</b> pour le vaincre.<br><br>
+      ❤️ Tu as <b style="color:#ef4444">3 vies de combat</b> par monstre.<br>
+      &nbsp;&nbsp;&nbsp;3 erreurs = tu perds 1 ❤️ vie joueur.<br><br>
+      ⭐ Collecte les étoiles en explorant.<br>
+      🚩 Atteins le drapeau pour terminer le niveau.<br><br>
+      <b style="color:#ffd700">Progression :</b><br>
+      Niveaux 1-2 : Groupe 1 · Présent & Imparfait<br>
+      Niveaux 3-4 : Groupe 2 · Présent & Imparfait<br>
+      Niveau 5 &nbsp;&nbsp;: Groupe 3 · Présent & Futur
+    </div>
+    <button class="sBtn" id="howtoBackBtn">◀ RETOUR</button>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen hidden" id="gameOverScreen">
+    <div class="sDeco">💀</div>
+    <div class="sTitle">GAME OVER</div>
+    <div class="sSub" id="gameOverMsg">Tu peux faire mieux !</div>
+    <button class="sBtn" id="retryBtn">↺ RÉESSAYER</button>
+    <button class="sBtn grey" id="menuBtn">🏠 MENU</button>
+  </div>
+
+  <!-- LEVEL COMPLETE -->
+  <div class="screen hidden" id="levelCompleteScreen">
+    <div class="sDeco" id="lcEmoji">🎉</div>
+    <div class="sTitle" id="lcTitle">NIVEAU TERMINÉ !</div>
+    <div class="sSub" id="lcMsg"></div>
+    <button class="sBtn" id="nextLevelBtn">▶ NIVEAU SUIVANT</button>
+    <button class="sBtn grey" id="menuBtn2">🏠 MENU</button>
+  </div>
+
+  <!-- BOUTIQUE -->
+  <div class="screen hidden" id="shopScreen" style="justify-content:flex-start;overflow-y:auto;padding-top:22px;padding-bottom:16px;">
+    <div class="sTitle" style="font-size:22px;margin-bottom:6px">🛒 BOUTIQUE</div>
+    <div id="shopStarsDisplay" style="color:#f59e0b;font-size:16px;font-weight:bold;margin-bottom:14px">🪙 0</div>
+    <div id="shopItems" style="width:100%;max-width:360px;padding:0 12px;box-sizing:border-box"></div>
+    <button class="sBtn" id="shopBackBtn" style="margin-top:14px">◀ RETOUR</button>
+  </div>
+
+  <!-- WIN -->
+  <div class="screen hidden" id="winScreen">
+    <div class="sDeco">🏆</div>
+    <div class="sTitle">FÉLICITATIONS !</div>
+    <div class="sSub" id="finalScore"></div>
+    <button class="sBtn" id="playAgainBtn">↺ REJOUER</button>
+    <button class="sBtn grey" id="menuBtn3">🏠 MENU</button>
+  </div>
+</div>
+
+<!-- Touch controls (hors du canvas, sous le jeu) -->
+<div id="ctrl">
+  <div class="dpad">
+    <div class="cbtn" id="leftBtn" aria-label="Gauche"></div>
+    <div class="cbtn" id="rightBtn" aria-label="Droite"></div>
+  </div>
+  <div class="cbtn" id="jumpBtn" aria-label="Saut"></div>
+</div>
+</div><!-- #gameContainer -->
+
+<script src="js/data.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/conjugation.js"></script>
+<script src="js/game.js"></script>
+
+<!-- PWA update banner -->
+<div id="updateBanner">
+  <span>Une nouvelle version est disponible !</span>
+  <button id="updateBtn">Mettre à jour</button>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  let waitingSW = null;
+  let regRef = null;
+  let regPromise = null;
+  let regError = null;
+
+  regPromise = navigator.serviceWorker.register('./sw.js').then(reg => {
+    regRef = reg;
+    // A new SW is already waiting (e.g. hard-reload after deploy)
+    if (reg.waiting) {
+      waitingSW = reg.waiting;
+      document.getElementById('updateBanner').classList.add('visible');
+    }
+    // A new SW just finished installing and is now waiting
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          waitingSW = newSW;
+          document.getElementById('updateBanner').classList.add('visible');
+        }
+      });
+    });
+    // Poll for updates every 60 s while the page is open
+    setInterval(() => reg.update(), 60_000);
+    return reg;
+  }).catch(err => {
+    regError = err;
+    return null;
+  });
+
+  window.__cqSW = {
+    async checkForUpdate() {
+      if (!regRef && regPromise) {
+        await regPromise;
+      }
+      if (!regRef) {
+        return {
+          ok: false,
+          waiting: false,
+          message: regError ? 'Service Worker non disponible (environnement local).' : 'Service Worker en cours d\'initialisation.'
+        };
+      }
+      return regRef.update()
+        .then(() => {
+          if (regRef.waiting) {
+            waitingSW = regRef.waiting;
+            document.getElementById('updateBanner').classList.add('visible');
+            return { ok: true, waiting: true, message: 'Mise à jour prête. Application en cours…' };
+          }
+          return { ok: true, waiting: false, message: 'Version déjà à jour.' };
+        })
+        .catch(() => ({ ok: false, waiting: false, message: 'Échec de vérification de mise à jour.' }));
+    },
+    applyWaitingUpdate() {
+      if (!waitingSW) return false;
+      waitingSW.postMessage('SKIP_WAITING');
+      return true;
+    }
+  };
+
+  // When the SW activates (after skipWaiting), reload the page
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; location.reload(); }
+  });
+
+  document.getElementById('updateBtn').addEventListener('click', () => {
+    if (window.__cqSW) window.__cqSW.applyWaitingUpdate();
+  });
+}
+</script>
+</body>
+</html>
