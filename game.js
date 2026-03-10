@@ -3848,6 +3848,12 @@ function updateCamera() {
   state.cameraX += (clamp(desired, 0, maxX) - state.cameraX) * 0.08;
 }
 
+function getWorldRenderOffsetY(level) {
+  const groundSurfaceWorldY = level.groundY * state.tileSize;
+  const desiredGroundScreenY = VIRTUAL_HEIGHT - Math.round(state.tileSize * 1.35);
+  return desiredGroundScreenY - groundSurfaceWorldY;
+}
+
 function render(timeSeconds) {
   if (state.boss.active) {
     drawBossScene(timeSeconds);
@@ -3880,7 +3886,7 @@ function render(timeSeconds) {
   drawParallaxBackground(level);
 
   ctx.save();
-  ctx.translate(-Math.floor(state.cameraX), 0);
+  ctx.translate(-Math.floor(state.cameraX), Math.floor(getWorldRenderOffsetY(level)));
 
   try {
     drawStructures(level);
