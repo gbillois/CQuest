@@ -63,13 +63,20 @@
           <label for="heroSelect">Hero</label>
           <select id="heroSelect"></select>
 
+          <section class="hero-shop" id="heroShopPanel">
+            <h2>Hero Shop</h2>
+            <p class="shop-wallet">Gold pieces: <strong id="shopGoldValue">0</strong></p>
+            <div id="heroShopList" class="hero-shop-list"></div>
+          </section>
+
           <label for="levelSelect">Level</label>
           <select id="levelSelect"></select>
 
-          <label for="difficultySelect">Difficulty</label>
+          <label for="difficultySelect">Generation Profile</label>
           <select id="difficultySelect">
+            <option value="easy">Easy</option>
             <option value="normal">Normal</option>
-            <option value="easy">Easy (No holes)</option>
+            <option value="chaotic">Chaotic</option>
           </select>
 
           <section class="pedagogy" id="pedagogyPanel">
@@ -130,6 +137,21 @@
             <button id="backToTitleFromGameOverBtn" class="secondary-btn" type="button">
               Title Screen
             </button>
+          </div>
+        </section>
+
+        <section id="bossDefeatPanel" class="game-over boss-defeat hidden">
+          <h2>Dragon Won</h2>
+          <p id="bossDefeatText">Trial failed.</p>
+          <p id="bossDefeatRetryText">Returning to wave...</p>
+        </section>
+
+        <section id="finalVictoryPanel" class="game-over final-victory hidden">
+          <h2>Champion</h2>
+          <p>The Dragon is defeated.</p>
+          <p>You earned champion status.</p>
+          <div class="menu-actions">
+            <button id="backToTitleFromVictoryBtn" class="secondary-btn" type="button">Title Screen</button>
           </div>
         </section>
       </section>

@@ -47,6 +47,8 @@ const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
 const TOWER_HEIGHT_SCALE = 1.5;
 const CASTLE_SCALE = 1.5;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
+const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
+const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
 const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
 const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
@@ -95,6 +97,74 @@ const BIOME_EMOJI = {
   wood: "🌲",
 };
 
+const GENERATION_PROFILES = {
+  easy: {
+    allowGroundHoles: false,
+    patternLoop: ["intro", "run", "run", "hop", "run", "stairs", "run", "intro", "run"],
+    maxHoleWidth: 1,
+    holeBase: 2,
+    holeMin: 2,
+    holeMax: 5,
+    enemyBase: 3,
+    enemyPerLevel: 1,
+    enemyMin: 4,
+    enemyMax: 8,
+    doubleSpawnLaneLength: 16,
+  },
+  normal: {
+    allowGroundHoles: true,
+    patternLoop: ["intro", "run", "hop", "air", "gauntlet", "air", "stairs", "hop", "air", "run", "gauntlet"],
+    maxHoleWidth: 2,
+    holeBase: 5,
+    holeMin: 5,
+    holeMax: 10,
+    enemyBase: 4,
+    enemyPerLevel: 2,
+    enemyMin: 5,
+    enemyMax: 12,
+    doubleSpawnLaneLength: 12,
+  },
+  chaotic: {
+    allowGroundHoles: true,
+    patternLoop: ["intro", "air", "gauntlet", "hop", "air", "stairs", "gauntlet", "air", "hop", "finale"],
+    maxHoleWidth: 3,
+    holeBase: 7,
+    holeMin: 7,
+    holeMax: 14,
+    enemyBase: 6,
+    enemyPerLevel: 2,
+    enemyMin: 7,
+    enemyMax: 15,
+    doubleSpawnLaneLength: 10,
+  },
+};
+
+function getGenerationProfileSettings(profileId) {
+  return GENERATION_PROFILES[profileId] || GENERATION_PROFILES.normal;
+}
+
+const HERO_SHOP_CONFIG = {
+  paladin: { price: 0, order: 0, defaultOwned: true },
+  ninja: { price: 360, order: 1, defaultOwned: false },
+  pirate: { price: 600, order: 2, defaultOwned: false },
+  mage: { price: 1200, order: 3, defaultOwned: false },
+};
+
+const BOSS_LEVEL_VALUE = "boss";
+const BOSS_TRIALS_REQUIRED = 5;
+const BOSS_TRIAL_TIME_LIMIT_SECONDS = 10;
+const BOSS_CELEBRATION_SECONDS = 6;
+const BOSS_DEFEAT_OVERLAY_SECONDS = 2.2;
+const BOSS_DRAGON_ATTACK_SW_FRAMES = Array.from(
+  { length: 9 },
+  (_, i) => `game_assets/enemies/boss-dragon/animations/attack/south-west/frame_${String(i).padStart(3, "0")}.png`,
+);
+const BOSS_FALLBACK_DRAGON_FRAME = "game_assets/enemies/boss-dragon/rotations/south-west.png";
+
+function getHeroShopConfig(heroId) {
+  return HERO_SHOP_CONFIG[heroId] || { price: 9999, order: 99, defaultOwned: false };
+}
+
 function createRunSeed() {
   const randomBits = Math.floor(Math.random() * 0xffffffff);
   return (Date.now() ^ randomBits) >>> 0;
@@ -117,6 +187,8 @@ const ui = {
   pauseIcon: document.getElementById("pauseIcon"),
   settingsPanel: document.getElementById("settingsPanel"),
   heroSelect: document.getElementById("heroSelect"),
+  heroShopList: document.getElementById("heroShopList"),
+  shopGoldValue: document.getElementById("shopGoldValue"),
   levelSelect: document.getElementById("levelSelect"),
   difficultySelect: document.getElementById("difficultySelect"),
   questionPanel: document.getElementById("questionPanel"),
@@ -151,6 +223,11 @@ const ui = {
   finalCoinsText: document.getElementById("finalCoinsText"),
   restartBtn: document.getElementById("restartBtn"),
   backToTitleFromGameOverBtn: document.getElementById("backToTitleFromGameOverBtn"),
+  bossDefeatPanel: document.getElementById("bossDefeatPanel"),
+  bossDefeatText: document.getElementById("bossDefeatText"),
+  bossDefeatRetryText: document.getElementById("bossDefeatRetryText"),
+  finalVictoryPanel: document.getElementById("finalVictoryPanel"),
+  backToTitleFromVictoryBtn: document.getElementById("backToTitleFromVictoryBtn"),
 };
 
 const imageCache = new Map();
@@ -172,7 +249,9 @@ const state = {
   enemies: [],
   levels: [],
   levelSeedBase: createRunSeed(),
+  heroUnlocks: {},
   selectedHeroIndex: 0,
+  pendingBossStart: false,
   currentLevelIndex: 0,
   currentLevel: null,
   player: null,
@@ -187,7 +266,7 @@ const state = {
   coins: 0,
   persistentGold: 0,
   hearts: STARTING_HEARTS,
-  easyMode: false,
+  generationProfile: "normal",
   screenMode: "game",
   pedagogy: {
     activeGroups: [],
@@ -209,6 +288,23 @@ const state = {
     active: false,
     outsideX: 0,
     outsideY: 0,
+    chestState: "locked",
+    chestStreak: 0,
+    chestRequired: 3,
+    chestRewardPieces: 0,
+    chestExplodeUntil: 0,
+    chestPromptUntil: 0,
+  },
+  boss: {
+    active: false,
+    phase: "idle",
+    streak: 0,
+    required: BOSS_TRIALS_REQUIRED,
+    trialDeadline: 0,
+    trialTimeLimit: BOSS_TRIAL_TIME_LIMIT_SECONDS,
+    phaseUntil: 0,
+    defeatReason: "",
+    sourceLevelIndex: 0,
   },
 };
 
@@ -256,7 +352,7 @@ async function init() {
         }
       },
       onCloseQuestion: () => {
-        state.screenMode = "game";
+        state.screenMode = state.boss.active ? "boss" : "game";
       },
       hitPlayer: () => {
         hitPlayer();
@@ -269,7 +365,9 @@ async function init() {
   exposeConjugationApi();
   await preloadConfigAssetImages(config);
   await preloadParallaxBackgrounds();
+  await preloadBossAssets();
   await loadHeroes();
+  initializeHeroProgress();
   await loadEnemies();
 
   generateLevelsFromConfig(config);
@@ -580,6 +678,11 @@ async function preloadParallaxBackgrounds() {
   await Promise.all(paths.map((path) => loadImage(path).catch(() => null)));
 }
 
+async function preloadBossAssets() {
+  const paths = [...BOSS_DRAGON_ATTACK_SW_FRAMES, BOSS_FALLBACK_DRAGON_FRAME];
+  await Promise.all(paths.map((path) => loadImage(path).catch(() => null)));
+}
+
 async function loadHeroes() {
   const heroes = [];
 
@@ -596,7 +699,14 @@ async function loadHeroes() {
     }),
   );
 
-  heroes.sort((a, b) => a.name.localeCompare(b.name));
+  heroes.sort((a, b) => {
+    const aCfg = getHeroShopConfig(a.id);
+    const bCfg = getHeroShopConfig(b.id);
+    if (aCfg.order !== bCfg.order) {
+      return aCfg.order - bCfg.order;
+    }
+    return a.name.localeCompare(b.name);
+  });
   state.heroes = heroes;
 }
 
@@ -661,6 +771,7 @@ function generateLevelsFromConfig(config) {
 function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bonusDensity, decoDensity }) {
   const biome = state.biomes[biomeId] || state.biomes.forest || Object.values(state.biomes)[0];
   const rand = mulberry32(seed);
+  const generation = getGenerationProfileSettings(state.generationProfile);
 
   const tileGrid = Array.from({ length: heightTiles }, () => Array(widthTiles).fill(null));
   const pathNodes = [];
@@ -683,7 +794,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
     { min: castleTileX - 13, max: widthTiles - 1 }, // Keep clear around castle/goal.
   ];
   const platformThemeIds = getPlatformThemeIds(biomeId);
-  const allowGroundHoles = !state.easyMode;
+  const allowGroundHoles = generation.allowGroundHoles;
   let holes = [];
 
   const addPlatformRail = ({ startX, y, length, segmentType }) => {
@@ -737,7 +848,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
   // Segment-driven generation inspired by top side-scrollers:
   // rhythm alternates between run, hop, air chain, and pressure sections.
   const segmentWidth = 12;
-  const patternLoop = ["intro", "run", "hop", "air", "gauntlet", "air", "stairs", "hop", "air", "run", "gauntlet"];
+  const patternLoop = generation.patternLoop;
   let segmentIndex = 0;
   for (let segStart = playableStart; segStart <= playableEnd - 4; segStart += segmentWidth) {
     const segEnd = Math.min(playableEnd, segStart + segmentWidth - 1);
@@ -776,7 +887,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
 
     if (pattern === "hop") {
       const holeStart = clamp(segStart + randInt(rand, 3, 5), segStart + 2, segEnd - 3);
-      if (tryCreateHole(holeStart, randInt(rand, 1, 2)) && rand() < 0.62) {
+      if (tryCreateHole(holeStart, randInt(rand, 1, generation.maxHoleWidth)) && rand() < 0.62) {
         addPlatformRail({
           startX: holeStart + randInt(rand, 1, 2),
           y: groundY - 3,
@@ -811,7 +922,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
     if (pattern === "gauntlet") {
       const first = clamp(segStart + randInt(rand, 2, 3), segStart + 1, segEnd - 6);
       const second = clamp(first + randInt(rand, 4, 5), first + 3, segEnd - 2);
-      tryCreateHole(first, randInt(rand, 1, 2));
+      tryCreateHole(first, randInt(rand, 1, generation.maxHoleWidth));
       tryCreateHole(second, 1);
       addPlatformRail({
         startX: clamp(first + 2, segStart + 1, segEnd - 2),
@@ -848,13 +959,20 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
         segmentType: "finale",
       });
       if (rand() < 0.45) {
-        tryCreateHole(clamp(segStart + randInt(rand, 3, 5), segStart + 2, segEnd - 3), 1);
+        tryCreateHole(
+          clamp(segStart + randInt(rand, 3, 5), segStart + 2, segEnd - 3),
+          randInt(rand, 1, generation.maxHoleWidth),
+        );
       }
     }
   }
 
   if (allowGroundHoles) {
-    const targetHoleCount = clamp(5 + index + Math.floor((playableEnd - playableStart) / 30), 5, 10);
+    const targetHoleCount = clamp(
+      generation.holeBase + index + Math.floor((playableEnd - playableStart) / 30),
+      generation.holeMin,
+      generation.holeMax,
+    );
     holes = augmentGroundHoles({
       tileGrid,
       groundY,
@@ -872,7 +990,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
       endX: castleTileX - 11,
       groundTile,
       minGapBetweenHoles: 3,
-      maxHoleWidth: 2,
+      maxHoleWidth: generation.maxHoleWidth,
     });
   } else {
     fillGroundSpan(tileGrid, playableStart, playableEnd, groundY, groundTile);
@@ -938,6 +1056,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
     tileGrid,
     groundY,
     lanes: enemyLanes,
+    generation,
   });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
@@ -1449,10 +1568,22 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
     { id: "bonus_wall_01", path: "game_assets/bonus/bonus_wall_01.png", spawn_weight: 1 };
   const rewardDefs = [];
   const potionDef =
-    allDecor.find((d) => d.id === "deco_potion") || { id: "deco_potion", path: "game_assets/decoration/deco_potion.png", spawn_weight: 2 };
+    allDecor.find((d) => d.id === "deco_potion") || { id: "deco_potion", path: "game_assets/decoration/deco_potion.png", spawn_weight: 1.6 };
   const jewelDef =
-    allDecor.find((d) => d.id === "deco_jewel") || { id: "deco_jewel", path: "game_assets/decoration/deco_jewel.png", spawn_weight: 1 };
-  rewardDefs.push(potionDef, jewelDef);
+    allDecor.find((d) => d.id === "deco_jewel") || { id: "deco_jewel", path: "game_assets/decoration/deco_jewel.png", spawn_weight: 0.9 };
+  const coinDef =
+    allBonus.find((b) => b.id === "bonus_coin") ||
+    { id: "bonus_coin", path: "game_assets/bonus/bonus_coin.png", spawn_weight: 0.95 };
+  const axeDef =
+    allDecor.find((d) => d.id === "deco_double_axe") ||
+    { id: "deco_double_axe", path: "game_assets/decoration/deco_double_axe.png", spawn_weight: 0.18 };
+  const helmetDef =
+    allDecor.find((d) => d.id === "deco_helmet") ||
+    { id: "deco_helmet", path: "game_assets/decoration/deco_helmet.png", spawn_weight: 0.28 };
+  const royalShieldDef =
+    allDecor.find((d) => d.id === "deco_royal_shield") ||
+    { id: "deco_royal_shield", path: "game_assets/decoration/deco_royal_shield.png", spawn_weight: 0.08 };
+  rewardDefs.push(potionDef, jewelDef, coinDef, axeDef, helmetDef, royalShieldDef);
 
   if (!mysteryBlock?.path || !usedBlock?.path || !rewardDefs.length) {
     return items;
@@ -1653,10 +1784,15 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, holes, rese
   return items;
 }
 
-function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes }) {
+function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation }) {
+  const profile = generation || GENERATION_PROFILES.normal;
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
-  const count = clamp(4 + levelIndex * 2, 5, 12);
+  const count = clamp(
+    profile.enemyBase + levelIndex * profile.enemyPerLevel,
+    profile.enemyMin,
+    profile.enemyMax,
+  );
   const enemies = [];
 
   if (!candidates.length) {
@@ -1678,7 +1814,7 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
       break;
     }
     const laneLen = lane.end - lane.start + 1;
-    const spawnCount = laneLen >= 12 ? 2 : 1;
+    const spawnCount = laneLen >= profile.doubleSpawnLaneLength ? 2 : 1;
     for (let n = 0; n < spawnCount && enemies.length < count; n += 1) {
       let attempts = 0;
       while (attempts < 16 && enemies.length < count) {
@@ -1732,9 +1868,9 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
     }
   }
 
-  if (enemies.length < 4 && pathNodes?.length) {
+  if (enemies.length < profile.enemyMin && pathNodes?.length) {
     for (const node of pathNodes) {
-      if (enemies.length >= 4) {
+      if (enemies.length >= profile.enemyMin) {
         break;
       }
       if (node.kind !== "ground" || !tileGrid[groundY]?.[node.x]) {
@@ -1782,9 +1918,44 @@ function getEnemyHitboxSize(enemyDef) {
   };
 }
 
+function renderHeroShop() {
+  if (ui.shopGoldValue) {
+    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)}`;
+  }
+  if (!ui.heroShopList) {
+    return;
+  }
+
+  const selectedHero = state.heroes[state.selectedHeroIndex];
+  const selectedHeroId = selectedHero?.id || "";
+  ui.heroShopList.innerHTML = state.heroes
+    .map((hero) => {
+      const cfg = getHeroShopConfig(hero.id);
+      const owned = isHeroOwned(hero.id);
+      const equipped = owned && hero.id === selectedHeroId;
+      const canBuy = !owned && state.persistentGold >= cfg.price;
+      const actionLabel = equipped ? "Equipped" : owned ? "Equip" : "Buy";
+      const actionClass = owned ? "hero-shop-btn" : "hero-shop-btn buy";
+      const disabled = !owned && !canBuy ? "disabled" : "";
+      const lockStateClass = owned ? "owned" : "locked";
+      const priceLabel = owned ? "Owned" : `${cfg.price} pieces`;
+      return `<div class="hero-shop-item ${lockStateClass}">
+        <div class="hero-shop-meta">
+          <div class="hero-shop-name">${hero.name}</div>
+          <div class="hero-shop-price">${priceLabel}</div>
+        </div>
+        <button type="button" class="${actionClass}" data-hero-id="${hero.id}" data-action="${owned ? "equip" : "buy"}" ${disabled}>${actionLabel}</button>
+      </div>`;
+    })
+    .join("");
+}
+
 function populateSettingsPanel() {
   ui.heroSelect.innerHTML = "";
   state.heroes.forEach((hero, index) => {
+    if (!isHeroOwned(hero.id)) {
+      return;
+    }
     const option = document.createElement("option");
     option.value = String(index);
     option.textContent = hero.name;
@@ -1798,12 +1969,18 @@ function populateSettingsPanel() {
     option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
     ui.levelSelect.appendChild(option);
   });
+  const bossOption = document.createElement("option");
+  bossOption.value = BOSS_LEVEL_VALUE;
+  bossOption.textContent = "Boss - Dragon";
+  ui.levelSelect.appendChild(bossOption);
 
+  ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
-  ui.levelSelect.value = String(state.currentLevelIndex);
+  ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
   if (ui.difficultySelect) {
-    ui.difficultySelect.value = state.easyMode ? "easy" : "normal";
+    ui.difficultySelect.value = state.generationProfile;
   }
+  renderHeroShop();
   renderErrorList();
 }
 
@@ -1858,6 +2035,48 @@ function bindControls() {
     openSettingsPanel();
   });
 
+  ui.heroShopList?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const button = target.closest("button[data-hero-id][data-action]");
+    if (!(button instanceof HTMLButtonElement)) {
+      return;
+    }
+    const heroId = button.dataset.heroId || "";
+    const action = button.dataset.action || "";
+    const heroIndex = state.heroes.findIndex((hero) => hero.id === heroId);
+    if (heroIndex < 0) {
+      return;
+    }
+    const cfg = getHeroShopConfig(heroId);
+
+    if (action === "buy") {
+      if (isHeroOwned(heroId)) {
+        return;
+      }
+      if (!spendPersistentGold(cfg.price)) {
+        showMessage("Pas assez de pieces");
+        renderHeroShop();
+        return;
+      }
+      state.heroUnlocks[heroId] = true;
+      saveHeroUnlocks(state.heroUnlocks);
+      state.selectedHeroIndex = heroIndex;
+      saveSelectedHeroId(heroId);
+      showMessage(`${state.heroes[heroIndex].name} debloque`);
+      populateSettingsPanel();
+      return;
+    }
+
+    if (action === "equip" && isHeroOwned(heroId)) {
+      state.selectedHeroIndex = heroIndex;
+      saveSelectedHeroId(heroId);
+      populateSettingsPanel();
+    }
+  });
+
   ui.pauseBtn?.addEventListener("click", () => {
     if (!state.ready || !state.started || state.gameOver || state.duel?.QS.active) {
       return;
@@ -1876,16 +2095,32 @@ function bindControls() {
 
   ui.applySettingsBtn.addEventListener("click", () => {
     const wasStarted = state.started;
-    state.selectedHeroIndex = clamp(Number(ui.heroSelect.value) || 0, 0, state.heroes.length - 1);
-    const requestedEasyMode = ui.difficultySelect ? ui.difficultySelect.value === "easy" : state.easyMode;
-    const levelIndex = clamp(Number(ui.levelSelect.value) || 0, 0, state.levels.length - 1);
-    const modeChanged = requestedEasyMode !== state.easyMode;
-    state.easyMode = requestedEasyMode;
-    if (modeChanged) {
+    const requestedHeroIndex = clamp(Number(ui.heroSelect.value) || getPaladinIndex(), 0, state.heroes.length - 1);
+    state.selectedHeroIndex = requestedHeroIndex;
+    ensureSelectedHeroIsOwned();
+    saveSelectedHeroId(state.heroes[state.selectedHeroIndex]?.id || "paladin");
+    const requestedProfile = ui.difficultySelect ? ui.difficultySelect.value : state.generationProfile;
+    const requestedLevelValue = String(ui.levelSelect.value || "0");
+    const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
+    const levelIndex = clamp(Number(requestedLevelValue) || 0, 0, state.levels.length - 1);
+    const profileChanged = requestedProfile !== state.generationProfile;
+    state.generationProfile = requestedProfile;
+    if (profileChanged) {
       generateLevelsFromConfig(state.config);
       populateSettingsPanel();
     }
+    state.pendingBossStart = wantsBoss;
     closeSettingsPanel();
+    if (wantsBoss) {
+      if (wasStarted) {
+        closePauseMenu();
+        state.paused = false;
+        startBossMode({ sourceLevelIndex: getBossPrepLevelIndex() });
+        return;
+      }
+      showTitleScreen();
+      return;
+    }
     if (wasStarted) {
       closePauseMenu();
       state.paused = false;
@@ -1908,6 +2143,7 @@ function bindControls() {
   });
   ui.restartBtn?.addEventListener("click", restartLevelAfterGameOver);
   ui.backToTitleFromGameOverBtn?.addEventListener("click", returnToTitleScreen);
+  ui.backToTitleFromVictoryBtn?.addEventListener("click", returnToTitleScreen);
 
   window.addEventListener(
     "keydown",
@@ -2030,11 +2266,17 @@ function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
     return;
   }
+  ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
-  ui.levelSelect.value = String(state.currentLevelIndex);
-  if (ui.difficultySelect) {
-    ui.difficultySelect.value = state.easyMode ? "easy" : "normal";
+  if (ui.heroSelect.selectedIndex < 0) {
+    state.selectedHeroIndex = getPaladinIndex();
+    ui.heroSelect.value = String(state.selectedHeroIndex);
   }
+  ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
+  if (ui.difficultySelect) {
+    ui.difficultySelect.value = state.generationProfile;
+  }
+  renderHeroShop();
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -2084,12 +2326,18 @@ function startGameFromMenu() {
   state.gameOver = false;
   state.deathSequence.active = false;
   state.towerInterior.active = false;
+  resetBossState();
+  ensureSelectedHeroIsOwned();
   state.levelSeedBase = createRunSeed();
   generateLevelsFromConfig(state.config);
   ui.titleScreen?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.settingsPanel.hidden = true;
+  if (state.pendingBossStart) {
+    startBossMode({ sourceLevelIndex: getBossPrepLevelIndex() });
+    return;
+  }
   loadLevel(state.currentLevelIndex, true);
 }
 
@@ -2100,6 +2348,7 @@ function showTitleScreen() {
   state.deathSequence.active = false;
   state.screenMode = "game";
   state.towerInterior.active = false;
+  resetBossState();
   if (state.duel?.QS.active) {
     state.duel.closeQuestion();
   }
@@ -2126,6 +2375,7 @@ function showGameOverScreen() {
   if (state.duel?.QS.active) {
     state.duel.closeQuestion();
   }
+  resetBossState();
   ui.settingsPanel.hidden = true;
   ui.pauseModal?.classList.add("hidden");
   ui.titleScreen?.classList.add("hidden");
@@ -2142,6 +2392,17 @@ function showGameOverScreen() {
     ui.finalCoinsText.textContent = `Coins: ${state.coins}`;
   }
   ui.gameOverPanel?.classList.remove("hidden");
+}
+
+function resetBossState() {
+  state.boss.active = false;
+  state.boss.phase = "idle";
+  state.boss.streak = 0;
+  state.boss.trialDeadline = 0;
+  state.boss.phaseUntil = 0;
+  state.boss.defeatReason = "";
+  ui.bossDefeatPanel?.classList.add("hidden");
+  ui.finalVictoryPanel?.classList.add("hidden");
 }
 
 function restartLevelAfterGameOver() {
@@ -2162,6 +2423,7 @@ function loadLevel(levelIndex, resetScore) {
     state.duel.closeQuestion();
   }
   state.currentLevelIndex = levelIndex;
+  state.pendingBossStart = false;
   state.currentLevel = cloneLevel(state.levels[levelIndex]);
   state.cameraX = 0;
   state.endCastleLockHintUntil = 0;
@@ -2173,8 +2435,16 @@ function loadLevel(levelIndex, resetScore) {
   state.gameOver = false;
   state.screenMode = "game";
   state.towerInterior.active = false;
+  resetBossState();
+  state.towerInterior.chestState = "locked";
+  state.towerInterior.chestStreak = 0;
+  state.towerInterior.chestRequired = 3;
+  state.towerInterior.chestRewardPieces = 0;
+  state.towerInterior.chestExplodeUntil = 0;
+  state.towerInterior.chestPromptUntil = 0;
   ui.gameOverPanel?.classList.add("hidden");
 
+  ensureSelectedHeroIsOwned();
   const hero = state.heroes[state.selectedHeroIndex];
   const playerW = PLAYER_HITBOX_WIDTH;
   const playerH = PLAYER_HITBOX_HEIGHT;
@@ -2257,6 +2527,14 @@ function update(delta) {
   state.playerHitInvuln = Math.max(0, state.playerHitInvuln - delta);
   state.playerHitStun = Math.max(0, state.playerHitStun - delta);
   updateHudInfo();
+
+  if (state.boss.active) {
+    updateBossMode();
+    if (state.message && performance.now() > state.messageUntil) {
+      state.message = "";
+    }
+    return;
+  }
 
   if (state.deathSequence.active) {
     updateDeathSequence(delta);
@@ -2397,15 +2675,178 @@ function updateTowerInterior(delta) {
   }
 
   player.x += player.vx * delta;
-  player.y = VIRTUAL_HEIGHT - player.h - 34;
+  player.y = getTowerInteriorFloorY() - player.h;
   player.vy = 0;
   player.onGround = true;
   player.animTime += delta;
+
+  if (
+    state.towerInterior.chestState === "locked" &&
+    !state.duel?.QS.active &&
+    performance.now() >= state.towerInterior.chestPromptUntil
+  ) {
+    const chest = getTowerInteriorChestBounds();
+    if (aabb(player, chest)) {
+      player.vx = 0;
+      openTowerChestAttempt();
+    }
+  }
 
   if (player.x <= -player.w * 0.35) {
     leaveTowerInterior("left");
   } else if (player.x >= VIRTUAL_WIDTH - player.w * 0.65) {
     leaveTowerInterior("right");
+  }
+}
+
+function getBossDragonFrame(timeSeconds) {
+  const frames = BOSS_DRAGON_ATTACK_SW_FRAMES.map((path) => imageCache.get(path)).filter(isImageRenderable);
+  if (frames.length) {
+    const index = Math.floor(timeSeconds * 10) % frames.length;
+    return frames[index];
+  }
+  const fallback = imageCache.get(BOSS_FALLBACK_DRAGON_FRAME);
+  return isImageRenderable(fallback) ? fallback : null;
+}
+
+function getBossPrepLevelIndex() {
+  return Math.max(0, state.levels.length - 1);
+}
+
+function updateBossRetryText(levelIndex) {
+  if (!ui.bossDefeatRetryText) {
+    return;
+  }
+  const wave = clamp(levelIndex + 1, 1, 999);
+  ui.bossDefeatRetryText.textContent = `Returning to wave ${wave}...`;
+}
+
+function startBossTrial() {
+  if (!state.boss.active || state.boss.phase !== "trials" || state.duel?.QS.active) {
+    return;
+  }
+  state.boss.trialDeadline = performance.now() + state.boss.trialTimeLimit * 1000;
+  const opened = state.duel?.openStandaloneQuestion({
+    vd: state.duel.randomVerbData(),
+    uiMeta: {
+      enemyEmoji: "🐉",
+      groupLabel: `Dragon Trial ${state.boss.streak}/${state.boss.required}`,
+      tenseLabel: "10 seconds",
+    },
+    onCorrect: () => {
+      if (!state.boss.active || state.boss.phase !== "trials") {
+        return;
+      }
+      state.boss.streak += 1;
+      if (state.boss.streak >= state.boss.required) {
+        state.boss.phase = "celebration";
+        state.boss.phaseUntil = performance.now() + BOSS_CELEBRATION_SECONDS * 1000;
+        showMessage("Dragon defeated!");
+        return;
+      }
+      startBossTrial();
+    },
+    onWrong: () => {
+      if (!state.boss.active || state.boss.phase !== "trials") {
+        return;
+      }
+      failBossTrial("Wrong answer");
+    },
+  });
+  if (!opened) {
+    state.boss.phase = "defeat";
+    state.boss.defeatReason = "Trial setup failed";
+    state.boss.phaseUntil = performance.now() + BOSS_DEFEAT_OVERLAY_SECONDS * 1000;
+  }
+}
+
+function startBossMode({ sourceLevelIndex = getBossPrepLevelIndex() } = {}) {
+  if (!state.ready) {
+    return;
+  }
+  if (state.duel?.QS.active) {
+    state.duel.closeQuestion();
+  }
+  state.towerInterior.active = false;
+  state.deathSequence.active = false;
+  state.started = true;
+  state.paused = false;
+  state.gameOver = false;
+  state.screenMode = "boss";
+  state.pendingBossStart = true;
+  state.boss.active = true;
+  state.boss.phase = "trials";
+  state.boss.streak = 0;
+  state.boss.trialDeadline = 0;
+  state.boss.phaseUntil = 0;
+  state.boss.defeatReason = "";
+  state.boss.sourceLevelIndex = clamp(sourceLevelIndex, 0, Math.max(0, state.levels.length - 1));
+  updateBossRetryText(state.boss.sourceLevelIndex);
+  ui.titleScreen?.classList.add("hidden");
+  ui.pauseModal?.classList.add("hidden");
+  ui.gameOverPanel?.classList.add("hidden");
+  ui.bossDefeatPanel?.classList.add("hidden");
+  ui.finalVictoryPanel?.classList.add("hidden");
+  showMessage("Dragon boss: 5 trials in a row");
+  startBossTrial();
+}
+
+function failBossTrial(reason) {
+  if (!state.boss.active || state.boss.phase !== "trials") {
+    return;
+  }
+  if (state.duel?.QS.active) {
+    state.duel.closeQuestion();
+  }
+  state.boss.phase = "defeat";
+  state.boss.defeatReason = reason || "Trial failed";
+  state.boss.streak = 0;
+  state.boss.phaseUntil = performance.now() + BOSS_DEFEAT_OVERLAY_SECONDS * 1000;
+  if (ui.bossDefeatText) {
+    ui.bossDefeatText.textContent = state.boss.defeatReason;
+  }
+  ui.bossDefeatPanel?.classList.remove("hidden");
+}
+
+function showFinalVictoryScreen() {
+  state.boss.active = false;
+  state.boss.phase = "victory";
+  state.pendingBossStart = false;
+  state.started = false;
+  state.paused = true;
+  state.screenMode = "game";
+  ui.finalVictoryPanel?.classList.remove("hidden");
+  ui.bossDefeatPanel?.classList.add("hidden");
+  ui.pauseModal?.classList.add("hidden");
+  ui.gameOverPanel?.classList.add("hidden");
+}
+
+function updateBossMode() {
+  if (!state.boss.active) {
+    return;
+  }
+  const now = performance.now();
+  if (state.boss.phase === "trials") {
+    if (state.duel?.QS.active && !state.duel?.QS.resolving && now >= state.boss.trialDeadline) {
+      failBossTrial("Time up");
+      return;
+    }
+    if (!state.duel?.QS.active && state.boss.streak < state.boss.required) {
+      startBossTrial();
+    }
+    return;
+  }
+
+  if (state.boss.phase === "defeat" && now >= state.boss.phaseUntil) {
+    ui.bossDefeatPanel?.classList.add("hidden");
+    const retryIndex = clamp(state.boss.sourceLevelIndex, 0, Math.max(0, state.levels.length - 1));
+    loadLevel(retryIndex, false);
+    showMessage(`Back to wave ${retryIndex + 1}`);
+    return;
+  }
+
+  if (state.boss.phase === "celebration" && now >= state.boss.phaseUntil) {
+    showFinalVictoryScreen();
   }
 }
 
@@ -2739,6 +3180,41 @@ function updateBonusBlocks(delta) {
   }
 }
 
+function getBonusRewardValue(rewardType) {
+  if (rewardType.includes("deco_royal_shield")) {
+    return 100;
+  }
+  if (rewardType.includes("deco_double_axe")) {
+    return 50;
+  }
+  if (rewardType.includes("deco_helmet")) {
+    return 30;
+  }
+  if (rewardType.includes("jewel")) {
+    return 12;
+  }
+  if (rewardType.includes("coin")) {
+    return 4;
+  }
+  return 0;
+}
+
+function getBonusPopupStyleByValue(value) {
+  if (value >= 100) {
+    return { size: 30, frameColor: "#ffd56a", frameWidth: 3 };
+  }
+  if (value >= 50) {
+    return { size: 27, frameColor: "#ffb15c", frameWidth: 2.5 };
+  }
+  if (value >= 30) {
+    return { size: 25, frameColor: "#8ec8ff", frameWidth: 2.25 };
+  }
+  if (value >= 15) {
+    return { size: 23, frameColor: "#9af0d6", frameWidth: 2 };
+  }
+  return { size: 22, frameColor: "#d7e3ff", frameWidth: 2 };
+}
+
 function triggerBonusBlock(block) {
   if (block.used) {
     return;
@@ -2747,17 +3223,22 @@ function triggerBonusBlock(block) {
   block.used = true;
   block.bumpTime = 0.12;
   block.bumpOffset = -4;
+  const rewardValue = getBonusRewardValue(block.rewardType);
+  const popupStyle = getBonusPopupStyleByValue(rewardValue);
   block.popup = {
-    x: block.x + (block.w - 22) / 2,
+    x: block.x + (block.w - popupStyle.size) / 2,
     y: block.y,
-    w: 22,
-    h: 22,
+    w: popupStyle.size,
+    h: popupStyle.size,
     rise: 0,
     vy: 0,
     settled: false,
     collectible: false,
     collected: false,
     path: block.rewardPath,
+    value: rewardValue,
+    frameColor: popupStyle.frameColor,
+    frameWidth: popupStyle.frameWidth,
   };
 }
 
@@ -2781,8 +3262,26 @@ function resolveBonusPopupVerticalCollision(popup, level) {
 }
 
 function applyBonusReward(rewardType) {
+  if (rewardType.includes("deco_double_axe")) {
+    grantGold(50);
+    state.score += 200;
+    return;
+  }
+
+  if (rewardType.includes("deco_helmet")) {
+    grantGold(30);
+    state.score += 120;
+    return;
+  }
+
+  if (rewardType.includes("deco_royal_shield")) {
+    grantGold(100);
+    state.score += 400;
+    return;
+  }
+
   if (rewardType.includes("jewel")) {
-    state.coins += 15;
+    grantGold(12);
     state.score += 60;
     return;
   }
@@ -2794,7 +3293,7 @@ function applyBonusReward(rewardType) {
   }
 
   if (rewardType.includes("coin")) {
-    state.coins += 1;
+    grantGold(4);
     state.score += 10;
     return;
   }
@@ -2882,10 +3381,8 @@ function defeatEnemy(enemy) {
   enemy.vy = 0;
   state.currentLevel.defeatedEnemyCount = (state.currentLevel.defeatedEnemyCount || 0) + 1;
   state.score += 100;
-  state.coins += 10;
-  state.persistentGold += 10;
-  savePersistentGold(state.persistentGold);
-  showMessage("+100 / +10 gold");
+  grantGold(6);
+  showMessage("+100 / +6 gold");
 }
 
 function respawnPlayer() {
@@ -2904,6 +3401,59 @@ function getTowerBounds(level) {
   const x = clamp(level.towerX - towerW / 2, 0, level.worldWidth - towerW);
   const y = level.groundY * state.tileSize - (towerH - state.tileSize);
   return { x, y, w: towerW, h: towerH };
+}
+
+function getTowerInteriorFloorY() {
+  return VIRTUAL_HEIGHT - 34;
+}
+
+function getTowerInteriorChestBounds() {
+  const chestW = 84;
+  const chestH = 84;
+  const floorY = getTowerInteriorFloorY();
+  const chestX = Math.round(VIRTUAL_WIDTH * 0.68 - chestW * 0.5);
+  const chestY = Math.round(floorY - chestH);
+  return { x: chestX, y: chestY, w: chestW, h: chestH };
+}
+
+function openTowerChestAttempt() {
+  if (!state.duel || state.duel.QS.active || state.towerInterior.chestState !== "locked") {
+    return;
+  }
+
+  const streak = state.towerInterior.chestStreak;
+  const required = state.towerInterior.chestRequired;
+  const opened = state.duel.openStandaloneQuestion({
+    vd: state.duel.randomVerbData(),
+    uiMeta: {
+      enemyEmoji: "📦",
+      groupLabel: `Coffre de la tour ${streak}/${required}`,
+    },
+    onCorrect() {
+      state.towerInterior.chestStreak += 1;
+      const current = state.towerInterior.chestStreak;
+      if (current >= required) {
+        const pieces = 15 + Math.floor(Math.pow(Math.random(), 3) * 136);
+        state.towerInterior.chestState = "open";
+        state.towerInterior.chestRewardPieces = pieces;
+        grantGold(pieces);
+        state.score += pieces * 2;
+        showMessage(`Coffre ouvert: +${pieces} pieces`);
+        return;
+      }
+      showMessage(`Serie du coffre: ${current}/${required}`);
+    },
+    onWrong() {
+      state.towerInterior.chestStreak = 0;
+      state.towerInterior.chestState = "destroyed";
+      state.towerInterior.chestExplodeUntil = performance.now() + 1000;
+      showMessage("Echec: le coffre explose");
+    },
+  });
+
+  if (opened) {
+    state.towerInterior.chestPromptUntil = performance.now() + 450;
+  }
 }
 
 function tryEnterTower() {
@@ -2929,12 +3479,18 @@ function tryEnterTower() {
   state.towerInterior.outsideX = player.x;
   state.towerInterior.outsideY = player.y;
 
-  player.x = VIRTUAL_WIDTH * 0.5 - player.w * 0.5;
-  player.y = VIRTUAL_HEIGHT - player.h - 34;
+  player.x = VIRTUAL_WIDTH * 0.32 - player.w * 0.5;
+  player.y = getTowerInteriorFloorY() - player.h;
   player.vx = 0;
   player.vy = 0;
   player.onGround = true;
-  showMessage("Entrée dans la tour");
+  if (state.towerInterior.chestState === "locked") {
+    showMessage("Touchez le coffre: 3 reponses d'affilee");
+  } else if (state.towerInterior.chestState === "open") {
+    showMessage(`Coffre deja ouvert: +${state.towerInterior.chestRewardPieces} pieces`);
+  } else {
+    showMessage("Le coffre a disparu");
+  }
   return true;
 }
 
@@ -2989,12 +3545,12 @@ function checkGoal() {
   }
 
   state.score += 100;
+  grantGold(18);
 
   if (state.currentLevelIndex < state.levels.length - 1) {
     loadLevel(state.currentLevelIndex + 1, false);
   } else {
-    showMessage("All 5 levels cleared");
-    loadLevel(0, true);
+    startBossMode({ sourceLevelIndex: state.currentLevelIndex });
   }
 }
 
@@ -3050,6 +3606,14 @@ function updateCamera() {
 }
 
 function render(timeSeconds) {
+  if (state.boss.active) {
+    drawBossScene(timeSeconds);
+    if (state.message) {
+      drawFloatingMessage(state.message);
+    }
+    return;
+  }
+
   if (!state.currentLevel) {
     return;
   }
@@ -3100,6 +3664,60 @@ function render(timeSeconds) {
   }
 }
 
+function drawBossScene(timeSeconds) {
+  const grad = ctx.createLinearGradient(0, 0, 0, VIRTUAL_HEIGHT);
+  grad.addColorStop(0, "#2b0f17");
+  grad.addColorStop(1, "#090d1c");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  for (let i = 0; i < 22; i += 1) {
+    const x = (i * 41 + Math.sin(timeSeconds * 1.3 + i) * 20 + VIRTUAL_WIDTH) % VIRTUAL_WIDTH;
+    const y = (i * 67 + Math.cos(timeSeconds * 1.1 + i * 0.7) * 16 + VIRTUAL_HEIGHT) % VIRTUAL_HEIGHT;
+    ctx.fillStyle = "#ff8e42";
+    ctx.fillRect(x, y, 3, 3);
+  }
+  ctx.restore();
+
+  const dragon = getBossDragonFrame(timeSeconds);
+  const dragonW = 280;
+  const dragonH = 280;
+  const dragonX = VIRTUAL_WIDTH * 0.5 - dragonW * 0.5 + Math.sin(timeSeconds * 1.2) * 4;
+  const dragonY = 110 + Math.cos(timeSeconds * 1.6) * 3;
+  if (dragon) {
+    ctx.drawImage(dragon, dragonX, dragonY, dragonW, dragonH);
+  } else {
+    ctx.fillStyle = "#b43d34";
+    ctx.fillRect(dragonX + 50, dragonY + 70, dragonW - 100, dragonH - 120);
+  }
+
+  const secondsLeft = Math.max(0, Math.ceil((state.boss.trialDeadline - performance.now()) / 1000));
+  ctx.fillStyle = "#f7fbff";
+  ctx.font = "bold 18px Nunito, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`Dragon Boss`, VIRTUAL_WIDTH * 0.5, 52);
+  ctx.font = "bold 15px Nunito, sans-serif";
+  ctx.fillText(`Trials: ${state.boss.streak}/${state.boss.required}`, VIRTUAL_WIDTH * 0.5, 78);
+  if (state.boss.phase === "trials") {
+    ctx.fillStyle = secondsLeft <= 3 ? "#ff8e42" : "#ffd56a";
+    ctx.fillText(`Time: ${secondsLeft}s`, VIRTUAL_WIDTH * 0.5, 102);
+  } else if (state.boss.phase === "celebration") {
+    ctx.fillStyle = "#74f3d8";
+    ctx.fillText("Champion ceremony...", VIRTUAL_WIDTH * 0.5, 102);
+    ctx.save();
+    for (let i = 0; i < 18; i += 1) {
+      const angle = timeSeconds * 2 + i * (Math.PI / 9);
+      const px = VIRTUAL_WIDTH * 0.5 + Math.cos(angle) * (65 + i);
+      const py = 230 + Math.sin(angle) * (25 + i * 0.6);
+      ctx.fillStyle = i % 2 ? "#ffd56a" : "#74f3d8";
+      ctx.fillRect(px, py, 4, 4);
+    }
+    ctx.restore();
+  }
+}
+
 function drawTowerInteriorScene(timeSeconds) {
   const interiorImage = imageCache.get("game_assets/tower/tower_inside.png");
   const chestImage = imageCache.get("game_assets/decoration/deco_chest.png");
@@ -3116,12 +3734,27 @@ function drawTowerInteriorScene(timeSeconds) {
     ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
   }
 
-  if (chestImage?.complete) {
-    const chestW = 84;
-    const chestH = 84;
-    const chestX = VIRTUAL_WIDTH * 0.5 - chestW * 0.5;
-    const chestY = VIRTUAL_HEIGHT * 0.5 - chestH * 0.5 + Math.sin(timeSeconds * 2.5) * 2;
-    ctx.drawImage(chestImage, chestX, chestY, chestW, chestH);
+  const chest = getTowerInteriorChestBounds();
+  if (state.towerInterior.chestState !== "destroyed" && chestImage?.complete) {
+    const bobY = Math.sin(timeSeconds * 2.2) * 2;
+    ctx.drawImage(chestImage, chest.x, chest.y + bobY, chest.w, chest.h);
+    if (state.towerInterior.chestState === "open") {
+      ctx.fillStyle = "rgba(255, 215, 106, 0.9)";
+      ctx.font = "bold 18px Nunito, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`+${state.towerInterior.chestRewardPieces}`, chest.x + chest.w * 0.5, chest.y - 12);
+    }
+  } else if (state.towerInterior.chestState === "destroyed" && performance.now() < state.towerInterior.chestExplodeUntil) {
+    const t = (state.towerInterior.chestExplodeUntil - performance.now()) / 1000;
+    const progress = 1 - clamp(t, 0, 1);
+    for (let i = 0; i < 10; i += 1) {
+      const angle = (Math.PI * 2 * i) / 10;
+      const radius = 12 + progress * 32;
+      const px = chest.x + chest.w * 0.5 + Math.cos(angle) * radius;
+      const py = chest.y + chest.h * 0.5 + Math.sin(angle) * radius;
+      ctx.fillStyle = i % 2 ? "#ffb15c" : "#ffd56a";
+      ctx.fillRect(px - 3, py - 3, 6, 6);
+    }
   }
 
   drawPlayer(state.player);
@@ -3318,6 +3951,7 @@ function drawBonuses(level, timeSeconds) {
       ctx.fillStyle = "#ffde5e";
       ctx.fillRect(block.popup.x, block.popup.y, block.popup.w, block.popup.h);
     }
+
   }
 }
 
@@ -4079,6 +4713,103 @@ function savePersistentGold(value) {
   }
 }
 
+function loadHeroUnlocks() {
+  try {
+    const raw = localStorage.getItem(HERO_UNLOCK_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveHeroUnlocks(unlocks) {
+  try {
+    localStorage.setItem(HERO_UNLOCK_STORAGE_KEY, JSON.stringify(unlocks || {}));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+function loadSelectedHeroId() {
+  try {
+    return String(localStorage.getItem(HERO_SELECTED_STORAGE_KEY) || "paladin");
+  } catch {
+    return "paladin";
+  }
+}
+
+function saveSelectedHeroId(heroId) {
+  try {
+    localStorage.setItem(HERO_SELECTED_STORAGE_KEY, String(heroId || "paladin"));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+function getPaladinIndex() {
+  return Math.max(0, state.heroes.findIndex((hero) => hero.id === "paladin"));
+}
+
+function isHeroOwned(heroId) {
+  return Boolean(state.heroUnlocks[heroId]);
+}
+
+function ensureSelectedHeroIsOwned() {
+  const selected = state.heroes[state.selectedHeroIndex];
+  if (selected && isHeroOwned(selected.id)) {
+    return;
+  }
+  state.selectedHeroIndex = getPaladinIndex();
+}
+
+function initializeHeroProgress() {
+  const storedUnlocks = loadHeroUnlocks();
+  const heroUnlocks = {};
+  for (const hero of state.heroes) {
+    const cfg = getHeroShopConfig(hero.id);
+    heroUnlocks[hero.id] = Boolean(cfg.defaultOwned || storedUnlocks[hero.id]);
+  }
+  heroUnlocks.paladin = true;
+  state.heroUnlocks = heroUnlocks;
+
+  const selectedHeroId = loadSelectedHeroId();
+  const selectedIndex = state.heroes.findIndex((hero) => hero.id === selectedHeroId);
+  state.selectedHeroIndex = selectedIndex >= 0 ? selectedIndex : getPaladinIndex();
+  ensureSelectedHeroIsOwned();
+  const selected = state.heroes[state.selectedHeroIndex];
+  saveHeroUnlocks(state.heroUnlocks);
+  if (selected) {
+    saveSelectedHeroId(selected.id);
+  }
+}
+
+function spendPersistentGold(cost) {
+  const amount = Math.max(0, Math.floor(Number(cost) || 0));
+  if (amount <= 0 || state.persistentGold < amount) {
+    return false;
+  }
+  state.persistentGold -= amount;
+  savePersistentGold(state.persistentGold);
+  if (ui.settingsPanel && !ui.settingsPanel.hidden) {
+    renderHeroShop();
+  }
+  return true;
+}
+
+function grantGold(amount) {
+  const value = Math.max(0, Math.floor(Number(amount) || 0));
+  if (!value) {
+    return;
+  }
+  state.coins += value;
+  state.persistentGold += value;
+  savePersistentGold(state.persistentGold);
+  if (ui.settingsPanel && !ui.settingsPanel.hidden) {
+    renderHeroShop();
+  }
+}
+
 function populatePedagogyPanel() {
   if (!ui.groupFilters || !ui.tenseFilters) {
     return;
@@ -4135,7 +4866,7 @@ function buildQuestionUiHooks() {
   };
 
   return {
-    onOpenQuestion(question) {
+    onOpenQuestion(question, uiMeta = null) {
       if (!ui.questionPanel || !ui.questionPrompt || !ui.answerButtons) {
         return;
       }
@@ -4147,13 +4878,13 @@ function buildQuestionUiHooks() {
       const groupLabel = verbs?.[question.gKey]?.label || question.gKey;
       const biomeId = state.currentLevel?.biomeId || "forest";
       if (ui.questionEnemy) {
-        ui.questionEnemy.textContent = BIOME_EMOJI[biomeId] || "⚔️";
+        ui.questionEnemy.textContent = uiMeta?.enemyEmoji || (BIOME_EMOJI[biomeId] || "⚔️");
       }
       if (ui.questionGroup) {
-        ui.questionGroup.textContent = groupLabel;
+        ui.questionGroup.textContent = uiMeta?.groupLabel || groupLabel;
       }
       if (ui.questionTense) {
-        ui.questionTense.textContent = question.tenseLabel;
+        ui.questionTense.textContent = uiMeta?.tenseLabel || question.tenseLabel;
       }
       ui.questionPrompt.innerHTML = `Conjugue <span class="verb">${inf}</span> ${tenseText}<br/><span class="pronoun">${pronoun}</span> <span class="blank">???</span>`;
       ui.answerButtons.innerHTML = "";
@@ -4261,7 +4992,7 @@ function generateLevelVerbDatas(n) {
 }
 
 function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGetter, uiHooks, gameplayHooks }) {
-  const QS = { active: false, enemy: null, q: null };
+  const QS = { active: false, enemy: null, q: null, mode: "enemy", onCorrect: null, onWrong: null, uiMeta: null, resolving: false };
   const QK = { selectedBtn: null };
   let selectedIndex = 0;
   let errorDB = loadErrorDB(storageKey);
@@ -4583,51 +5314,98 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS.active = true;
     QS.enemy = enemy;
     QS.q = q;
+    QS.mode = "enemy";
+    QS.onCorrect = null;
+    QS.onWrong = null;
+    QS.uiMeta = null;
+    QS.resolving = false;
     enemy.battling = true;
     selectedIndex = 0;
-    uiHooks.onOpenQuestion?.(q);
+    uiHooks.onOpenQuestion?.(q, QS.uiMeta);
     syncSelection();
     gameplayHooks.onOpenQuestion?.(q, enemy);
     return true;
   }
 
+  function openStandaloneQuestion({ vd = null, uiMeta = null, onCorrect = null, onWrong = null } = {}) {
+    if (QS.active) {
+      return false;
+    }
+    const questionData = vd || randomVerbData();
+    const q = makeQuestion(questionData);
+    if (!q) {
+      return false;
+    }
+    QS.active = true;
+    QS.enemy = null;
+    QS.q = q;
+    QS.mode = "standalone";
+    QS.onCorrect = typeof onCorrect === "function" ? onCorrect : null;
+    QS.onWrong = typeof onWrong === "function" ? onWrong : null;
+    QS.uiMeta = uiMeta || null;
+    QS.resolving = false;
+    selectedIndex = 0;
+    uiHooks.onOpenQuestion?.(q, QS.uiMeta);
+    syncSelection();
+    gameplayHooks.onOpenQuestion?.(q, null);
+    return true;
+  }
+
   function closeQuestion() {
     const enemy = QS.enemy;
+    const mode = QS.mode;
     QS.active = false;
     QS.enemy = null;
     QS.q = null;
+    QS.mode = "enemy";
+    QS.onCorrect = null;
+    QS.onWrong = null;
+    QS.uiMeta = null;
+    QS.resolving = false;
     QK.selectedBtn = null;
     selectedIndex = 0;
     uiHooks.onCloseQuestion?.();
-    gameplayHooks.onCloseQuestion?.(enemy);
+    gameplayHooks.onCloseQuestion?.(enemy, mode);
   }
 
   async function answerClick(answer) {
-    if (!QS.active || !QS.q) {
+    if (!QS.active || !QS.q || QS.resolving) {
       return false;
     }
+    QS.resolving = true;
     const q = QS.q;
     const selected = String(answer || "");
     uiHooks.disableAnswers?.();
     uiHooks.markAnswer?.({ correct: q.correct, selected });
     const correct = selected === q.correct;
+    const mode = QS.mode;
+    const onCorrect = QS.onCorrect;
+    const onWrong = QS.onWrong;
     if (correct) {
       await delay(700);
       const enemy = QS.enemy;
       closeQuestion();
-      gameplayHooks.defeatEnemy?.(enemy);
+      if (mode === "enemy") {
+        gameplayHooks.defeatEnemy?.(enemy);
+      } else {
+        onCorrect?.(q);
+      }
       return true;
     }
 
     recordError(q);
     uiHooks.vibrate?.(120);
-    await delay(2500);
+    await delay(mode === "enemy" ? 2500 : 800);
     const enemy = QS.enemy;
     closeQuestion();
-    if (enemy) {
-      enemy.battling = false;
+    if (mode === "enemy") {
+      if (enemy) {
+        enemy.battling = false;
+      }
+      gameplayHooks.hitPlayer?.();
+    } else {
+      onWrong?.(q);
     }
-    gameplayHooks.hitPlayer?.();
     return false;
   }
 
@@ -4674,6 +5452,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS,
     QK,
     openQuestion,
+    openStandaloneQuestion,
     makeQuestion,
     answerClick,
     closeQuestion,
