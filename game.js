@@ -3107,13 +3107,7 @@ function updateFireballs(delta) {
       if (!enemy?.alive || enemy.battling || enemy.defeatFadeActive) {
         continue;
       }
-      const expanded = {
-        x: enemy.x - fireball.radius,
-        y: enemy.y - fireball.radius,
-        w: enemy.w + fireball.radius * 2,
-        h: enemy.h + fireball.radius * 2,
-      };
-      if (aabb(fireball, expanded)) {
+      if (circleIntersectsRect(fireball.x, fireball.y, fireball.radius, enemy)) {
         hitEnemy = enemy;
         break;
       }
@@ -5007,6 +5001,14 @@ function clamp(value, min, max) {
 
 function aabb(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function circleIntersectsRect(cx, cy, radius, rect) {
+  const closestX = clamp(cx, rect.x, rect.x + rect.w);
+  const closestY = clamp(cy, rect.y, rect.y + rect.h);
+  const dx = cx - closestX;
+  const dy = cy - closestY;
+  return dx * dx + dy * dy <= radius * radius;
 }
 
 function formatHeroName(value) {
