@@ -172,6 +172,7 @@ const BOSS_FALLBACK_DRAGON_FRAME = "game_assets/enemies/boss-dragon/rotations/so
 const MAGE_FIREBALL_ICON = "game_assets/decoration/deco_cauldron_fire.png";
 const MAGE_FIREBALL_SPEED = 420;
 const MAGE_FIREBALL_RADIUS = 16;
+const CHEAT_MENU_LONG_PRESS_MS = 650;
 
 
 function getHeroShopConfig(heroId) {
@@ -296,8 +297,7 @@ const state = {
   persistentGold: 0,
   hearts: STARTING_HEARTS,
   worldZoom: 1,
-  scoreClickStreak: 0,
-  scoreClickTimer: null,
+  cheatLongPressTimer: null,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
@@ -2194,11 +2194,7 @@ function closeCheatModal() {
     return;
   }
   ui.cheatModal.classList.add("hidden");
-  state.scoreClickStreak = 0;
-  if (state.scoreClickTimer) {
-    clearTimeout(state.scoreClickTimer);
-    state.scoreClickTimer = null;
-  }
+  cancelCheatMenuLongPress();
   if (!state.started) {
     state.paused = false;
     return;
@@ -2206,24 +2202,25 @@ function closeCheatModal() {
   state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
 }
 
-function registerScoreCheatClick() {
-  if (!state.ready || !ui.hudScoreValue) {
+function cancelCheatMenuLongPress() {
+  if (state.cheatLongPressTimer) {
+    clearTimeout(state.cheatLongPressTimer);
+    state.cheatLongPressTimer = null;
+  }
+}
+
+function beginCheatMenuLongPress() {
+  if (!state.ready || !ui.hudLives || state.cheatLongPressTimer) {
     return;
   }
-  state.scoreClickStreak += 1;
-  if (state.scoreClickTimer) {
-    clearTimeout(state.scoreClickTimer);
-  }
-  state.scoreClickTimer = setTimeout(() => {
-    state.scoreClickStreak = 0;
-    state.scoreClickTimer = null;
-  }, 900);
-  if (state.scoreClickStreak >= 3) {
-    state.scoreClickStreak = 0;
-    clearTimeout(state.scoreClickTimer);
-    state.scoreClickTimer = null;
+  state.cheatLongPressTimer = setTimeout(() => {
+    state.cheatLongPressTimer = null;
     openCheatModal();
-  }
+  }, CHEAT_MENU_LONG_PRESS_MS);
+}
+
+function endCheatMenuLongPress() {
+  cancelCheatMenuLongPress();
 }
 
 function applyCheatSelections() {
@@ -2306,7 +2303,10 @@ function bindControls() {
     openShopPanel();
   });
 
-  ui.hudScoreValue?.addEventListener("click", registerScoreCheatClick);
+  ui.hudLives?.addEventListener("pointerdown", beginCheatMenuLongPress);
+  ui.hudLives?.addEventListener("pointerup", endCheatMenuLongPress);
+  ui.hudLives?.addEventListener("pointerleave", endCheatMenuLongPress);
+  ui.hudLives?.addEventListener("pointercancel", endCheatMenuLongPress);
 
   ui.cheatCloseBtn?.addEventListener("click", closeCheatModal);
   ui.cheatGivePiecesBtn?.addEventListener("click", () => {
