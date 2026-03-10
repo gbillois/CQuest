@@ -202,6 +202,8 @@ const ui = {
   shopGoldValue: document.getElementById("shopGoldValue"),
   levelSelect: document.getElementById("levelSelect"),
   difficultySelect: document.getElementById("difficultySelect"),
+  worldZoomSlider: document.getElementById("worldZoomSlider"),
+  worldZoomValue: document.getElementById("worldZoomValue"),
   questionPanel: document.getElementById("questionPanel"),
   questionEnemy: document.getElementById("questionEnemy"),
   questionGroup: document.getElementById("questionGroup"),
@@ -283,6 +285,7 @@ const state = {
   persistentGold: 0,
   hearts: STARTING_HEARTS,
   generationProfile: "normal",
+  worldZoom: WORLD_SCALE,
   screenMode: "game",
   pedagogy: {
     activeGroups: [],
@@ -2020,6 +2023,19 @@ function renderHeroShop() {
     .join("");
 }
 
+function formatZoomLabel(zoom) {
+  return `${Number(zoom).toFixed(1)}x`;
+}
+
+function syncWorldZoomUi() {
+  if (ui.worldZoomSlider) {
+    ui.worldZoomSlider.value = String(state.worldZoom);
+  }
+  if (ui.worldZoomValue) {
+    ui.worldZoomValue.textContent = formatZoomLabel(state.worldZoom);
+  }
+}
+
 function populateSettingsPanel() {
   ui.heroSelect.innerHTML = "";
   state.heroes.forEach((hero, index) => {
@@ -2050,6 +2066,7 @@ function populateSettingsPanel() {
   if (ui.difficultySelect) {
     ui.difficultySelect.value = state.generationProfile;
   }
+  syncWorldZoomUi();
   renderHeroShop();
   renderErrorList();
   syncMageActionButtonVisibility();
@@ -2189,6 +2206,12 @@ function bindControls() {
 
   ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
+
+  ui.worldZoomSlider?.addEventListener("input", () => {
+    const nextZoom = clamp(Number(ui.worldZoomSlider.value) || WORLD_SCALE, 0.1, 3);
+    state.worldZoom = nextZoom;
+    syncWorldZoomUi();
+  });
 
   ui.applySettingsBtn.addEventListener("click", () => {
     const wasStarted = state.started;
@@ -2400,6 +2423,7 @@ function openSettingsPanel() {
   if (ui.difficultySelect) {
     ui.difficultySelect.value = state.generationProfile;
   }
+  syncWorldZoomUi();
   ui.shopPanel.hidden = true;
   ui.settingsPanel.hidden = false;
   state.paused = true;
@@ -3989,8 +4013,10 @@ function getEndCastleDoorBounds(level) {
 }
 
 function updateCamera() {
-  const desired = state.player.x - VIRTUAL_WIDTH * 0.35;
-  const maxX = Math.max(0, state.currentLevel.worldWidth - VIRTUAL_WIDTH);
+  const zoom = clamp(state.worldZoom || WORLD_SCALE, 0.1, 3);
+  const visibleWorldWidth = VIRTUAL_WIDTH / zoom;
+  const desired = state.player.x - visibleWorldWidth * 0.35;
+  const maxX = Math.max(0, state.currentLevel.worldWidth - visibleWorldWidth);
   state.cameraX += (clamp(desired, 0, maxX) - state.cameraX) * 0.08;
 }
 
@@ -4032,6 +4058,12 @@ function render(timeSeconds) {
   drawParallaxBackground(level);
 
   ctx.save();
+  const zoom = clamp(state.worldZoom || WORLD_SCALE, 0.1, 3);
+  const halfW = VIRTUAL_WIDTH * 0.5;
+  const halfH = VIRTUAL_HEIGHT * 0.5;
+  ctx.translate(halfW, halfH);
+  ctx.scale(zoom, zoom);
+  ctx.translate(-halfW, -halfH);
   ctx.translate(-Math.floor(state.cameraX), Math.floor(getWorldRenderOffsetY(level)));
 
   try {
