@@ -1,0 +1,3681 @@
+{
+  "schema": "tilesworker.dynamic-level-config.v1",
+  "generated_at_utc": "2026-03-09T23:17:58Z",
+  "asset_root": "game_assets",
+  "grid": {
+    "tile_size": 32,
+    "coordinate_system": "x_right_y_down",
+    "default_level_size_tiles": {
+      "width": 128,
+      "height": 36
+    }
+  },
+  "generation": {
+    "seed_mode": "deterministic",
+    "biome_selection": {
+      "type": "weighted_random",
+      "weights": {
+        "castle": 1,
+        "desert": 1,
+        "desolation": 1,
+        "forest": 1,
+        "mountain": 1,
+        "snow": 1,
+        "wood": 1
+      }
+    },
+    "pipeline": [
+      {
+        "step": "heightmap",
+        "algorithm": "fractal_noise_1d",
+        "params": {
+          "octaves": 4,
+          "frequency": 0.045,
+          "amplitude_tiles": 6,
+          "base_height_tiles": 20
+        }
+      },
+      {
+        "step": "terrain_paint",
+        "algorithm": "surface_slope_fill",
+        "params": {
+          "max_slope_delta_per_column": 1,
+          "surface_role_prefix": "surface_",
+          "slope_role_prefix": "slope_",
+          "subsurface_role_prefix": "subsurface_"
+        }
+      },
+      {
+        "step": "cave_and_feature_pass",
+        "algorithm": "feature_injection",
+        "params": {
+          "feature_tile_role": "cave_or_hole",
+          "max_features_per_100_tiles": 3
+        }
+      },
+      {
+        "step": "bonus_pass",
+        "algorithm": "weighted_scatter",
+        "params": {
+          "target_density_per_100_tiles": 8,
+          "pools": [
+            "bonus"
+          ]
+        }
+      },
+      {
+        "step": "decoration_pass",
+        "algorithm": "poisson_scatter",
+        "params": {
+          "target_density_per_100_tiles": 12,
+          "pools": [
+            "decoration"
+          ]
+        }
+      },
+      {
+        "step": "landmark_pass",
+        "algorithm": "landmark_placer",
+        "params": {
+          "pools": [
+            "structures"
+          ],
+          "start_anchor": "castle_locked",
+          "end_anchor": "castle_unlocked"
+        }
+      }
+    ],
+    "validation": {
+      "require_walkable_path_start_to_end": true,
+      "min_walkable_ceiling_clearance_tiles": 2,
+      "max_isolated_platform_tiles": 3
+    }
+  },
+  "biomes": {
+    "castle": {
+      "id": "castle",
+      "tileset_dir": "game_assets/tiles/castle",
+      "tile_count": 18,
+      "tile_catalog": {
+        "surface": [
+          "castle_r01_c01",
+          "castle_r01_c02",
+          "castle_r01_c03",
+          "castle_r01_c04"
+        ],
+        "slopes": [
+          "castle_r02_c01",
+          "castle_r02_c02",
+          "castle_r02_c03",
+          "castle_r02_c04"
+        ],
+        "subsurface": [
+          "castle_r03_c01",
+          "castle_r03_c02",
+          "castle_r03_c03",
+          "castle_r03_c04",
+          "castle_r04_c01",
+          "castle_r04_c02",
+          "castle_r04_c03",
+          "castle_r04_c04"
+        ],
+        "detail_overlay": [
+          "castle_r05_c02",
+          "castle_r05_c03"
+        ]
+      },
+      "default_surface_tile": "castle_r01_c01",
+      "default_fill_tile": "castle_r03_c01",
+      "tiles": [
+        {
+          "id": "castle_r01_c01",
+          "path": "game_assets/tiles/castle/castle_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r01_c02",
+          "path": "game_assets/tiles/castle/castle_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r01_c03",
+          "path": "game_assets/tiles/castle/castle_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r01_c04",
+          "path": "game_assets/tiles/castle/castle_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r02_c01",
+          "path": "game_assets/tiles/castle/castle_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r02_c02",
+          "path": "game_assets/tiles/castle/castle_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r02_c03",
+          "path": "game_assets/tiles/castle/castle_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r02_c04",
+          "path": "game_assets/tiles/castle/castle_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r03_c01",
+          "path": "game_assets/tiles/castle/castle_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r03_c02",
+          "path": "game_assets/tiles/castle/castle_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r03_c03",
+          "path": "game_assets/tiles/castle/castle_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r03_c04",
+          "path": "game_assets/tiles/castle/castle_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r04_c01",
+          "path": "game_assets/tiles/castle/castle_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r04_c02",
+          "path": "game_assets/tiles/castle/castle_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r04_c03",
+          "path": "game_assets/tiles/castle/castle_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r04_c04",
+          "path": "game_assets/tiles/castle/castle_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r05_c02",
+          "path": "game_assets/tiles/castle/castle_tile_r05_c02_17.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "castle_r05_c03",
+          "path": "game_assets/tiles/castle/castle_tile_r05_c03_18.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "desert": {
+      "id": "desert",
+      "tileset_dir": "game_assets/tiles/desert",
+      "tile_count": 20,
+      "tile_catalog": {
+        "surface": [
+          "desert_r01_c01",
+          "desert_r01_c02",
+          "desert_r01_c03",
+          "desert_r01_c04"
+        ],
+        "slopes": [
+          "desert_r02_c01",
+          "desert_r02_c02",
+          "desert_r02_c03",
+          "desert_r02_c04"
+        ],
+        "subsurface": [
+          "desert_r03_c01",
+          "desert_r03_c02",
+          "desert_r03_c03",
+          "desert_r03_c04",
+          "desert_r04_c01",
+          "desert_r04_c02",
+          "desert_r04_c03",
+          "desert_r04_c04"
+        ],
+        "detail_overlay": [
+          "desert_r05_c01",
+          "desert_r05_c02",
+          "desert_r05_c03",
+          "desert_r05_c04"
+        ]
+      },
+      "default_surface_tile": "desert_r01_c01",
+      "default_fill_tile": "desert_r03_c01",
+      "tiles": [
+        {
+          "id": "desert_r01_c01",
+          "path": "game_assets/tiles/desert/desert_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r01_c02",
+          "path": "game_assets/tiles/desert/desert_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r01_c03",
+          "path": "game_assets/tiles/desert/desert_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r01_c04",
+          "path": "game_assets/tiles/desert/desert_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r02_c01",
+          "path": "game_assets/tiles/desert/desert_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r02_c02",
+          "path": "game_assets/tiles/desert/desert_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r02_c03",
+          "path": "game_assets/tiles/desert/desert_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r02_c04",
+          "path": "game_assets/tiles/desert/desert_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r03_c01",
+          "path": "game_assets/tiles/desert/desert_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r03_c02",
+          "path": "game_assets/tiles/desert/desert_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r03_c03",
+          "path": "game_assets/tiles/desert/desert_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r03_c04",
+          "path": "game_assets/tiles/desert/desert_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r04_c01",
+          "path": "game_assets/tiles/desert/desert_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r04_c02",
+          "path": "game_assets/tiles/desert/desert_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r04_c03",
+          "path": "game_assets/tiles/desert/desert_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r04_c04",
+          "path": "game_assets/tiles/desert/desert_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r05_c01",
+          "path": "game_assets/tiles/desert/desert_tile_r05_c01_17.png",
+          "row": 5,
+          "col": 1,
+          "role": "detail_a",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r05_c02",
+          "path": "game_assets/tiles/desert/desert_tile_r05_c02_18.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r05_c03",
+          "path": "game_assets/tiles/desert/desert_tile_r05_c03_19.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desert_r05_c04",
+          "path": "game_assets/tiles/desert/desert_tile_r05_c04_20.png",
+          "row": 5,
+          "col": 4,
+          "role": "detail_d",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "desolation": {
+      "id": "desolation",
+      "tileset_dir": "game_assets/tiles/desolation",
+      "tile_count": 20,
+      "tile_catalog": {
+        "surface": [
+          "desolation_r01_c01",
+          "desolation_r01_c02",
+          "desolation_r01_c03",
+          "desolation_r01_c04"
+        ],
+        "slopes": [
+          "desolation_r02_c01",
+          "desolation_r02_c02",
+          "desolation_r02_c03",
+          "desolation_r02_c04"
+        ],
+        "subsurface": [
+          "desolation_r03_c01",
+          "desolation_r03_c02",
+          "desolation_r03_c03",
+          "desolation_r03_c04",
+          "desolation_r04_c01",
+          "desolation_r04_c02",
+          "desolation_r04_c03",
+          "desolation_r04_c04"
+        ],
+        "detail_overlay": [
+          "desolation_r05_c01",
+          "desolation_r05_c02",
+          "desolation_r05_c03",
+          "desolation_r05_c04"
+        ]
+      },
+      "default_surface_tile": "desolation_r01_c01",
+      "default_fill_tile": "desolation_r03_c01",
+      "tiles": [
+        {
+          "id": "desolation_r01_c01",
+          "path": "game_assets/tiles/desolation/desolation_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r01_c02",
+          "path": "game_assets/tiles/desolation/desolation_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r01_c03",
+          "path": "game_assets/tiles/desolation/desolation_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r01_c04",
+          "path": "game_assets/tiles/desolation/desolation_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r02_c01",
+          "path": "game_assets/tiles/desolation/desolation_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r02_c02",
+          "path": "game_assets/tiles/desolation/desolation_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r02_c03",
+          "path": "game_assets/tiles/desolation/desolation_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r02_c04",
+          "path": "game_assets/tiles/desolation/desolation_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r03_c01",
+          "path": "game_assets/tiles/desolation/desolation_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r03_c02",
+          "path": "game_assets/tiles/desolation/desolation_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r03_c03",
+          "path": "game_assets/tiles/desolation/desolation_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r03_c04",
+          "path": "game_assets/tiles/desolation/desolation_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r04_c01",
+          "path": "game_assets/tiles/desolation/desolation_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r04_c02",
+          "path": "game_assets/tiles/desolation/desolation_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r04_c03",
+          "path": "game_assets/tiles/desolation/desolation_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r04_c04",
+          "path": "game_assets/tiles/desolation/desolation_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r05_c01",
+          "path": "game_assets/tiles/desolation/desolation_tile_r05_c01_17.png",
+          "row": 5,
+          "col": 1,
+          "role": "detail_a",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r05_c02",
+          "path": "game_assets/tiles/desolation/desolation_tile_r05_c02_18.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r05_c03",
+          "path": "game_assets/tiles/desolation/desolation_tile_r05_c03_19.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "desolation_r05_c04",
+          "path": "game_assets/tiles/desolation/desolation_tile_r05_c04_20.png",
+          "row": 5,
+          "col": 4,
+          "role": "detail_d",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "forest": {
+      "id": "forest",
+      "tileset_dir": "game_assets/tiles/forest",
+      "tile_count": 20,
+      "tile_catalog": {
+        "surface": [
+          "forest_r01_c01",
+          "forest_r01_c02",
+          "forest_r01_c03",
+          "forest_r01_c04"
+        ],
+        "slopes": [
+          "forest_r02_c01",
+          "forest_r02_c02",
+          "forest_r02_c03",
+          "forest_r02_c04"
+        ],
+        "subsurface": [
+          "forest_r03_c01",
+          "forest_r03_c02",
+          "forest_r03_c03",
+          "forest_r03_c04",
+          "forest_r04_c01",
+          "forest_r04_c02",
+          "forest_r04_c03",
+          "forest_r04_c04"
+        ],
+        "detail_overlay": [
+          "forest_r05_c01",
+          "forest_r05_c02",
+          "forest_r05_c03",
+          "forest_r05_c04"
+        ]
+      },
+      "default_surface_tile": "forest_r01_c01",
+      "default_fill_tile": "forest_r03_c01",
+      "tiles": [
+        {
+          "id": "forest_r01_c01",
+          "path": "game_assets/tiles/forest/forest_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r01_c02",
+          "path": "game_assets/tiles/forest/forest_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r01_c03",
+          "path": "game_assets/tiles/forest/forest_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r01_c04",
+          "path": "game_assets/tiles/forest/forest_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r02_c01",
+          "path": "game_assets/tiles/forest/forest_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r02_c02",
+          "path": "game_assets/tiles/forest/forest_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r02_c03",
+          "path": "game_assets/tiles/forest/forest_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r02_c04",
+          "path": "game_assets/tiles/forest/forest_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r03_c01",
+          "path": "game_assets/tiles/forest/forest_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r03_c02",
+          "path": "game_assets/tiles/forest/forest_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r03_c03",
+          "path": "game_assets/tiles/forest/forest_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r03_c04",
+          "path": "game_assets/tiles/forest/forest_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r04_c01",
+          "path": "game_assets/tiles/forest/forest_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r04_c02",
+          "path": "game_assets/tiles/forest/forest_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r04_c03",
+          "path": "game_assets/tiles/forest/forest_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r04_c04",
+          "path": "game_assets/tiles/forest/forest_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r05_c01",
+          "path": "game_assets/tiles/forest/forest_tile_r05_c01_17.png",
+          "row": 5,
+          "col": 1,
+          "role": "detail_a",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r05_c02",
+          "path": "game_assets/tiles/forest/forest_tile_r05_c02_18.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r05_c03",
+          "path": "game_assets/tiles/forest/forest_tile_r05_c03_19.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "forest_r05_c04",
+          "path": "game_assets/tiles/forest/forest_tile_r05_c04_20.png",
+          "row": 5,
+          "col": 4,
+          "role": "detail_d",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "mountain": {
+      "id": "mountain",
+      "tileset_dir": "game_assets/tiles/mountain",
+      "tile_count": 20,
+      "tile_catalog": {
+        "surface": [
+          "mountain_r01_c01",
+          "mountain_r01_c02",
+          "mountain_r01_c03",
+          "mountain_r01_c04"
+        ],
+        "slopes": [
+          "mountain_r02_c01",
+          "mountain_r02_c02",
+          "mountain_r02_c03",
+          "mountain_r02_c04"
+        ],
+        "subsurface": [
+          "mountain_r03_c01",
+          "mountain_r03_c02",
+          "mountain_r03_c03",
+          "mountain_r03_c04",
+          "mountain_r04_c01",
+          "mountain_r04_c02",
+          "mountain_r04_c03",
+          "mountain_r04_c04"
+        ],
+        "detail_overlay": [
+          "mountain_r05_c01",
+          "mountain_r05_c02",
+          "mountain_r05_c03",
+          "mountain_r05_c04"
+        ]
+      },
+      "default_surface_tile": "mountain_r01_c01",
+      "default_fill_tile": "mountain_r03_c01",
+      "tiles": [
+        {
+          "id": "mountain_r01_c01",
+          "path": "game_assets/tiles/mountain/mountain_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r01_c02",
+          "path": "game_assets/tiles/mountain/mountain_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r01_c03",
+          "path": "game_assets/tiles/mountain/mountain_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r01_c04",
+          "path": "game_assets/tiles/mountain/mountain_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r02_c01",
+          "path": "game_assets/tiles/mountain/mountain_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r02_c02",
+          "path": "game_assets/tiles/mountain/mountain_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r02_c03",
+          "path": "game_assets/tiles/mountain/mountain_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r02_c04",
+          "path": "game_assets/tiles/mountain/mountain_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r03_c01",
+          "path": "game_assets/tiles/mountain/mountain_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r03_c02",
+          "path": "game_assets/tiles/mountain/mountain_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r03_c03",
+          "path": "game_assets/tiles/mountain/mountain_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r03_c04",
+          "path": "game_assets/tiles/mountain/mountain_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r04_c01",
+          "path": "game_assets/tiles/mountain/mountain_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r04_c02",
+          "path": "game_assets/tiles/mountain/mountain_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r04_c03",
+          "path": "game_assets/tiles/mountain/mountain_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r04_c04",
+          "path": "game_assets/tiles/mountain/mountain_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r05_c01",
+          "path": "game_assets/tiles/mountain/mountain_tile_r05_c01_17.png",
+          "row": 5,
+          "col": 1,
+          "role": "detail_a",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r05_c02",
+          "path": "game_assets/tiles/mountain/mountain_tile_r05_c02_18.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r05_c03",
+          "path": "game_assets/tiles/mountain/mountain_tile_r05_c03_19.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "mountain_r05_c04",
+          "path": "game_assets/tiles/mountain/mountain_tile_r05_c04_20.png",
+          "row": 5,
+          "col": 4,
+          "role": "detail_d",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "snow": {
+      "id": "snow",
+      "tileset_dir": "game_assets/tiles/snow",
+      "tile_count": 20,
+      "tile_catalog": {
+        "surface": [
+          "snow_r01_c01",
+          "snow_r01_c02",
+          "snow_r01_c03",
+          "snow_r01_c04"
+        ],
+        "slopes": [
+          "snow_r02_c01",
+          "snow_r02_c02",
+          "snow_r02_c03",
+          "snow_r02_c04"
+        ],
+        "subsurface": [
+          "snow_r03_c01",
+          "snow_r03_c02",
+          "snow_r03_c03",
+          "snow_r03_c04",
+          "snow_r04_c01",
+          "snow_r04_c02",
+          "snow_r04_c03",
+          "snow_r04_c04"
+        ],
+        "detail_overlay": [
+          "snow_r05_c01",
+          "snow_r05_c02",
+          "snow_r05_c03",
+          "snow_r05_c04"
+        ]
+      },
+      "default_surface_tile": "snow_r01_c01",
+      "default_fill_tile": "snow_r03_c01",
+      "tiles": [
+        {
+          "id": "snow_r01_c01",
+          "path": "game_assets/tiles/snow/snow_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r01_c02",
+          "path": "game_assets/tiles/snow/snow_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r01_c03",
+          "path": "game_assets/tiles/snow/snow_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r01_c04",
+          "path": "game_assets/tiles/snow/snow_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r02_c01",
+          "path": "game_assets/tiles/snow/snow_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r02_c02",
+          "path": "game_assets/tiles/snow/snow_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r02_c03",
+          "path": "game_assets/tiles/snow/snow_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r02_c04",
+          "path": "game_assets/tiles/snow/snow_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r03_c01",
+          "path": "game_assets/tiles/snow/snow_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r03_c02",
+          "path": "game_assets/tiles/snow/snow_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r03_c03",
+          "path": "game_assets/tiles/snow/snow_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r03_c04",
+          "path": "game_assets/tiles/snow/snow_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r04_c01",
+          "path": "game_assets/tiles/snow/snow_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r04_c02",
+          "path": "game_assets/tiles/snow/snow_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r04_c03",
+          "path": "game_assets/tiles/snow/snow_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r04_c04",
+          "path": "game_assets/tiles/snow/snow_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r05_c01",
+          "path": "game_assets/tiles/snow/snow_tile_r05_c01_17.png",
+          "row": 5,
+          "col": 1,
+          "role": "detail_a",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r05_c02",
+          "path": "game_assets/tiles/snow/snow_tile_r05_c02_18.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r05_c03",
+          "path": "game_assets/tiles/snow/snow_tile_r05_c03_19.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "snow_r05_c04",
+          "path": "game_assets/tiles/snow/snow_tile_r05_c04_20.png",
+          "row": 5,
+          "col": 4,
+          "role": "detail_d",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    },
+    "wood": {
+      "id": "wood",
+      "tileset_dir": "game_assets/tiles/wood",
+      "tile_count": 18,
+      "tile_catalog": {
+        "surface": [
+          "wood_r01_c01",
+          "wood_r01_c02",
+          "wood_r01_c03",
+          "wood_r01_c04"
+        ],
+        "slopes": [
+          "wood_r02_c01",
+          "wood_r02_c02",
+          "wood_r02_c03",
+          "wood_r02_c04"
+        ],
+        "subsurface": [
+          "wood_r03_c01",
+          "wood_r03_c02",
+          "wood_r03_c03",
+          "wood_r03_c04",
+          "wood_r04_c01",
+          "wood_r04_c02",
+          "wood_r04_c03",
+          "wood_r04_c04"
+        ],
+        "detail_overlay": [
+          "wood_r05_c02",
+          "wood_r05_c03"
+        ]
+      },
+      "default_surface_tile": "wood_r01_c01",
+      "default_fill_tile": "wood_r03_c01",
+      "tiles": [
+        {
+          "id": "wood_r01_c01",
+          "path": "game_assets/tiles/wood/wood_tile_r01_c01_01.png",
+          "row": 1,
+          "col": 1,
+          "role": "surface_flat_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r01_c02",
+          "path": "game_assets/tiles/wood/wood_tile_r01_c02_02.png",
+          "row": 1,
+          "col": 2,
+          "role": "surface_flat_mid_left",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r01_c03",
+          "path": "game_assets/tiles/wood/wood_tile_r01_c03_03.png",
+          "row": 1,
+          "col": 3,
+          "role": "surface_flat_mid_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r01_c04",
+          "path": "game_assets/tiles/wood/wood_tile_r01_c04_04.png",
+          "row": 1,
+          "col": 4,
+          "role": "surface_flat_right",
+          "tags": [
+            "terrain",
+            "surface",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "air",
+            "E": "surface",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r02_c01",
+          "path": "game_assets/tiles/wood/wood_tile_r02_c01_05.png",
+          "row": 2,
+          "col": 1,
+          "role": "slope_fall_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r02_c02",
+          "path": "game_assets/tiles/wood/wood_tile_r02_c02_06.png",
+          "row": 2,
+          "col": 2,
+          "role": "slope_fall_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_fall_right",
+            "E": "slope",
+            "S": "ground",
+            "W": "surface"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r02_c03",
+          "path": "game_assets/tiles/wood/wood_tile_r02_c03_07.png",
+          "row": 2,
+          "col": 3,
+          "role": "slope_rise_right_inner",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r02_c04",
+          "path": "game_assets/tiles/wood/wood_tile_r02_c04_08.png",
+          "row": 2,
+          "col": 4,
+          "role": "slope_rise_right_outer",
+          "tags": [
+            "terrain",
+            "slope",
+            "walkable_top",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": true,
+          "sockets": {
+            "N": "slope_rise_right",
+            "E": "surface",
+            "S": "ground",
+            "W": "slope"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r03_c01",
+          "path": "game_assets/tiles/wood/wood_tile_r03_c01_09.png",
+          "row": 3,
+          "col": 1,
+          "role": "subsurface_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r03_c02",
+          "path": "game_assets/tiles/wood/wood_tile_r03_c02_10.png",
+          "row": 3,
+          "col": 2,
+          "role": "subsurface_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r03_c03",
+          "path": "game_assets/tiles/wood/wood_tile_r03_c03_11.png",
+          "row": 3,
+          "col": 3,
+          "role": "subsurface_c",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r03_c04",
+          "path": "game_assets/tiles/wood/wood_tile_r03_c04_12.png",
+          "row": 3,
+          "col": 4,
+          "role": "subsurface_feature_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r04_c01",
+          "path": "game_assets/tiles/wood/wood_tile_r04_c01_13.png",
+          "row": 4,
+          "col": 1,
+          "role": "subsurface_feature_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r04_c02",
+          "path": "game_assets/tiles/wood/wood_tile_r04_c02_14.png",
+          "row": 4,
+          "col": 2,
+          "role": "subsurface_deep_a",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_left_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r04_c03",
+          "path": "game_assets/tiles/wood/wood_tile_r04_c03_15.png",
+          "row": 4,
+          "col": 3,
+          "role": "subsurface_deep_b",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "mid_right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r04_c04",
+          "path": "game_assets/tiles/wood/wood_tile_r04_c04_16.png",
+          "row": 4,
+          "col": 4,
+          "role": "cave_or_hole",
+          "tags": [
+            "terrain",
+            "subsurface",
+            "solid_fill",
+            "right_variant"
+          ],
+          "collision": "solid",
+          "walkable_top": false,
+          "sockets": {
+            "N": "ground",
+            "E": "ground",
+            "S": "ground",
+            "W": "ground"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r05_c02",
+          "path": "game_assets/tiles/wood/wood_tile_r05_c02_17.png",
+          "row": 5,
+          "col": 2,
+          "role": "detail_b",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_left_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        },
+        {
+          "id": "wood_r05_c03",
+          "path": "game_assets/tiles/wood/wood_tile_r05_c03_18.png",
+          "row": 5,
+          "col": 3,
+          "role": "detail_c",
+          "tags": [
+            "terrain",
+            "detail",
+            "overlay",
+            "mid_right_variant"
+          ],
+          "collision": "none",
+          "walkable_top": false,
+          "sockets": {
+            "N": "air",
+            "E": "air",
+            "S": "air",
+            "W": "air"
+          },
+          "weight": 1
+        }
+      ]
+    }
+  },
+  "object_pools": {
+    "bonus": [
+      {
+        "id": "bonus_alert",
+        "path": "game_assets/bonus/bonus_alert.png",
+        "kind": "rare_event_pickup",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "min_height_above_ground": 2,
+          "max_height_above_ground": 5
+        }
+      },
+      {
+        "id": "bonus_coin",
+        "path": "game_assets/bonus/bonus_coin.png",
+        "kind": "currency",
+        "spawn_weight": 6,
+        "spawn_rules": {
+          "min_height_above_ground": 2,
+          "max_height_above_ground": 6
+        }
+      },
+      {
+        "id": "bonus_heart",
+        "path": "game_assets/bonus/bonus_heart.png",
+        "kind": "health_pickup",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "min_height_above_ground": 1,
+          "max_height_above_ground": 4
+        }
+      },
+      {
+        "id": "bonus_mystery",
+        "path": "game_assets/bonus/bonus_mystery.png",
+        "kind": "mystery_pickup",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "min_height_above_ground": 2,
+          "max_height_above_ground": 5
+        }
+      },
+      {
+        "id": "bonus_wall_01",
+        "path": "game_assets/bonus/bonus_wall_01.png",
+        "kind": "bonus_block",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "terrain_wall"
+        }
+      },
+      {
+        "id": "bonus_wall_02",
+        "path": "game_assets/bonus/bonus_wall_02.png",
+        "kind": "bonus_block",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "terrain_wall"
+        }
+      },
+      {
+        "id": "bonus_wall_03",
+        "path": "game_assets/bonus/bonus_wall_03.png",
+        "kind": "bonus_block",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "terrain_wall"
+        }
+      },
+      {
+        "id": "bonus_wall_04",
+        "path": "game_assets/bonus/bonus_wall_04.png",
+        "kind": "bonus_block",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "terrain_wall"
+        }
+      }
+    ],
+    "decoration": [
+      {
+        "id": "deco_banner",
+        "path": "game_assets/decoration/deco_banner.png",
+        "kind": "wall_hanging",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "attach_to": "solid_wall"
+        }
+      },
+      {
+        "id": "deco_brazier_fire",
+        "path": "game_assets/decoration/deco_brazier_fire.png",
+        "kind": "light_source",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "platform_or_wall"
+        }
+      },
+      {
+        "id": "deco_cannon",
+        "path": "game_assets/decoration/deco_cannon.png",
+        "kind": "landmark",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "min_distance_tiles": 28
+        }
+      },
+      {
+        "id": "deco_cauldron_fire",
+        "path": "game_assets/decoration/deco_cauldron_fire.png",
+        "kind": "light_source",
+        "spawn_weight": 3,
+        "spawn_rules": {
+          "attach_to": "platform_or_wall"
+        }
+      },
+      {
+        "id": "deco_chest",
+        "path": "game_assets/decoration/deco_chest.png",
+        "kind": "reward_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_crown",
+        "path": "game_assets/decoration/deco_crown.png",
+        "kind": "reward_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_double_axe",
+        "path": "game_assets/decoration/deco_double_axe.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_flail",
+        "path": "game_assets/decoration/deco_flail.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_helmet",
+        "path": "game_assets/decoration/deco_helmet.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_potion",
+        "path": "game_assets/decoration/deco_potion.png",
+        "kind": "prop",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_royal_shield",
+        "path": "game_assets/decoration/deco_royal_shield.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_sword_shield",
+        "path": "game_assets/decoration/deco_sword_shield.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_sword_stones",
+        "path": "game_assets/decoration/deco_sword_stones.png",
+        "kind": "weapon_prop",
+        "spawn_weight": 2,
+        "spawn_rules": {
+          "on_surface_only": true
+        }
+      },
+      {
+        "id": "deco_tower_gate",
+        "path": "game_assets/decoration/deco_tower_gate.png",
+        "kind": "landmark",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "min_distance_tiles": 28
+        }
+      },
+      {
+        "id": "deco_tower_small",
+        "path": "game_assets/decoration/deco_tower_small.png",
+        "kind": "landmark",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "min_distance_tiles": 28
+        }
+      },
+      {
+        "id": "deco_tower_window",
+        "path": "game_assets/decoration/deco_tower_window.png",
+        "kind": "landmark",
+        "spawn_weight": 1,
+        "spawn_rules": {
+          "min_distance_tiles": 28
+        }
+      }
+    ],
+    "structures": [
+      {
+        "id": "castle_locked",
+        "path": "game_assets/castle/castle_locked.png",
+        "type": "castle_gate",
+        "placement": {
+          "anchored_to_ground": true,
+          "min_distance_from_start_tiles": 30
+        }
+      },
+      {
+        "id": "castle_unlocked",
+        "path": "game_assets/castle/castle_unlocked.png",
+        "type": "castle_gate",
+        "placement": {
+          "anchored_to_ground": true,
+          "min_distance_from_start_tiles": 30
+        }
+      },
+      {
+        "id": "tower_main",
+        "path": "game_assets/tower/tower_main.png",
+        "type": "tower_landmark",
+        "placement": {
+          "anchored_to_ground": true,
+          "max_per_level": 1,
+          "min_distance_from_end_tiles": 20
+        }
+      }
+    ]
+  },
+  "ui_assets": [
+    {
+      "id": "button_down",
+      "path": "game_assets/UI/button_down.png"
+    },
+    {
+      "id": "button_left",
+      "path": "game_assets/UI/button_left.png"
+    },
+    {
+      "id": "button_pause_bottom",
+      "path": "game_assets/UI/button_pause_bottom.png"
+    },
+    {
+      "id": "button_pause_top",
+      "path": "game_assets/UI/button_pause_top.png"
+    },
+    {
+      "id": "button_right",
+      "path": "game_assets/UI/button_right.png"
+    },
+    {
+      "id": "button_settings",
+      "path": "game_assets/UI/button_settings.png"
+    },
+    {
+      "id": "button_shop_bottom",
+      "path": "game_assets/UI/button_shop_bottom.png"
+    },
+    {
+      "id": "button_shop_top",
+      "path": "game_assets/UI/button_shop_top.png"
+    },
+    {
+      "id": "button_up",
+      "path": "game_assets/UI/button_up.png"
+    },
+    {
+      "id": "button_upgrade",
+      "path": "game_assets/UI/button_upgrade.png"
+    },
+    {
+      "id": "score_bar",
+      "path": "game_assets/UI/score_bar.png"
+    }
+  ],
+  "example_requests": [
+    {
+      "id": "run_01",
+      "seed": 1337,
+      "biome": "desolation",
+      "size_tiles": {
+        "width": 96,
+        "height": 32
+      },
+      "difficulty": "normal"
+    },
+    {
+      "id": "run_02",
+      "seed": 42042,
+      "biome": "forest",
+      "size_tiles": {
+        "width": 160,
+        "height": 40
+      },
+      "difficulty": "hard"
+    }
+  ]
+}
