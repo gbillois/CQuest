@@ -199,8 +199,8 @@ const ui = {
   cheatGivePiecesBtn: document.getElementById("cheatGivePiecesBtn"),
   cheatApplyBtn: document.getElementById("cheatApplyBtn"),
   cheatCloseBtn: document.getElementById("cheatCloseBtn"),
-  worldZoomSlider: document.getElementById("worldZoomSlider"),
-  worldZoomValue: document.getElementById("worldZoomValue"),
+  cheatWorldZoomSlider: document.getElementById("cheatWorldZoomSlider"),
+  cheatWorldZoomValue: document.getElementById("cheatWorldZoomValue"),
   hudLives: document.getElementById("hudLives"),
   hudGoldValue: document.getElementById("hudGoldValue"),
   shopBtn: document.getElementById("shopBtn"),
@@ -300,7 +300,6 @@ const state = {
   coins: 0,
   persistentGold: 0,
   hearts: STARTING_HEARTS,
-  worldZoom: 1,
   cheatLongPressTimer: null,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
@@ -361,8 +360,8 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
-  state.worldZoom = loadWorldZoom();
-  applyWorldZoom(state.worldZoom);
+  state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
+  syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
     verbs: getVerbSource(),
@@ -2071,6 +2070,7 @@ function setWorldZoom(nextZoom, { syncUi = true } = {}) {
     return;
   }
   state.worldZoom = clampedZoom;
+  saveWorldZoom(state.worldZoom);
   syncCameraToCurrentZoom();
   if (syncUi) {
     syncWorldZoomUi();
@@ -2083,6 +2083,12 @@ function syncWorldZoomUi() {
   }
   if (ui.worldZoomValue) {
     ui.worldZoomValue.textContent = formatZoomLabel(state.worldZoom);
+  }
+  if (ui.cheatWorldZoomSlider) {
+    ui.cheatWorldZoomSlider.value = String(state.worldZoom);
+  }
+  if (ui.cheatWorldZoomValue) {
+    ui.cheatWorldZoomValue.textContent = formatZoomLabel(state.worldZoom);
   }
 }
 
@@ -2124,14 +2130,14 @@ function populateSettingsPanel() {
 
 
 function normalizeWorldZoom(value) {
-  return clamp(Number(value) || 1, 0.7, 1.6);
+  return getWorldZoom(value);
 }
 
 function loadWorldZoom() {
   try {
-    return normalizeWorldZoom(Number(localStorage.getItem(WORLD_ZOOM_STORAGE_KEY) || 1));
+    return normalizeWorldZoom(Number(localStorage.getItem(WORLD_ZOOM_STORAGE_KEY) || WORLD_SCALE));
   } catch {
-    return 1;
+    return WORLD_SCALE;
   }
 }
 
@@ -2144,16 +2150,7 @@ function saveWorldZoom(value) {
 }
 
 function applyWorldZoom(value) {
-  const zoom = normalizeWorldZoom(value);
-  state.worldZoom = zoom;
-  canvas?.style?.setProperty("--world-zoom", String(zoom));
-  if (ui.worldZoomSlider) {
-    ui.worldZoomSlider.value = String(Math.round(zoom * 100));
-  }
-  if (ui.worldZoomValue) {
-    ui.worldZoomValue.textContent = `${Math.round(zoom * 100)}%`;
-  }
-  saveWorldZoom(zoom);
+  setWorldZoom(value);
 }
 
 function populateCheatModalOptions() {
@@ -2327,9 +2324,6 @@ function bindControls() {
     updateHudInfo();
   });
   ui.cheatApplyBtn?.addEventListener("click", applyCheatSelections);
-  ui.worldZoomSlider?.addEventListener("input", () => {
-    applyWorldZoom((Number(ui.worldZoomSlider.value) || 100) / 100);
-  });
 
   ui.heroSelect?.addEventListener("change", () => {
     const requestedHeroIndex = clamp(Number(ui.heroSelect.value) || getPaladinIndex(), 0, state.heroes.length - 1);
@@ -2408,6 +2402,9 @@ function bindControls() {
 
   ui.worldZoomSlider?.addEventListener("input", () => {
     setWorldZoom(ui.worldZoomSlider.value);
+  });
+  ui.cheatWorldZoomSlider?.addEventListener("input", () => {
+    setWorldZoom(ui.cheatWorldZoomSlider.value);
   });
 
   ui.applySettingsBtn.addEventListener("click", () => {

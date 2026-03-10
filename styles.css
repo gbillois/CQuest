@@ -76,8 +76,6 @@ body {
   height: 100%;
   display: block;
   image-rendering: pixelated;
-  transform: scale(var(--world-zoom, 1));
-  transform-origin: center center;
 }
 
 .hud {
@@ -671,11 +669,11 @@ body {
   gap: 10px;
 }
 
-#worldZoomSlider {
+#cheatWorldZoomSlider {
   flex: 1;
 }
 
-#worldZoomValue {
+#cheatWorldZoomValue {
   min-width: 52px;
   text-align: right;
 }
