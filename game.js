@@ -3536,6 +3536,7 @@ function spawnEnemyDrop(enemy, { rewardType, value = 0, score = 0 }) {
     score,
     settled: false,
     collected: false,
+    pickupDelay: 0.45,
     ttl: 12,
   });
 }
@@ -3552,6 +3553,7 @@ function updateEnemyDrops(delta) {
     }
 
     drop.ttl -= delta;
+    drop.pickupDelay = Math.max(0, (drop.pickupDelay || 0) - delta);
     if (drop.ttl <= 0) {
       drop.collected = true;
       continue;
@@ -3567,7 +3569,7 @@ function updateEnemyDrops(delta) {
       }
     }
 
-    if (aabb(state.player, drop)) {
+    if (drop.settled && drop.pickupDelay <= 0 && aabb(state.player, drop)) {
       if (drop.rewardType && drop.rewardType !== "enemy_coin_drop") {
         applyBonusReward(drop.rewardType);
       }
