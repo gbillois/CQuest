@@ -49,6 +49,7 @@ const GROUND_SURFACE_VARIATION_MAX_UP = 0;
 const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
 const TOWER_HEIGHT_SCALE = 3;
 const CASTLE_SCALE = 3;
+const WORLD_SCALE = 1.5;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
@@ -333,7 +334,7 @@ init().catch((error) => {
 async function init() {
   const config = await loadConfig();
   state.config = config;
-  state.tileSize = (config.grid?.tile_size || 32) * 2;
+  state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
 
   await setupUiAssets(config);
@@ -3474,19 +3475,23 @@ function getBonusRewardValue(rewardType) {
 }
 
 function getBonusPopupStyleByValue(value) {
+  const scaled = (size, frameWidth) => ({
+    size: Math.round(size * WORLD_SCALE),
+    frameWidth: frameWidth * WORLD_SCALE,
+  });
   if (value >= 100) {
-    return { size: 30, frameColor: "#ffd56a", frameWidth: 3 };
+    return { ...scaled(30, 3), frameColor: "#ffd56a" };
   }
   if (value >= 50) {
-    return { size: 27, frameColor: "#ffb15c", frameWidth: 2.5 };
+    return { ...scaled(27, 2.5), frameColor: "#ffb15c" };
   }
   if (value >= 30) {
-    return { size: 25, frameColor: "#8ec8ff", frameWidth: 2.25 };
+    return { ...scaled(25, 2.25), frameColor: "#8ec8ff" };
   }
   if (value >= 15) {
-    return { size: 23, frameColor: "#9af0d6", frameWidth: 2 };
+    return { ...scaled(23, 2), frameColor: "#9af0d6" };
   }
-  return { size: 22, frameColor: "#d7e3ff", frameWidth: 2 };
+  return { ...scaled(22, 2), frameColor: "#d7e3ff" };
 }
 
 function triggerBonusBlock(block) {
