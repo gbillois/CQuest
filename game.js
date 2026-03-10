@@ -155,6 +155,7 @@ const BOSS_TRIALS_REQUIRED = 5;
 const BOSS_TRIAL_TIME_LIMIT_SECONDS = 10;
 const BOSS_CELEBRATION_SECONDS = 6;
 const BOSS_DEFEAT_OVERLAY_SECONDS = 2.2;
+const BOSS_INTRO_MESSAGE_DELAY_SECONDS = 2.6;
 const BOSS_DRAGON_ATTACK_SW_FRAMES = Array.from(
   { length: 9 },
   (_, i) => `game_assets/enemies/boss-dragon/animations/attack/south-west/frame_${String(i).padStart(3, "0")}.png`,
@@ -195,6 +196,7 @@ const ui = {
   questionEnemy: document.getElementById("questionEnemy"),
   questionGroup: document.getElementById("questionGroup"),
   questionTense: document.getElementById("questionTense"),
+  questionCountdown: document.getElementById("questionCountdown"),
   questionPrompt: document.getElementById("questionPrompt"),
   answerButtons: document.getElementById("answerButtons"),
   groupFilters: document.getElementById("groupFilters"),
@@ -305,6 +307,8 @@ const state = {
     phaseUntil: 0,
     defeatReason: "",
     sourceLevelIndex: 0,
+    introUntil: 0,
+    introMessageVisible: false,
   },
 };
 
@@ -2445,6 +2449,8 @@ function resetBossState() {
   state.boss.trialDeadline = 0;
   state.boss.phaseUntil = 0;
   state.boss.defeatReason = "";
+  state.boss.introUntil = 0;
+  state.boss.introMessageVisible = false;
   ui.bossDefeatPanel?.classList.add("hidden");
   ui.finalVictoryPanel?.classList.add("hidden");
 }
@@ -2574,6 +2580,7 @@ function update(delta) {
 
   if (state.boss.active) {
     updateBossMode();
+    updateBossQuestionCountdown();
     if (state.message && performance.now() > state.messageUntil) {
       state.message = "";
     }
@@ -2611,6 +2618,21 @@ function update(delta) {
   if (state.message && performance.now() > state.messageUntil) {
     state.message = "";
   }
+}
+
+
+function updateBossQuestionCountdown() {
+  if (!ui.questionCountdown) {
+    return;
+  }
+  if (!state.boss.active || !state.duel?.QS.active || state.boss.phase !== "trials") {
+    ui.questionCountdown.hidden = true;
+    return;
+  }
+  const secondsLeft = Math.max(0, Math.ceil((state.boss.trialDeadline - performance.now()) / 1000));
+  ui.questionCountdown.hidden = false;
+  ui.questionCountdown.textContent = `⏳ ${secondsLeft}s`;
+  ui.questionCountdown.style.color = secondsLeft <= 3 ? "#ff8e42" : "#ffd56a";
 }
 
 function updatePlayer(delta) {
@@ -2766,7 +2788,7 @@ function updateBossRetryText(levelIndex) {
 }
 
 function startBossTrial() {
-  if (!state.boss.active || state.boss.phase !== "trials" || state.duel?.QS.active) {
+  if (!state.boss.active || (state.boss.phase !== "trials" && state.boss.phase !== "intro") || state.duel?.QS.active) {
     return;
   }
   state.boss.trialDeadline = performance.now() + state.boss.trialTimeLimit * 1000;
@@ -2819,11 +2841,13 @@ function startBossMode({ sourceLevelIndex = getBossPrepLevelIndex() } = {}) {
   state.screenMode = "boss";
   state.pendingBossStart = true;
   state.boss.active = true;
-  state.boss.phase = "trials";
+  state.boss.phase = "intro";
   state.boss.streak = 0;
   state.boss.trialDeadline = 0;
   state.boss.phaseUntil = 0;
   state.boss.defeatReason = "";
+  state.boss.introUntil = performance.now() + BOSS_INTRO_MESSAGE_DELAY_SECONDS * 1000;
+  state.boss.introMessageVisible = false;
   state.boss.sourceLevelIndex = clamp(sourceLevelIndex, 0, Math.max(0, state.levels.length - 1));
   updateBossRetryText(state.boss.sourceLevelIndex);
   ui.titleScreen?.classList.add("hidden");
@@ -2831,8 +2855,7 @@ function startBossMode({ sourceLevelIndex = getBossPrepLevelIndex() } = {}) {
   ui.gameOverPanel?.classList.add("hidden");
   ui.bossDefeatPanel?.classList.add("hidden");
   ui.finalVictoryPanel?.classList.add("hidden");
-  showMessage("Dragon boss: 5 trials in a row");
-  startBossTrial();
+  state.message = "";
 }
 
 function failBossTrial(reason) {
@@ -2870,6 +2893,20 @@ function updateBossMode() {
     return;
   }
   const now = performance.now();
+  if (state.boss.phase === "intro") {
+    if (!state.boss.introMessageVisible && now >= state.boss.introUntil) {
+      state.boss.introMessageVisible = true;
+      state.boss.phaseUntil = now + 2600;
+      return;
+    }
+    if (state.boss.introMessageVisible && now >= state.boss.phaseUntil) {
+      state.boss.phase = "trials";
+      state.boss.introMessageVisible = false;
+      startBossTrial();
+    }
+    return;
+  }
+
   if (state.boss.phase === "trials") {
     if (state.duel?.QS.active && !state.duel?.QS.resolving && now >= state.boss.trialDeadline) {
       failBossTrial("Time up");
@@ -3728,11 +3765,21 @@ function render(timeSeconds) {
 }
 
 function drawBossScene(timeSeconds) {
-  const grad = ctx.createLinearGradient(0, 0, 0, VIRTUAL_HEIGHT);
-  grad.addColorStop(0, "#2b0f17");
-  grad.addColorStop(1, "#090d1c");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+  const bossBackground = imageCache.get(BIOME_PARALLAX_BACKGROUNDS.desolation);
+  if (isImageRenderable(bossBackground)) {
+    const scale = Math.max(VIRTUAL_WIDTH / bossBackground.width, VIRTUAL_HEIGHT / bossBackground.height);
+    const drawW = bossBackground.width * scale;
+    const drawH = bossBackground.height * scale;
+    const drawX = (VIRTUAL_WIDTH - drawW) * 0.5;
+    const drawY = (VIRTUAL_HEIGHT - drawH) * 0.5;
+    ctx.drawImage(bossBackground, drawX, drawY, drawW, drawH);
+  } else {
+    const grad = ctx.createLinearGradient(0, 0, 0, VIRTUAL_HEIGHT);
+    grad.addColorStop(0, "#2b0f17");
+    grad.addColorStop(1, "#090d1c");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+  }
 
   ctx.save();
   ctx.globalAlpha = 0.16;
@@ -3754,6 +3801,20 @@ function drawBossScene(timeSeconds) {
   } else {
     ctx.fillStyle = "#b43d34";
     ctx.fillRect(dragonX + 50, dragonY + 70, dragonW - 100, dragonH - 120);
+  }
+
+  if (state.boss.phase === "intro" && state.boss.introMessageVisible) {
+    ctx.fillStyle = "rgba(5, 8, 18, 0.72)";
+    ctx.fillRect(28, 412, VIRTUAL_WIDTH - 56, 148);
+    ctx.strokeStyle = "rgba(255, 213, 106, 0.62)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(28, 412, VIRTUAL_WIDTH - 56, 148);
+    ctx.fillStyle = "#f7fbff";
+    ctx.font = "700 16px Nunito, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("You reached it, the fierce red dragon!", VIRTUAL_WIDTH * 0.5, 448);
+    ctx.fillText("Ready to fight? 5 questions, 10 seconds each,", VIRTUAL_WIDTH * 0.5, 476);
+    ctx.fillText("and you will win!", VIRTUAL_WIDTH * 0.5, 504);
   }
 
   const secondsLeft = Math.max(0, Math.ceil((state.boss.trialDeadline - performance.now()) / 1000));
@@ -4973,6 +5034,9 @@ function buildQuestionUiHooks() {
       if (ui.questionTense) {
         ui.questionTense.textContent = uiMeta?.tenseLabel || question.tenseLabel;
       }
+      if (ui.questionCountdown) {
+        ui.questionCountdown.hidden = !state.boss.active;
+      }
       ui.questionPrompt.innerHTML = `Conjugue <span class="verb">${inf}</span> ${tenseText}<br/><span class="pronoun">${pronoun}</span> <span class="blank">???</span>`;
       ui.answerButtons.innerHTML = "";
       question.options.forEach((option) => {
@@ -4993,6 +5057,9 @@ function buildQuestionUiHooks() {
         return;
       }
       ui.questionPanel.hidden = true;
+      if (ui.questionCountdown) {
+        ui.questionCountdown.hidden = true;
+      }
       ui.answerButtons.innerHTML = "";
     },
     getAnswerButtons() {

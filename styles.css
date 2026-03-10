@@ -363,7 +363,13 @@ body {
 }
 
 .question-panel {
+  position: absolute;
+  left: 50%;
+  top: auto;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
   width: min(94%, 430px);
+  max-height: calc(100% - 340px);
   z-index: 72;
   border-radius: 10px;
   padding: 16px 14px;
@@ -391,6 +397,14 @@ body {
   letter-spacing: 0.04em;
   color: #ffe17e;
   font-weight: 800;
+}
+
+
+.question-countdown {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffd56a;
 }
 
 .question-prompt {
