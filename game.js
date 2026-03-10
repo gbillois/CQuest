@@ -28,6 +28,9 @@ const ENEMY_DEFEAT_FADE_SECONDS = 0.75;
 const ENEMY_DEFEAT_RISE_PX = 10;
 const BONUS_POPUP_GRAVITY = 1250;
 const BONUS_POPUP_MAX_FALL_SPEED = 640;
+const ENEMY_DROP_GRAVITY = 1450;
+const ENEMY_DROP_MAX_FALL_SPEED = 760;
+const ENEMY_DROP_SIZE_RATIO = 0.68;
 const BONUS_MIN_SUPPORT_GAP_TILES = 2;
 const BONUS_MAX_SUPPORT_GAP_TILES = 5;
 const PLAYER_HIT_INVULN_SECONDS = 1.6;
@@ -2552,6 +2555,7 @@ function cloneLevel(level) {
     decorations: level.decorations.map((item) => ({ ...item })),
     groundDecorations: (level.groundDecorations || []).map((item) => ({ ...item })),
     enemySpawns: level.enemySpawns.map((enemy) => ({ ...enemy })),
+    enemyDrops: [],
     initialEnemyCount: Number.isFinite(level.initialEnemyCount) ? level.initialEnemyCount : level.enemySpawns.length,
     defeatedEnemyCount: Number.isFinite(level.defeatedEnemyCount) ? level.defeatedEnemyCount : 0,
   };
@@ -2613,6 +2617,7 @@ function update(delta) {
   updatePlayer(delta);
   updateEnemies(delta);
   updateBonusBlocks(delta);
+  updateEnemyDrops(delta);
   updateCamera();
 
   if (state.message && performance.now() > state.messageUntil) {
@@ -3471,18 +3476,112 @@ function defeatEnemy(enemy) {
   enemy.vy = 0;
   state.currentLevel.defeatedEnemyCount = (state.currentLevel.defeatedEnemyCount || 0) + 1;
   state.score += 100;
-  grantGold(6);
+  spawnEnemyDrop(enemy, { rewardType: "enemy_coin_drop", value: 6, score: 0 });
 
   let rewardMessage = "+100 / +6 gold";
   if ((enemy.questionAttempts || 0) === 1) {
     const firstStrikeRewards = ["deco_helmet", "deco_jewel", "deco_flail"];
     const rewardType = firstStrikeRewards[Math.floor(Math.random() * firstStrikeRewards.length)];
-    applyBonusReward(rewardType);
+    spawnEnemyDrop(enemy, { rewardType, value: 1, score: 0 });
     const rewardLabel = rewardType === "deco_flail" ? "flail" : rewardType.replace("deco_", "");
-    rewardMessage = `${rewardMessage} + first hit ${rewardLabel}`;
+    rewardMessage = `${rewardMessage} + first hit ${rewardLabel} (au sol)`;
   }
 
   showMessage(rewardMessage);
+}
+
+function getRewardSpritePath(rewardType) {
+  const pools = [state.config?.object_pools?.bonus || [], state.config?.object_pools?.decoration || []];
+  for (const pool of pools) {
+    const match = pool.find((entry) => entry.id === rewardType && entry.path);
+    if (match?.path) {
+      return match.path;
+    }
+  }
+
+  const fallbackByReward = {
+    enemy_coin_drop: "game_assets/bonus/bonus_coin.png",
+    bonus_coin: "game_assets/bonus/bonus_coin.png",
+    deco_helmet: "game_assets/decoration/deco_helmet.png",
+    deco_jewel: "game_assets/decoration/deco_jewel.png",
+    deco_flail: "game_assets/decoration/deco_flail.png",
+  };
+  return fallbackByReward[rewardType] || "game_assets/bonus/bonus_coin.png";
+}
+
+function spawnEnemyDrop(enemy, { rewardType, value = 0, score = 0 }) {
+  const level = state.currentLevel;
+  if (!level || !enemy) {
+    return;
+  }
+  if (!Array.isArray(level.enemyDrops)) {
+    level.enemyDrops = [];
+  }
+
+  const size = Math.max(16, Math.round(state.tileSize * ENEMY_DROP_SIZE_RATIO));
+  const centerX = enemy.x + enemy.w * 0.5;
+  const dropX = centerX - size * 0.5;
+  const dropY = enemy.y + enemy.h - size;
+  const jitter = (Math.random() * 2 - 1) * 58;
+  level.enemyDrops.push({
+    x: dropX,
+    y: dropY,
+    w: size,
+    h: size,
+    vy: -220,
+    vx: jitter,
+    rewardType,
+    rewardPath: getRewardSpritePath(rewardType),
+    value,
+    score,
+    settled: false,
+    collected: false,
+    ttl: 12,
+  });
+}
+
+function updateEnemyDrops(delta) {
+  const level = state.currentLevel;
+  if (!level?.enemyDrops?.length) {
+    return;
+  }
+
+  for (const drop of level.enemyDrops) {
+    if (drop.collected) {
+      continue;
+    }
+
+    drop.ttl -= delta;
+    if (drop.ttl <= 0) {
+      drop.collected = true;
+      continue;
+    }
+
+    if (!drop.settled) {
+      drop.vy = Math.min(ENEMY_DROP_MAX_FALL_SPEED, drop.vy + ENEMY_DROP_GRAVITY * delta);
+      drop.x += drop.vx * delta;
+      drop.y += drop.vy * delta;
+      drop.vx *= 0.93;
+      if (resolveBonusPopupVerticalCollision(drop, level)) {
+        drop.settled = true;
+      }
+    }
+
+    if (aabb(state.player, drop)) {
+      if (drop.rewardType && drop.rewardType !== "enemy_coin_drop") {
+        applyBonusReward(drop.rewardType);
+      }
+      if (drop.value > 0 && drop.rewardType === "enemy_coin_drop") {
+        grantGold(drop.value);
+      }
+      if (drop.score > 0) {
+        state.score += drop.score;
+      }
+      drop.collected = true;
+    }
+  }
+
+  level.enemyDrops = level.enemyDrops.filter((drop) => !drop.collected);
 }
 
 function respawnPlayer() {
@@ -3746,6 +3845,7 @@ function render(timeSeconds) {
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
     drawEnemies(level);
+    drawEnemyDrops(level);
     drawGoal(level);
     drawPlayer(state.player);
   } catch (error) {
@@ -4189,6 +4289,18 @@ function drawEnemies(level) {
       ctx.fillStyle = "#cf4b4b";
       ctx.fillRect(enemy.x, enemy.y + riseOffset, enemy.w, enemy.h);
       ctx.restore();
+    }
+  }
+}
+
+function drawEnemyDrops(level) {
+  for (const drop of level.enemyDrops || []) {
+    const image = imageCache.get(drop.rewardPath);
+    if (isImageRenderable(image)) {
+      ctx.drawImage(image, drop.x, drop.y, drop.w, drop.h);
+    } else {
+      ctx.fillStyle = "#ffde5e";
+      ctx.fillRect(drop.x, drop.y, drop.w, drop.h);
     }
   }
 }
