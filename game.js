@@ -95,6 +95,11 @@ const BIOME_EMOJI = {
   wood: "🌲",
 };
 
+function createRunSeed() {
+  const randomBits = Math.floor(Math.random() * 0xffffffff);
+  return (Date.now() ^ randomBits) >>> 0;
+}
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
@@ -166,6 +171,7 @@ const state = {
   heroes: [],
   enemies: [],
   levels: [],
+  levelSeedBase: createRunSeed(),
   selectedHeroIndex: 0,
   currentLevelIndex: 0,
   currentLevel: null,
@@ -615,6 +621,8 @@ async function loadEnemies() {
 
 function generateLevelsFromConfig(config) {
   const levels = [];
+  const baseSeed = state.levelSeedBase || createRunSeed();
+  state.levelSeedBase = baseSeed;
   const baseSize = config.grid?.default_level_size_tiles || { width: 128, height: 36 };
   const weightedBiomes = buildWeightedBiomeList(config.generation?.biome_selection?.weights || {});
   const bonusDensity =
@@ -623,7 +631,7 @@ function generateLevelsFromConfig(config) {
     config.generation?.pipeline?.find((step) => step.step === "decoration_pass")?.params?.target_density_per_100_tiles || 12;
 
   for (let i = 0; i < GAME.levelCount; i += 1) {
-    const seed = 1337 + i * 101;
+    const seed = baseSeed + i * 101;
     const rand = mulberry32(seed);
     const fixedBiome = FIXED_LEVEL_BIOME_ORDER[i];
     const biomeId = state.biomes[fixedBiome]
@@ -2076,6 +2084,8 @@ function startGameFromMenu() {
   state.gameOver = false;
   state.deathSequence.active = false;
   state.towerInterior.active = false;
+  state.levelSeedBase = createRunSeed();
+  generateLevelsFromConfig(state.config);
   ui.titleScreen?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
