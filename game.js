@@ -53,6 +53,7 @@ const WORLD_SCALE = 1;
 const PERSISTENT_CURRENCY_KEY = "cquest_gold";
 const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
+const WORLD_ZOOM_STORAGE_KEY = "cquest_world_zoom_v1";
 const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
 const TENSE_KEYS = Object.keys(TENSE_LABEL);
@@ -189,6 +190,14 @@ canvas.height = VIRTUAL_HEIGHT;
 
 const ui = {
   hudScoreValue: document.getElementById("hudScoreValue"),
+  cheatModal: document.getElementById("cheatModal"),
+  cheatLevelSelect: document.getElementById("cheatLevelSelect"),
+  cheatHeroSelect: document.getElementById("cheatHeroSelect"),
+  cheatGivePiecesBtn: document.getElementById("cheatGivePiecesBtn"),
+  cheatApplyBtn: document.getElementById("cheatApplyBtn"),
+  cheatCloseBtn: document.getElementById("cheatCloseBtn"),
+  worldZoomSlider: document.getElementById("worldZoomSlider"),
+  worldZoomValue: document.getElementById("worldZoomValue"),
   hudLives: document.getElementById("hudLives"),
   hudGoldValue: document.getElementById("hudGoldValue"),
   shopBtn: document.getElementById("shopBtn"),
@@ -284,6 +293,9 @@ const state = {
   coins: 0,
   persistentGold: 0,
   hearts: STARTING_HEARTS,
+  worldZoom: 1,
+  scoreClickStreak: 0,
+  scoreClickTimer: null,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
@@ -343,6 +355,8 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
+  state.worldZoom = loadWorldZoom();
+  applyWorldZoom(state.worldZoom);
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
     verbs: getVerbSource(),
@@ -2072,6 +2086,134 @@ function populateSettingsPanel() {
   syncMageActionButtonVisibility();
 }
 
+
+function normalizeWorldZoom(value) {
+  return clamp(Number(value) || 1, 0.7, 1.6);
+}
+
+function loadWorldZoom() {
+  try {
+    return normalizeWorldZoom(Number(localStorage.getItem(WORLD_ZOOM_STORAGE_KEY) || 1));
+  } catch {
+    return 1;
+  }
+}
+
+function saveWorldZoom(value) {
+  try {
+    localStorage.setItem(WORLD_ZOOM_STORAGE_KEY, String(normalizeWorldZoom(value)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+function applyWorldZoom(value) {
+  const zoom = normalizeWorldZoom(value);
+  state.worldZoom = zoom;
+  canvas?.style?.setProperty("--world-zoom", String(zoom));
+  if (ui.worldZoomSlider) {
+    ui.worldZoomSlider.value = String(Math.round(zoom * 100));
+  }
+  if (ui.worldZoomValue) {
+    ui.worldZoomValue.textContent = `${Math.round(zoom * 100)}%`;
+  }
+  saveWorldZoom(zoom);
+}
+
+function populateCheatModalOptions() {
+  if (!ui.cheatLevelSelect || !ui.cheatHeroSelect) {
+    return;
+  }
+  ui.cheatLevelSelect.innerHTML = "";
+  state.levels.forEach((level, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
+    ui.cheatLevelSelect.appendChild(option);
+  });
+
+  ui.cheatHeroSelect.innerHTML = "";
+  state.heroes.forEach((hero, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = hero.name;
+    ui.cheatHeroSelect.appendChild(option);
+  });
+
+  ui.cheatLevelSelect.value = String(state.currentLevelIndex);
+  ui.cheatHeroSelect.value = String(state.selectedHeroIndex);
+  applyWorldZoom(state.worldZoom);
+}
+
+function openCheatModal() {
+  if (!state.ready || !ui.cheatModal) {
+    return;
+  }
+  populateCheatModalOptions();
+  ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
+  ui.pauseModal?.classList.add("hidden");
+  ui.cheatModal.classList.remove("hidden");
+  state.paused = true;
+}
+
+function closeCheatModal() {
+  if (!ui.cheatModal) {
+    return;
+  }
+  ui.cheatModal.classList.add("hidden");
+  state.scoreClickStreak = 0;
+  if (state.scoreClickTimer) {
+    clearTimeout(state.scoreClickTimer);
+    state.scoreClickTimer = null;
+  }
+  if (!state.started) {
+    state.paused = false;
+    return;
+  }
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
+}
+
+function registerScoreCheatClick() {
+  if (!state.ready || !ui.hudScoreValue) {
+    return;
+  }
+  state.scoreClickStreak += 1;
+  if (state.scoreClickTimer) {
+    clearTimeout(state.scoreClickTimer);
+  }
+  state.scoreClickTimer = setTimeout(() => {
+    state.scoreClickStreak = 0;
+    state.scoreClickTimer = null;
+  }, 900);
+  if (state.scoreClickStreak >= 3) {
+    state.scoreClickStreak = 0;
+    clearTimeout(state.scoreClickTimer);
+    state.scoreClickTimer = null;
+    openCheatModal();
+  }
+}
+
+function applyCheatSelections() {
+  const nextLevel = clamp(Number(ui.cheatLevelSelect?.value || state.currentLevelIndex), 0, state.levels.length - 1);
+  const heroIndex = clamp(Number(ui.cheatHeroSelect?.value || state.selectedHeroIndex), 0, state.heroes.length - 1);
+  const hero = state.heroes[heroIndex];
+  if (hero) {
+    state.heroUnlocks[hero.id] = true;
+    state.selectedHeroIndex = heroIndex;
+    saveHeroUnlocks(state.heroUnlocks);
+    saveSelectedHeroId(hero.id);
+  }
+  closeCheatModal();
+  if (state.started) {
+    loadLevel(nextLevel, true);
+  } else {
+    state.currentLevelIndex = nextLevel;
+    populateSettingsPanel();
+    updateHudInfo();
+  }
+}
+
 function bindControls() {
   const setHeldState = (button, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
@@ -2130,6 +2272,18 @@ function bindControls() {
       return;
     }
     openShopPanel();
+  });
+
+  ui.hudScoreValue?.addEventListener("click", registerScoreCheatClick);
+
+  ui.cheatCloseBtn?.addEventListener("click", closeCheatModal);
+  ui.cheatGivePiecesBtn?.addEventListener("click", () => {
+    grantGold(999);
+    updateHudInfo();
+  });
+  ui.cheatApplyBtn?.addEventListener("click", applyCheatSelections);
+  ui.worldZoomSlider?.addEventListener("input", () => {
+    applyWorldZoom((Number(ui.worldZoomSlider.value) || 100) / 100);
   });
 
   ui.heroSelect?.addEventListener("change", () => {
@@ -2290,7 +2444,7 @@ function bindControls() {
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden)) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")))) {
           event.preventDefault();
           closeOverlayPanels();
         }
@@ -2399,6 +2553,7 @@ function openShopPanel() {
   }
   renderHeroShop();
   ui.settingsPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.shopPanel.hidden = false;
   state.paused = true;
 }
@@ -2412,7 +2567,7 @@ function closeShopPanel() {
     state.paused = false;
     return;
   }
-  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden;
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
 }
 
 function openSettingsPanel() {
@@ -2425,6 +2580,7 @@ function openSettingsPanel() {
   }
   syncWorldZoomUi();
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -2438,12 +2594,13 @@ function closeSettingsPanel() {
     state.paused = false;
     return;
   }
-  state.paused = isPauseModalOpen() || !ui.shopPanel.hidden;
+  state.paused = isPauseModalOpen() || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
 }
 
 function closeOverlayPanels() {
   closeSettingsPanel();
   closeShopPanel();
+  closeCheatModal();
 }
 
 function openPauseMenu() {
@@ -2453,6 +2610,7 @@ function openPauseMenu() {
   resetMovementInputs();
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -2465,7 +2623,7 @@ function closePauseMenu() {
     state.paused = false;
     return;
   }
-  state.paused = !ui.settingsPanel.hidden || !ui.shopPanel.hidden;
+  state.paused = !ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
 }
 
 function startGameFromMenu() {
@@ -2489,6 +2647,7 @@ function startGameFromMenu() {
   ui.pauseModal?.classList.add("hidden");
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
   if (state.pendingBossStart) {
     startBossMode({ sourceLevelIndex: getBossPrepLevelIndex() });
     return;

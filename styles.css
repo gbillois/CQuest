@@ -76,6 +76,8 @@ body {
   height: 100%;
   display: block;
   image-rendering: pixelated;
+  transform: scale(var(--world-zoom, 1));
+  transform-origin: center center;
 }
 
 .hud {
@@ -93,7 +95,6 @@ body {
 
 .hud-info {
   display: contents;
-  pointer-events: none;
 }
 
 .hud-item {
@@ -123,6 +124,10 @@ body {
   font-weight: 800;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+#hudScoreValue {
+  cursor: pointer;
 }
 
 .hud-actions {
@@ -630,6 +635,37 @@ body {
 
 .menu-card p {
   margin: 4px 0 12px;
+}
+
+.cheat-card {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.cheat-card label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(245, 248, 255, 0.95);
+}
+
+.cheat-card select {
+  width: 100%;
+}
+
+.cheat-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#worldZoomSlider {
+  flex: 1;
+}
+
+#worldZoomValue {
+  min-width: 52px;
+  text-align: right;
 }
 
 .menu-actions {
