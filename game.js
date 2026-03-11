@@ -188,6 +188,8 @@ const PIRATE_SABER_SPEED_Y = -260;
 const PIRATE_SABER_GRAVITY = 720;
 const PIRATE_SABER_RADIUS = 14;
 const CHEAT_MENU_LONG_PRESS_MS = 650;
+const IMAGE_LOAD_TIMEOUT_MS = 12000;
+const ASSET_PROBE_TIMEOUT_MS = 1800;
 
 
 function getHeroShopConfig(heroId) {
@@ -834,11 +836,12 @@ async function preloadBossAssets() {
 
 async function loadHeroes() {
   const heroes = [];
+  const canFetchMetadata = window.location.protocol !== "file:";
 
   await Promise.all(
     KNOWN_HERO_DIRS.map(async (dir) => {
       const metadataPath = `./game_assets/heroes/${dir}/metadata.json`;
-      const metadata = await fetchJson(metadataPath).catch(() => null);
+      const metadata = canFetchMetadata ? await fetchJson(metadataPath).catch(() => null) : null;
 
       const hero = metadata ? await buildHeroFromMetadata(dir, metadata) : await buildHeroFromConvention(dir);
       if (!hero) {
@@ -861,11 +864,12 @@ async function loadHeroes() {
 
 async function loadEnemies() {
   const enemies = [];
+  const canFetchMetadata = window.location.protocol !== "file:";
 
   await Promise.all(
     KNOWN_ENEMY_DIRS.map(async (dir) => {
       const metadataPath = `./game_assets/enemies/${dir}/metadata.json`;
-      const metadata = await fetchJson(metadataPath).catch(() => null);
+      const metadata = canFetchMetadata ? await fetchJson(metadataPath).catch(() => null) : null;
 
       const enemy = metadata ? await buildEnemyFromMetadata(dir, metadata) : await buildEnemyFromConvention(dir);
       if (!enemy) {
@@ -5312,7 +5316,7 @@ function toAssetPath(baseDir, relativePath) {
   return normalizeAssetPath(`${baseDir}/${relativePath}`);
 }
 
-async function loadImage(path) {
+async function loadImage(path, { timeoutMs = IMAGE_LOAD_TIMEOUT_MS } = {}) {
   if (!path) {
     return null;
   }
@@ -5334,7 +5338,7 @@ async function loadImage(path) {
       }
       settled = true;
       reject(new Error(`Image load timeout: ${cleanPath}`));
-    }, 12000);
+    }, timeoutMs);
 
     image.onload = () => {
       if (settled) {
@@ -5614,7 +5618,7 @@ async function tryLoadImage(path) {
     return false;
   }
   try {
-    await loadImage(path);
+    await loadImage(path, { timeoutMs: ASSET_PROBE_TIMEOUT_MS });
     return true;
   } catch {
     return false;
