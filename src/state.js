@@ -126,6 +126,8 @@ export const state = {
     left: false,
     right: false,
     jumpBuffered: false,
+    jumpHeld: false,
+    jumpBufferTime: 0,
   },
   fireballs: [],
   runTime: 0,

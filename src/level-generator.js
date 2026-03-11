@@ -295,6 +295,9 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     fillGroundSpan(tileGrid, playableStart, playableEnd, groundY, groundTile);
     holes = [];
   }
+  // Validate hole widths: ensure every gap is jumpable.
+  validateJumpableHoles(tileGrid, holes, groundY, groundTile);
+
   convertLowFloatingPlatformsToGround({
     tileGrid,
     groundY,
@@ -798,6 +801,42 @@ function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile
   }
 
   return holes;
+}
+
+/**
+ * Validate that every hole is jumpable given the player physics.
+ * If a hole is too wide, fill tiles from the right side until it's clearable.
+ * Modifies tileGrid and holes array in place.
+ */
+function validateJumpableHoles(tileGrid, holes, groundY, groundTile) {
+  // Max jumpable distance in tiles, derived from physics:
+  // airtime = 2 * |jumpVelocity| / gravity (symmetric parabola)
+  // horizontalRange = moveSpeed * airtime + coyoteTime bonus
+  const airtime = 2 * Math.abs(GAME.jumpVelocity) / GAME.gravity;
+  const coyoteBonus = 0.08 * GAME.moveSpeed;
+  const maxJumpPixels = GAME.moveSpeed * airtime + coyoteBonus;
+  const tileSize = Math.max(1, state.tileSize || 64);
+  // Subtract 1 tile for safety margin (player needs to land fully, not at the edge).
+  const maxJumpTiles = Math.max(1, Math.floor(maxJumpPixels / tileSize) - 1);
+
+  for (let i = holes.length - 1; i >= 0; i -= 1) {
+    const hole = holes[i];
+    const width = hole.end - hole.start + 1;
+    if (width <= maxJumpTiles) {
+      continue;
+    }
+    // Fill from the right to shrink the hole.
+    for (let x = hole.start + maxJumpTiles; x <= hole.end; x += 1) {
+      setGroundColumn(tileGrid, x, groundY, groundTile);
+    }
+    hole.end = hole.start + maxJumpTiles - 1;
+  }
+  // Remove degenerate holes (width <= 0).
+  for (let i = holes.length - 1; i >= 0; i -= 1) {
+    if (holes[i].end < holes[i].start) {
+      holes.splice(i, 1);
+    }
+  }
 }
 
 function augmentGroundHoles({ tileGrid, groundY, startX, endX, reservedRanges, holes, targetCount, rand }) {

@@ -365,13 +365,18 @@ export function bindControls() {
   leftButtons.forEach((button) => attachHoldButton(button, (down) => setHeldState(leftButtons, "left", down)));
   rightButtons.forEach((button) => attachHoldButton(button, (down) => setHeldState(rightButtons, "right", down)));
   jumpButtons.forEach((button) =>
-    attachTapButton(button, () => {
-      if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
-        return;
+    attachHoldButton(button, (down) => {
+      if (down) {
+        if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
+          return;
+        }
+        state.controls.jumpBuffered = true;
+        state.controls.jumpHeld = true;
+        jumpButtons.forEach((jumpButton) => jumpButton.classList.add("active"));
+      } else {
+        state.controls.jumpHeld = false;
+        jumpButtons.forEach((jumpButton) => jumpButton.classList.remove("active"));
       }
-      state.controls.jumpBuffered = true;
-      jumpButtons.forEach((jumpButton) => jumpButton.classList.add("active"));
-      setTimeout(() => jumpButtons.forEach((jumpButton) => jumpButton.classList.remove("active")), 90);
     }),
   );
 
@@ -621,6 +626,7 @@ export function bindControls() {
       if (isJumpKey(event)) {
         event.preventDefault();
         state.controls.jumpBuffered = true;
+        state.controls.jumpHeld = true;
         ui.jumpBtn.classList.add("active");
         setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
       }
@@ -635,6 +641,9 @@ export function bindControls() {
   );
 
   window.addEventListener("keyup", (event) => {
+    if (isJumpKey(event)) {
+      state.controls.jumpHeld = false;
+    }
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver) {
       return;
     }
@@ -652,6 +661,7 @@ export function bindControls() {
   window.addEventListener("blur", () => {
     state.controls.left = false;
     state.controls.right = false;
+    state.controls.jumpHeld = false;
     ui.moveLeftBtn.classList.remove("active");
     ui.moveRightBtn.classList.remove("active");
     ui.jumpBtn.classList.remove("active");
@@ -679,6 +689,8 @@ export function resetMovementInputs() {
   state.controls.left = false;
   state.controls.right = false;
   state.controls.jumpBuffered = false;
+  state.controls.jumpHeld = false;
+  state.controls.jumpBufferTime = 0;
   ui.moveLeftBtn?.classList.remove("active");
   ui.moveRightBtn?.classList.remove("active");
   ui.jumpBtn?.classList.remove("active");
