@@ -543,6 +543,7 @@ export function bindControls() {
     const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
     const levelIndex = clamp(Number(requestedLevelValue) || 0, 0, state.levels.length - 1);
     state.generationProfile = requestedProfile;
+    state.levelSeedBase = createRunSeed();
     _generateLevelsFromConfig(state.config);
     populateSettingsPanel();
     syncHeroActionButtonVisibility();
