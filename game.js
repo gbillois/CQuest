@@ -201,6 +201,12 @@ const ui = {
   cheatCloseBtn: document.getElementById("cheatCloseBtn"),
   cheatWorldZoomSlider: document.getElementById("cheatWorldZoomSlider"),
   cheatWorldZoomValue: document.getElementById("cheatWorldZoomValue"),
+  visualDebugPanel: document.getElementById("visualDebugPanel"),
+  debugButtonsOffsetSlider: document.getElementById("debugButtonsOffsetSlider"),
+  debugButtonsOffsetValue: document.getElementById("debugButtonsOffsetValue"),
+  debugGameOffsetSlider: document.getElementById("debugGameOffsetSlider"),
+  debugGameOffsetValue: document.getElementById("debugGameOffsetValue"),
+  closeVisualDebugBtn: document.getElementById("closeVisualDebugBtn"),
   hudLives: document.getElementById("hudLives"),
   hudGoldValue: document.getElementById("hudGoldValue"),
   shopBtn: document.getElementById("shopBtn"),
@@ -301,6 +307,10 @@ const state = {
   persistentGold: 0,
   hearts: STARTING_HEARTS,
   cheatLongPressTimer: null,
+  visualDebugLongPressTimer: null,
+  visualDebugOpen: false,
+  mobileButtonsOffsetY: 75,
+  mobileGameOffsetY: 0,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
@@ -415,6 +425,7 @@ async function init() {
   populatePedagogyPanel();
   renderErrorList();
   bindControls();
+  applyMobileVisualDebugOffsets();
 
   if (!state.heroes.length) {
     throw new Error("No heroes found in game_assets/heroes");
@@ -2224,6 +2235,70 @@ function endCheatMenuLongPress() {
   cancelCheatMenuLongPress();
 }
 
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 430px)").matches;
+}
+
+function applyMobileVisualDebugOffsets() {
+  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
+  state.mobileButtonsOffsetY = buttonsOffset;
+  state.mobileGameOffsetY = gameOffset;
+  document.body.style.setProperty("--mobile-controls-offset", `${buttonsOffset}px`);
+  document.body.style.setProperty("--mobile-game-offset", `${gameOffset}px`);
+  document.body.classList.toggle("mobile-debug-adjust", gameOffset !== 0);
+  if (ui.debugButtonsOffsetSlider) {
+    ui.debugButtonsOffsetSlider.value = String(buttonsOffset);
+  }
+  if (ui.debugButtonsOffsetValue) {
+    ui.debugButtonsOffsetValue.textContent = `${buttonsOffset}px`;
+  }
+  if (ui.debugGameOffsetSlider) {
+    ui.debugGameOffsetSlider.value = String(gameOffset);
+  }
+  if (ui.debugGameOffsetValue) {
+    ui.debugGameOffsetValue.textContent = `${gameOffset}px`;
+  }
+}
+
+function openVisualDebugPanel() {
+  if (!ui.visualDebugPanel) {
+    return;
+  }
+  applyMobileVisualDebugOffsets();
+  ui.visualDebugPanel.classList.remove("hidden");
+  state.visualDebugOpen = true;
+}
+
+function closeVisualDebugPanel() {
+  if (!ui.visualDebugPanel) {
+    return;
+  }
+  ui.visualDebugPanel.classList.add("hidden");
+  state.visualDebugOpen = false;
+}
+
+function cancelVisualDebugLongPress() {
+  if (state.visualDebugLongPressTimer) {
+    clearTimeout(state.visualDebugLongPressTimer);
+    state.visualDebugLongPressTimer = null;
+  }
+}
+
+function beginVisualDebugLongPress() {
+  if (!state.ready || !ui.hudScoreValue || state.visualDebugLongPressTimer || !isMobileViewport()) {
+    return;
+  }
+  state.visualDebugLongPressTimer = setTimeout(() => {
+    state.visualDebugLongPressTimer = null;
+    openVisualDebugPanel();
+  }, CHEAT_MENU_LONG_PRESS_MS);
+}
+
+function endVisualDebugLongPress() {
+  cancelVisualDebugLongPress();
+}
+
 function applyCheatSelections() {
   const nextLevel = clamp(Number(ui.cheatLevelSelect?.value || state.currentLevelIndex), 0, state.levels.length - 1);
   const heroIndex = clamp(Number(ui.cheatHeroSelect?.value || state.selectedHeroIndex), 0, state.heroes.length - 1);
@@ -2317,6 +2392,21 @@ function bindControls() {
   ui.hudLives?.addEventListener("pointerup", endCheatMenuLongPress);
   ui.hudLives?.addEventListener("pointerleave", endCheatMenuLongPress);
   ui.hudLives?.addEventListener("pointercancel", endCheatMenuLongPress);
+
+  ui.hudScoreValue?.addEventListener("pointerdown", beginVisualDebugLongPress);
+  ui.hudScoreValue?.addEventListener("pointerup", endVisualDebugLongPress);
+  ui.hudScoreValue?.addEventListener("pointerleave", endVisualDebugLongPress);
+  ui.hudScoreValue?.addEventListener("pointercancel", endVisualDebugLongPress);
+
+  ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
+    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 180);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.debugGameOffsetSlider?.addEventListener("input", () => {
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 200);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.closeVisualDebugBtn?.addEventListener("click", closeVisualDebugPanel);
 
   ui.cheatCloseBtn?.addEventListener("click", closeCheatModal);
   ui.cheatGivePiecesBtn?.addEventListener("click", () => {
