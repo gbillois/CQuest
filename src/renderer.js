@@ -344,6 +344,9 @@ export function drawTiles(level) {
   const startY = Math.max(0, Math.floor(visibleWorldTop / tileSize) - 1);
   const endY = Math.min(level.heightTiles - 1, Math.floor(visibleWorldBottom / tileSize) + 1);
 
+  // Build skip-set for triggered crumbling platform tiles (drawn separately with shake).
+  const crumblingSkip = _buildCrumblingSkipSet(level);
+
   for (let y = startY; y <= endY; y += 1) {
     for (let x = startX; x <= endX; x += 1) {
       const tile = level.tileGrid[y][x];
@@ -351,6 +354,10 @@ export function drawTiles(level) {
         continue;
       }
       if (y >= groundTopY && y <= groundBottomY) {
+        continue;
+      }
+      // Skip tiles drawn by drawCrumblingPlatforms with shake offset.
+      if (crumblingSkip && crumblingSkip.has(y * level.widthTiles + x)) {
         continue;
       }
 
@@ -707,6 +714,21 @@ export function pickEnemyFrame(enemy) {
   return imageCache.get(idle);
 }
 
+/* ── Crumbling/Moving Platform Helpers ── */
+
+function _buildCrumblingSkipSet(level) {
+  if (!level.crumblingPlatforms?.length) return null;
+  let set = null;
+  for (const plat of level.crumblingPlatforms) {
+    if (plat.removed || !plat.triggered) continue;
+    if (!set) set = new Set();
+    for (let dx = 0; dx < plat.width; dx++) {
+      set.add(plat.y * level.widthTiles + (plat.x + dx));
+    }
+  }
+  return set;
+}
+
 /* ── Crumbling Platforms ── */
 
 function drawCrumblingPlatforms(level, timeSeconds) {
@@ -715,24 +737,49 @@ function drawCrumblingPlatforms(level, timeSeconds) {
 
   for (const plat of level.crumblingPlatforms) {
     if (plat.removed) continue;
-    if (!plat.triggered) continue;
 
-    // Shake effect: oscillate position as timer counts down.
-    const remaining = plat.timer || 0;
-    const intensity = clamp(1 - remaining / (plat.disappearDelay || 1), 0, 1);
-    const shakeX = Math.sin(timeSeconds * 45) * intensity * 3;
-    const shakeY = Math.cos(timeSeconds * 55) * intensity * 2;
-
-    // Draw warning overlay on crumbling tiles.
-    const px = plat.x * tileSize + shakeX;
-    const py = plat.y * tileSize + shakeY;
+    const basePx = plat.x * tileSize;
+    const basePy = plat.y * tileSize;
     const pw = plat.width * tileSize;
 
+    // Compute shake offset (only when triggered).
+    let shakeX = 0;
+    let shakeY = 0;
+    let intensity = 0;
+    if (plat.triggered) {
+      const remaining = plat.timer || 0;
+      intensity = clamp(1 - remaining / (plat.disappearDelay || 1), 0, 1);
+      shakeX = Math.sin(timeSeconds * 45) * intensity * 3;
+      shakeY = Math.cos(timeSeconds * 55) * intensity * 2;
+    }
+
+    // Draw actual tile sprites at shaken position.
+    const tilePaths = plat.tilePaths || [];
+    for (let dx = 0; dx < plat.width; dx++) {
+      const tilePath = tilePaths[dx];
+      const tileObj = level.tileGrid[plat.y]?.[plat.x + dx];
+      const path = tilePath || tileObj?.path;
+      if (!path) continue;
+      const image = imageCache.get(path);
+      const drawX = basePx + dx * tileSize + shakeX;
+      const drawY = basePy + shakeY;
+      if (isImageRenderable(image)) {
+        ctx.drawImage(image, drawX, drawY, tileSize, tileSize);
+      } else {
+        ctx.fillStyle = "#7a6655";
+        ctx.fillRect(drawX, drawY, tileSize, tileSize);
+      }
+    }
+
+    if (!plat.triggered) continue;
+
     // Red flash overlay, increasing opacity.
+    const px = basePx + shakeX;
+    const py = basePy + shakeY;
     ctx.fillStyle = `rgba(255, 80, 40, ${0.15 + intensity * 0.35})`;
     ctx.fillRect(px, py, pw, tileSize);
 
-    // Cracks (simple lines).
+    // Cracks.
     ctx.strokeStyle = `rgba(60, 20, 10, ${0.3 + intensity * 0.5})`;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -743,7 +790,7 @@ function drawCrumblingPlatforms(level, timeSeconds) {
     ctx.lineTo(px + pw * 0.6, py + tileSize * 0.4);
     ctx.stroke();
 
-    // Falling particle dust when about to collapse.
+    // Falling dust particles when about to collapse.
     if (intensity > 0.5) {
       ctx.fillStyle = `rgba(180, 140, 100, ${intensity * 0.6})`;
       for (let i = 0; i < 3; i++) {
@@ -766,33 +813,29 @@ function drawMovingPlatforms(level, timeSeconds) {
 
     const px = plat.worldX;
     const py = plat.worldY;
-    const pw = plat.worldW;
+    const pw = plat.worldW || plat.width * tileSize;
 
-    // Draw platform body (semi-transparent highlight over tile positions).
-    ctx.fillStyle = "rgba(100, 160, 255, 0.2)";
-    ctx.fillRect(px, py, pw, tileSize);
-
-    // Draw movement trail indicator.
-    ctx.strokeStyle = "rgba(100, 160, 255, 0.35)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    if (plat.axis === "horizontal") {
-      const range = plat.rangeX || (3 * tileSize);
-      ctx.beginPath();
-      ctx.moveTo(plat.originX - range, py + tileSize * 0.5);
-      ctx.lineTo(plat.originX + range + pw, py + tileSize * 0.5);
-      ctx.stroke();
-    } else {
-      const range = plat.rangeY || (2 * tileSize);
-      ctx.beginPath();
-      ctx.moveTo(px + pw * 0.5, plat.originY - range);
-      ctx.lineTo(px + pw * 0.5, plat.originY + range + tileSize);
-      ctx.stroke();
+    // Draw actual tile sprites at current moving position.
+    const tilePaths = plat.tilePaths || [];
+    for (let dx = 0; dx < plat.width; dx++) {
+      const path = tilePaths[dx];
+      if (!path) {
+        // Fallback: solid colored block.
+        ctx.fillStyle = "#6a8caf";
+        ctx.fillRect(px + dx * tileSize, py, tileSize, tileSize);
+        continue;
+      }
+      const image = imageCache.get(path);
+      if (isImageRenderable(image)) {
+        ctx.drawImage(image, px + dx * tileSize, py, tileSize, tileSize);
+      } else {
+        ctx.fillStyle = "#6a8caf";
+        ctx.fillRect(px + dx * tileSize, py, tileSize, tileSize);
+      }
     }
-    ctx.setLineDash([]);
 
-    // Glow on edges.
-    ctx.fillStyle = "rgba(150, 200, 255, 0.4)";
+    // Subtle glow on edges to signal movement.
+    ctx.fillStyle = "rgba(150, 200, 255, 0.3)";
     ctx.fillRect(px, py, pw, 2);
     ctx.fillRect(px, py + tileSize - 2, pw, 2);
   }

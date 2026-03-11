@@ -269,9 +269,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           const px = bridgeStart + p * spacing;
           if (px > bridgeEnd - 1) break;
           addPlatformRail({ startX: px, y: bridgeY, length: 2, segmentType: "crumbling" });
+          const tilePaths = [];
+          for (let ti = 0; ti < 2; ti++) {
+            tilePaths.push(tileGrid[bridgeY]?.[px + ti]?.path || null);
+          }
           crumblingPlatforms.push({
             x: px, y: bridgeY, width: 2,
             disappearDelay: clamp(1.2 - difficulty * 0.15, 0.4, 1.2),
+            tilePaths,
           });
         }
         break;
@@ -302,11 +307,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         const platY = localGY - 2;
         const platX = gapStart + Math.floor(gapWidth / 2) - 1;
         addPlatformRail({ startX: platX, y: platY, length: 3, segmentType: "canyon" });
+        const canyonTilePaths = [];
+        for (let ti = 0; ti < 3; ti++) {
+          canyonTilePaths.push(tileGrid[platY]?.[platX + ti]?.path || null);
+        }
         movingPlatforms.push({
           x: platX, y: platY, width: 3,
           rangeX: gapWidth * state.tileSize * 0.3,
           speed: clamp(40 - difficulty * 5, 20, 45),
           axis: "horizontal",
+          tilePaths: canyonTilePaths,
         });
         break;
       }
@@ -343,12 +353,17 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         for (let p = 0; p < platCount; p++) {
           const px = startX + (p + 1) * spacing;
           addPlatformRail({ startX: px, y: platY, length: 2, segmentType: "pendulum" });
+          const pendTilePaths = [];
+          for (let ti = 0; ti < 2; ti++) {
+            pendTilePaths.push(tileGrid[platY]?.[px + ti]?.path || null);
+          }
           movingPlatforms.push({
             x: px, y: platY, width: 2,
             rangeY: 2 * state.tileSize,
             speed: clamp(35 + difficulty * 5, 30, 55),
             axis: "vertical",
             phase: p * Math.PI / platCount,
+            tilePaths: pendTilePaths,
           });
         }
         // Create hole between them for tension.
@@ -452,10 +467,15 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           addPlatformRail({ startX: lx, y: bridgeY, length: 2, segmentType: "letter" });
           const isCorrect = l < letterCount;
           if (!isCorrect) {
+            const tilePaths = [];
+            for (let ti = 0; ti < 2; ti++) {
+              tilePaths.push(tileGrid[bridgeY]?.[lx + ti]?.path || null);
+            }
             crumblingPlatforms.push({
               x: lx, y: bridgeY, width: 2,
               disappearDelay: clamp(0.8 - difficulty * 0.1, 0.3, 1.0),
               isLetterPlatform: true,
+              tilePaths,
             });
           }
           lx += 3;
@@ -581,10 +601,15 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         } else {
           // Hidden challenge: easy-looking flat area with a crumbling section.
           addPlatformRail({ startX: startX + 2, y: localGY - 2, length: 4, segmentType: "trap" });
+          const trapTilePaths = [];
+          for (let ti = 0; ti < 2; ti++) {
+            trapTilePaths.push(tileGrid[localGY - 2]?.[startX + 3 + ti]?.path || null);
+          }
           crumblingPlatforms.push({
             x: startX + 3, y: localGY - 2, width: 2,
             disappearDelay: 0.8,
             isTrap: true,
+            tilePaths: trapTilePaths,
           });
         }
         break;

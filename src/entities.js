@@ -477,9 +477,11 @@ export function updateCrumblingPlatforms(delta) {
       const playerFeetY = player.y + player.h;
       const playerCenterX = player.x + player.w * 0.5;
 
+      // Tolerance accounts for tile collision insets (~16% top inset on platform tiles).
+      const tolerance = tileSize * 0.25;
       if (
         player.onGround &&
-        Math.abs(playerFeetY - platWorldY) < 4 &&
+        Math.abs(playerFeetY - platWorldY) < tolerance &&
         playerCenterX >= platWorldX &&
         playerCenterX <= platWorldX + platWorldW
       ) {
@@ -565,11 +567,13 @@ export function updateMovingPlatforms(delta) {
     plat.worldY = newY;
 
     // Check if player is riding this platform.
+    // Tolerance accounts for tile collision insets (~16% top) + per-frame movement.
     const playerFeetY = player.y + player.h;
     const playerCenterX = player.x + player.w * 0.5;
+    const rideTolerance = tileSize * 0.25;
     const onPlatform =
       player.onGround &&
-      Math.abs(playerFeetY - newY) < 6 &&
+      Math.abs(playerFeetY - newY) < rideTolerance &&
       playerCenterX >= newX &&
       playerCenterX <= newX + plat.worldW;
 
