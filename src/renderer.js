@@ -143,6 +143,12 @@ export function render(timeSeconds) {
 
   ctx.restore();
 
+  // Ambient particles (drawn in screen space above world).
+  drawParticles();
+
+  // Debug level design overlay.
+  drawDebugOverlay();
+
   if (state.message) {
     drawFloatingMessage(state.message);
   }
@@ -696,6 +702,226 @@ export function pickEnemyFrame(enemy) {
   }
 
   return imageCache.get(idle);
+}
+
+/* ── Ambient Particles System ── */
+
+let _particles = [];
+let _particlesLevelId = -1;
+
+function initParticles(level) {
+  const config = level.particles;
+  if (!config || _particlesLevelId === level.id) return;
+  _particlesLevelId = level.id;
+  _particles = [];
+  const count = config.count || 8;
+  for (let i = 0; i < count; i++) {
+    _particles.push({
+      x: Math.random() * VIRTUAL_WIDTH,
+      y: Math.random() * VIRTUAL_HEIGHT,
+      size: config.sizeRange ? config.sizeRange[0] + Math.random() * (config.sizeRange[1] - config.sizeRange[0]) : 3,
+      speed: (config.speed || 20) * (0.5 + Math.random() * 0.8),
+      opacity: (config.opacity || 0.5) * (0.5 + Math.random() * 0.5),
+      phase: Math.random() * Math.PI * 2,
+      wobble: 0.5 + Math.random() * 1.5,
+    });
+  }
+}
+
+export function updateParticles(delta) {
+  const level = state.currentLevel;
+  if (!level?.particles) return;
+  initParticles(level);
+  const config = level.particles;
+  const dir = config.direction || "falling";
+
+  for (const p of _particles) {
+    p.phase += delta * p.wobble;
+    const wobbleX = Math.sin(p.phase) * 15;
+
+    if (dir === "falling" || dir === "falling_diagonal") {
+      p.y += p.speed * delta;
+      p.x += (dir === "falling_diagonal" ? p.speed * 0.4 : 0) * delta + wobbleX * delta;
+      if (p.y > VIRTUAL_HEIGHT + 10) { p.y = -10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    } else if (dir === "rising") {
+      p.y -= p.speed * delta;
+      p.x += wobbleX * delta;
+      if (p.y < -10) { p.y = VIRTUAL_HEIGHT + 10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    } else if (dir === "wind_horizontal") {
+      p.x += p.speed * delta;
+      p.y += Math.sin(p.phase) * 8 * delta;
+      if (p.x > VIRTUAL_WIDTH + 10) { p.x = -10; p.y = Math.random() * VIRTUAL_HEIGHT; }
+    } else if (dir === "updraft") {
+      p.y -= p.speed * 0.5 * delta;
+      p.x += wobbleX * delta;
+      if (p.y < -10) { p.y = VIRTUAL_HEIGHT + 10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    }
+
+    // Wrap X.
+    if (p.x < -20) p.x = VIRTUAL_WIDTH + 10;
+    if (p.x > VIRTUAL_WIDTH + 20) p.x = -10;
+  }
+}
+
+function drawParticles() {
+  const level = state.currentLevel;
+  if (!level?.particles || !_particles.length) return;
+  const config = level.particles;
+  const color = config.color || "#ffffff";
+
+  ctx.save();
+  for (const p of _particles) {
+    ctx.globalAlpha = p.opacity;
+    ctx.fillStyle = color;
+
+    if (config.type === "snowflakes") {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (config.type === "embers") {
+      ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size * 1.5);
+    } else if (config.type === "leaves") {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.phase);
+      ctx.fillRect(-p.size, -p.size * 0.4, p.size * 2, p.size * 0.8);
+      ctx.restore();
+    } else {
+      ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
+    }
+  }
+  ctx.restore();
+}
+
+/* ── Debug Level Design Overlay (F11) ── */
+
+let _debugOverlayVisible = false;
+
+export function toggleDebugOverlay() {
+  _debugOverlayVisible = !_debugOverlayVisible;
+}
+
+export function isDebugOverlayVisible() {
+  return _debugOverlayVisible;
+}
+
+function drawDebugOverlay() {
+  if (!_debugOverlayVisible || !state.currentLevel) return;
+  const level = state.currentLevel;
+  const meta = level.blockMetadata || [];
+  if (!meta.length) return;
+
+  ctx.save();
+
+  // ── Block type overlay (colored regions) ──
+  const tileSize = state.tileSize;
+  const zoom = getWorldZoom();
+  const categoryColors = {
+    traversal: "rgba(66, 133, 244, 0.25)",
+    conjugation: "rgba(52, 168, 83, 0.3)",
+    rhythm: "rgba(251, 188, 4, 0.25)",
+    exploration: "rgba(234, 67, 53, 0.25)",
+  };
+
+  ctx.save();
+  ctx.translate(0, VIRTUAL_HEIGHT);
+  ctx.scale(zoom, zoom);
+  ctx.translate(0, -VIRTUAL_HEIGHT);
+  ctx.translate(-Math.floor(state.cameraX), Math.floor(getWorldRenderOffsetY(level)));
+
+  for (const block of meta) {
+    const color = categoryColors[block.category] || "rgba(128, 128, 128, 0.2)";
+    const x = block.startX * tileSize;
+    const w = (block.endX - block.startX + 1) * tileSize;
+    const y = 0;
+    const h = level.heightTiles * tileSize;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+
+    // Block label at top.
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.max(8, Math.round(10 / zoom))}px monospace`;
+    ctx.textAlign = "center";
+    ctx.fillText(block.blockId.replace(/_/g, " "), x + w / 2, 14 / zoom + y);
+  }
+
+  // ── Secret zones (highlighted) ──
+  for (const secret of level.secretZones || []) {
+    ctx.strokeStyle = "rgba(255, 215, 0, 0.8)";
+    ctx.lineWidth = 2 / zoom;
+    ctx.setLineDash([4 / zoom, 4 / zoom]);
+    ctx.strokeRect(secret.x, secret.y, (secret.width || 3) * tileSize, (secret.height || 2) * tileSize);
+    ctx.setLineDash([]);
+  }
+
+  // ── Conjugation gates (green markers) ──
+  for (const gate of level.conjugationGates || []) {
+    ctx.fillStyle = "rgba(52, 168, 83, 0.7)";
+    ctx.beginPath();
+    ctx.arc(gate.x + tileSize / 2, gate.y + tileSize / 2, tileSize * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.round(10 / zoom)}px monospace`;
+    ctx.textAlign = "center";
+    ctx.fillText(gate.type, gate.x + tileSize / 2, gate.y + tileSize / 2 + 3 / zoom);
+  }
+
+  ctx.restore();
+
+  // ── Difficulty curve graph (top-right HUD) ──
+  const graphX = VIRTUAL_WIDTH - 160;
+  const graphY = 10;
+  const graphW = 150;
+  const graphH = 60;
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(graphX, graphY, graphW, graphH);
+  ctx.strokeStyle = "#555";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(graphX, graphY, graphW, graphH);
+
+  // Title.
+  ctx.fillStyle = "#ccc";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "left";
+  ctx.fillText("Difficulty Curve", graphX + 4, graphY + 10);
+  ctx.fillText(`Shape: ${level.levelShape || "?"}`, graphX + 4, graphY + 20);
+  ctx.fillText(`Score: ${level.designScore?.overall || "?"}/${100}`, graphX + 4, graphY + 30);
+
+  // Draw the curve.
+  if (meta.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#ff6b6b";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < meta.length; i++) {
+      const px = graphX + 4 + (i / (meta.length - 1)) * (graphW - 8);
+      const py = graphY + graphH - 4 - (meta[i].difficulty || 0) * (graphH - 16);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  // Block type legend.
+  const legendY = graphY + graphH + 5;
+  const legendItems = [
+    { label: "Traversal", color: "#4285f4" },
+    { label: "Conjugation", color: "#34a853" },
+    { label: "Rhythm", color: "#fbbc04" },
+    { label: "Exploration", color: "#ea4335" },
+  ];
+  ctx.font = "7px monospace";
+  for (let i = 0; i < legendItems.length; i++) {
+    const lx = graphX + (i % 2) * 75;
+    const ly = legendY + Math.floor(i / 2) * 12;
+    ctx.fillStyle = legendItems[i].color;
+    ctx.fillRect(lx, ly, 8, 8);
+    ctx.fillStyle = "#ccc";
+    ctx.textAlign = "left";
+    ctx.fillText(legendItems[i].label, lx + 11, ly + 7);
+  }
+
+  ctx.restore();
 }
 
 /* ── UI rendering ── */
