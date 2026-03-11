@@ -5810,7 +5810,7 @@ function generateLevelVerbDatas(n) {
 function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGetter, uiHooks, gameplayHooks }) {
   const QS = { active: false, enemy: null, q: null, mode: "enemy", onCorrect: null, onWrong: null, uiMeta: null, resolving: false };
   const QK = { selectedBtn: null };
-  let selectedIndex = 0;
+  let selectedIndex = -1;
   let errorDB = loadErrorDB(storageKey);
 
   function frenchSound(word) {
@@ -6110,7 +6110,12 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     const buttons = uiHooks.getAnswerButtons ? uiHooks.getAnswerButtons() : [];
     if (!buttons.length) {
       QK.selectedBtn = null;
-      selectedIndex = 0;
+      selectedIndex = -1;
+      return;
+    }
+    if (selectedIndex < 0) {
+      QK.selectedBtn = null;
+      uiHooks.setSelectedButton?.(null);
       return;
     }
     selectedIndex = ((selectedIndex % buttons.length) + buttons.length) % buttons.length;
@@ -6137,7 +6142,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS.resolving = false;
     enemy.battling = true;
     enemy.questionAttempts = (enemy.questionAttempts || 0) + 1;
-    selectedIndex = 0;
+    selectedIndex = -1;
     uiHooks.onOpenQuestion?.(q, QS.uiMeta);
     syncSelection();
     gameplayHooks.onOpenQuestion?.(q, enemy);
@@ -6161,7 +6166,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS.onWrong = typeof onWrong === "function" ? onWrong : null;
     QS.uiMeta = uiMeta || null;
     QS.resolving = false;
-    selectedIndex = 0;
+    selectedIndex = -1;
     uiHooks.onOpenQuestion?.(q, QS.uiMeta);
     syncSelection();
     gameplayHooks.onOpenQuestion?.(q, null);
@@ -6180,7 +6185,7 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     QS.uiMeta = null;
     QS.resolving = false;
     QK.selectedBtn = null;
-    selectedIndex = 0;
+    selectedIndex = -1;
     uiHooks.onCloseQuestion?.();
     gameplayHooks.onCloseQuestion?.(enemy, mode);
   }
@@ -6236,17 +6241,20 @@ function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGett
     }
     const key = event.key;
     if (key === "ArrowLeft" || key === "ArrowUp") {
-      selectedIndex -= 1;
+      selectedIndex = selectedIndex < 0 ? buttons.length - 1 : selectedIndex - 1;
       syncSelection();
       return true;
     }
     if (key === "ArrowRight" || key === "ArrowDown") {
-      selectedIndex += 1;
+      selectedIndex = selectedIndex < 0 ? 0 : selectedIndex + 1;
       syncSelection();
       return true;
     }
     if (key === "Enter" || key === " ") {
-      const btn = buttons[selectedIndex] || buttons[0];
+      if (selectedIndex < 0) {
+        return true;
+      }
+      const btn = buttons[selectedIndex];
       if (btn) {
         answerClick(btn.dataset.answer || "");
       }
