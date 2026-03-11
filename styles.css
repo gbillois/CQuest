@@ -192,6 +192,16 @@ body {
   padding: 0;
 }
 
+#jumpBtn {
+  grid-column: 4;
+  justify-self: end;
+}
+
+#jumpHitBtn {
+  grid-column: 4;
+  justify-self: end;
+}
+
 .touch-btn img {
   width: 100%;
   height: 100%;
