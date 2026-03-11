@@ -2510,13 +2510,10 @@ function bindControls() {
     const requestedLevelValue = String(ui.levelSelect.value || "0");
     const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
     const levelIndex = clamp(Number(requestedLevelValue) || 0, 0, state.levels.length - 1);
-    const profileChanged = requestedProfile !== state.generationProfile;
     state.generationProfile = requestedProfile;
-    if (profileChanged) {
-      generateLevelsFromConfig(state.config);
-      populateSettingsPanel();
-      syncHeroActionButtonVisibility();
-    }
+    generateLevelsFromConfig(state.config);
+    populateSettingsPanel();
+    syncHeroActionButtonVisibility();
     state.pendingBossStart = wantsBoss;
     closeSettingsPanel();
     if (wantsBoss) {
