@@ -341,7 +341,7 @@ const state = {
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
   mobileButtonsOffsetY: 155,
-  mobileGameOffsetY: 0,
+  mobileGameOffsetY: -200,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
@@ -2051,6 +2051,7 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, holes, rese
 
 function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation }) {
   const profile = generation || GENERATION_PROFILES.normal;
+  const minEnemyPatrolDistance = state.tileSize * 2;
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
   const count = clamp(
@@ -2104,20 +2105,22 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
         const spawnX = tileX * state.tileSize + (state.tileSize - enemyW) * 0.5;
         const patrolMin = lane.start * state.tileSize + 1;
         const patrolMax = (lane.end + 1) * state.tileSize - enemyW - 1;
-        if (patrolMax - patrolMin < enemyW + 8) {
+        if (patrolMax - patrolMin < minEnemyPatrolDistance) {
           continue;
         }
+        const spawnSurfaceY = getTileSurfaceTopY(tileGrid, tileX, lane.y);
+        const spawnY = spawnSurfaceY - enemyH;
 
         enemies.push({
           def: enemyDef,
           x: spawnX,
-          y: lane.y * state.tileSize - enemyH,
+          y: spawnY,
           vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
           vy: 0,
           dir: rand() > 0.5 ? 1 : -1,
           w: enemyW,
           h: enemyH,
-          prevY: lane.y * state.tileSize - enemyH,
+          prevY: spawnY,
           patrolMin,
           patrolMax,
           animTime: rand() * 3,
@@ -2149,16 +2152,21 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
       const spawnX = node.x * state.tileSize + (state.tileSize - enemyW) * 0.5;
       const patrolMin = Math.max(0, spawnX - state.tileSize * 3);
       const patrolMax = Math.min(tileGrid[0].length * state.tileSize - enemyW, spawnX + state.tileSize * 3);
+      if (patrolMax - patrolMin < minEnemyPatrolDistance) {
+        continue;
+      }
+      const spawnSurfaceY = getTileSurfaceTopY(tileGrid, node.x, groundY);
+      const spawnY = spawnSurfaceY - enemyH;
       enemies.push({
         def: enemyDef,
         x: spawnX,
-        y: groundY * state.tileSize - enemyH,
+        y: spawnY,
         vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
         vy: 0,
         dir: rand() > 0.5 ? 1 : -1,
         w: enemyW,
         h: enemyH,
-        prevY: groundY * state.tileSize - enemyH,
+        prevY: spawnY,
         patrolMin,
         patrolMax,
         animTime: rand() * 3,
@@ -2174,6 +2182,16 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   }
 
   return enemies;
+}
+
+function getTileSurfaceTopY(tileGrid, tileX, tileY) {
+  const tileSize = state.tileSize;
+  const tile = tileGrid?.[tileY]?.[tileX];
+  if (!tile) {
+    return tileY * tileSize;
+  }
+  const collisionRect = getSolidTileCollisionRect(tile, tileX, tileY);
+  return collisionRect?.y ?? tileY * tileSize;
 }
 
 function getEnemyHitboxSize(enemyDef) {
