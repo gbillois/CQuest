@@ -3672,7 +3672,7 @@ function getNearbySolidRects(entity, level) {
     if (blockTileX < minX - 1 || blockTileX > maxX + 1 || blockTileY < minY - 1 || blockTileY > maxY + 1) {
       continue;
     }
-    rects.push({ x: block.x, y: block.y + block.bumpOffset, w: block.w, h: block.h, bonusBlock: block });
+    rects.push(getBonusBlockCollisionRect(block));
   }
 
   return rects;
@@ -3699,8 +3699,8 @@ function getSolidTileCollisionRect(tile, tileX, tileY) {
   const leftInset = clamp((insets.left || 0) * tileSize, 0, tileSize / 2 - 1);
   const rightInset = clamp((insets.right || 0) * tileSize, 0, tileSize / 2 - 1);
   const topInset = clamp(insets.top * tileSize, 0, tileSize - 2);
-  // Keep full bottom depth so platforms remain solid from underneath.
-  const usableHeight = Math.max(2, tileSize - topInset);
+  const bottomInset = clamp((insets.bottom || 0) * tileSize, 0, tileSize - 2);
+  const usableHeight = Math.max(2, tileSize - topInset - bottomInset);
   const usableWidth = Math.max(2, tileSize - leftInset - rightInset);
 
   return {
@@ -3708,6 +3708,49 @@ function getSolidTileCollisionRect(tile, tileX, tileY) {
     y: y + topInset,
     w: usableWidth,
     h: usableHeight,
+  };
+}
+
+function getBonusBlockCollisionRect(block) {
+  const insets = getBonusCollisionInsets(block);
+  const leftInset = clamp((insets.left || 0) * block.w, 0, block.w / 2 - 1);
+  const rightInset = clamp((insets.right || 0) * block.w, 0, block.w / 2 - 1);
+  const topInset = clamp((insets.top || 0) * block.h, 0, block.h - 2);
+  const bottomInset = clamp((insets.bottom || 0) * block.h, 0, block.h - 2);
+
+  return {
+    x: block.x + leftInset,
+    y: block.y + block.bumpOffset + topInset,
+    w: Math.max(2, block.w - leftInset - rightInset),
+    h: Math.max(2, block.h - topInset - bottomInset),
+    bonusBlock: block,
+  };
+}
+
+function getBonusCollisionInsets(block) {
+  const path = block?.used ? block.usedPath : block?.path;
+  if (!path) {
+    return { left: 0, right: 0, top: 0, bottom: 0 };
+  }
+  if (tileVerticalCollisionInsetCache.has(path)) {
+    return tileVerticalCollisionInsetCache.get(path) || { left: 0, right: 0, top: 0, bottom: 0 };
+  }
+  const image = imageCache.get(path);
+  if (!isImageRenderable(image)) {
+    return { left: 0, right: 0, top: 0, bottom: 0 };
+  }
+  const bounds = getSpriteOpaqueBounds(image);
+  const sourceW = image.naturalWidth || image.width;
+  const sourceH = image.naturalHeight || image.height;
+  if (!bounds || !sourceW || !sourceH) {
+    return { left: 0, right: 0, top: 0, bottom: 0 };
+  }
+
+  return {
+    left: bounds.left / sourceW,
+    right: Math.max(0, sourceW - 1 - bounds.right) / sourceW,
+    top: bounds.top / sourceH,
+    bottom: Math.max(0, sourceH - 1 - bounds.bottom) / sourceH,
   };
 }
 
