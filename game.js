@@ -1701,8 +1701,9 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
   void biome;
 
   const tileSize = state.tileSize;
-  const lanePassUnder = clamp(groundY - 3, 2, tileGrid.length - 3);
-  const laneHigher = clamp(groundY - 4, 2, tileGrid.length - 3);
+  const minPassUnderGapTiles = getBonusMinPassUnderGapTiles();
+  const lanePassUnder = clamp(groundY - minPassUnderGapTiles, 2, tileGrid.length - 3);
+  const laneHigher = clamp(lanePassUnder - 1, 2, tileGrid.length - 3);
 
   const tryPlaceBlock = (tileX, tileY) => {
     if (items.length >= count) {
@@ -1829,6 +1830,7 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
 }
 
 function hasReachableBonusSupport(tileGrid, blockX, blockY, groundY) {
+  const minGapTiles = getBonusMinPassUnderGapTiles();
   const maxY = clamp(groundY, blockY + 1, tileGrid.length - 1);
   const minX = Math.max(1, blockX - 1);
   const maxX = Math.min(tileGrid[0].length - 2, blockX + 1);
@@ -1840,7 +1842,7 @@ function hasReachableBonusSupport(tileGrid, blockX, blockY, groundY) {
       }
 
       const gapTiles = supportY - blockY;
-      if (gapTiles < BONUS_MIN_SUPPORT_GAP_TILES || gapTiles > BONUS_MAX_SUPPORT_GAP_TILES) {
+      if (gapTiles < minGapTiles || gapTiles > BONUS_MAX_SUPPORT_GAP_TILES) {
         break;
       }
 
@@ -1857,6 +1859,12 @@ function hasReachableBonusSupport(tileGrid, blockX, blockY, groundY) {
   }
 
   return false;
+}
+
+function getBonusMinPassUnderGapTiles() {
+  const tileSize = Math.max(1, state.tileSize || 32);
+  const playerHeightTiles = Math.ceil(PLAYER_HITBOX_HEIGHT / tileSize);
+  return Math.max(BONUS_MIN_SUPPORT_GAP_TILES, playerHeightTiles + 1);
 }
 
 function buildDecorationScatter({ biome, rand, tileGrid, decoDensity, pathNodes }) {
