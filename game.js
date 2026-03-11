@@ -47,8 +47,8 @@ const PLAYER_DEATH_DELAY_SECONDS = 1;
 const PLAYER_DEATH_LAUNCH_Y = -420;
 const MIN_PLAYER_JUMP_HEIGHT_TILES = 5.0;
 const GROUND_THICKNESS_TILES = 4;
-const GROUND_TILE_OVERLAP_PX = 20;
-const GROUND_TILE_HORIZONTAL_OVERLAP_PX = 2;
+const GROUND_TILE_OVERLAP_PX = 0;
+const GROUND_TILE_HORIZONTAL_OVERLAP_PX = 0;
 const GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO = 0.22;
 const GROUND_SURFACE_VARIATION_MAX_UP = 0;
 const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
@@ -108,6 +108,20 @@ const BIOME_EMOJI = {
   mountain: "⛰️",
   snow: "❄️",
   wood: "🌲",
+};
+const GROUND_TILE_STYLE_BY_BIOME = {
+  desert: "desert",
+  desolation: "desolation",
+  forest: "forest",
+  mountain: "mountain",
+  snow: "snow",
+};
+const GROUND_TILE_PREFIX_BY_STYLE = {
+  desert: "desert_from_desert_png",
+  desolation: "desolation_from_desolation_png",
+  forest: "grassy_from_grassy_png",
+  mountain: "rocky_from_rocky_png",
+  snow: "snow_from_snow_png",
 };
 
 const GENERATION_PROFILES = {
@@ -668,6 +682,43 @@ function makeFallbackBiome(biomeId, hasFourDetailTiles) {
   };
 }
 
+function buildGroundStyleTiles(biomeId) {
+  const styleId = GROUND_TILE_STYLE_BY_BIOME[biomeId] || null;
+  const prefix = styleId ? GROUND_TILE_PREFIX_BY_STYLE[styleId] : null;
+  if (!styleId || !prefix) {
+    return null;
+  }
+
+  const byRow = {
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+  };
+  const all = [];
+  let index = 1;
+  for (let row = 1; row <= 4; row += 1) {
+    for (let col = 1; col <= 4; col += 1) {
+      const tile = {
+        id: `${biomeId}_ground_r${pad2(row)}_c${pad2(col)}`,
+        path: `game_assets/ground/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}_${pad2(index)}.png`,
+      };
+      all.push(tile);
+      byRow[row].push(tile);
+      index += 1;
+    }
+  }
+
+  return {
+    styleId,
+    all,
+    surface: byRow[1],
+    middle: byRow[2],
+    deep: byRow[3],
+    mountain: byRow[4],
+  };
+}
+
 function buildBiomeIndex(config) {
   const biomes = {};
   for (const [biomeId, biomeData] of Object.entries(config.biomes || {})) {
@@ -699,6 +750,11 @@ function buildBiomeIndex(config) {
     const groundDecorTiles = [17, 18, 19, 20]
       .map((code) => allTiles.find((tile) => getTileCodeFromPath(tile?.path) === code) || null)
       .filter(Boolean);
+    const groundStyleTiles = buildGroundStyleTiles(biomeId);
+    const fallbackSurfaceGround = [tileById[`${biomeId}_r01_c01`], tileById[`${biomeId}_r01_c02`], tileById[`${biomeId}_r01_c03`], tileById[`${biomeId}_r01_c04`]].filter(Boolean);
+    const fallbackMiddleGround = [tileById[`${biomeId}_r02_c01`], tileById[`${biomeId}_r02_c02`], tileById[`${biomeId}_r02_c03`], tileById[`${biomeId}_r02_c04`]].filter(Boolean);
+    const fallbackDeepGround = [tileById[`${biomeId}_r03_c01`], tileById[`${biomeId}_r03_c02`], tileById[`${biomeId}_r03_c03`], tileById[`${biomeId}_r03_c04`]].filter(Boolean);
+    const fallbackMountain = [tileById[`${biomeId}_r04_c01`], tileById[`${biomeId}_r04_c02`], tileById[`${biomeId}_r04_c03`], tileById[`${biomeId}_r04_c04`]].filter(Boolean);
 
     biomes[biomeId] = {
       id: biomeId,
@@ -722,6 +778,16 @@ function buildBiomeIndex(config) {
       slopeTiles: mapIds(biomeData.tile_catalog?.slopes),
       subsurfaceTiles: mapIds(biomeData.tile_catalog?.subsurface),
       detailTiles: mapIds(biomeData.tile_catalog?.detail_overlay),
+      terrainTiles: {
+        styleId: groundStyleTiles?.styleId || null,
+        surface: groundStyleTiles?.surface?.length ? groundStyleTiles.surface : fallbackSurfaceGround,
+        middle: groundStyleTiles?.middle?.length ? groundStyleTiles.middle : fallbackMiddleGround,
+        deep: groundStyleTiles?.deep?.length ? groundStyleTiles.deep : fallbackDeepGround,
+        mountain: groundStyleTiles?.mountain?.length ? groundStyleTiles.mountain : fallbackMountain,
+        all: groundStyleTiles?.all?.length
+          ? groundStyleTiles.all
+          : [...fallbackSurfaceGround, ...fallbackMiddleGround, ...fallbackDeepGround, ...fallbackMountain],
+      },
       simplePlatformTiles: simpleByCode,
       groundDecorTiles,
     };
@@ -754,6 +820,13 @@ async function preloadConfigAssetImages(config) {
 
   for (const biome of Object.values(config.biomes || {})) {
     for (const tile of biome.tiles || []) {
+      if (tile.path) {
+        paths.add(tile.path);
+      }
+    }
+  }
+  for (const biomeId of Object.keys(config.biomes || {})) {
+    for (const tile of buildGroundStyleTiles(biomeId)?.all || []) {
       if (tile.path) {
         paths.add(tile.path);
       }
@@ -930,7 +1003,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
   const pathNodes = [];
   const platformRails = [];
   const groundY = heightTiles - 4;
-  const groundTile = biome.groundLineTile || biome.defaultSurface || biome.groundTile || biome.defaultFill;
+  const groundTileSource = createGroundTileSource({ biome, rand, groundY });
   const startCastleTileX = 4;
   const towerTileX = Math.floor(widthTiles * 0.5);
   const castleTileX = widthTiles - 7;
@@ -938,7 +1011,7 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
   const playableEnd = castleTileX - 12;
 
   for (let x = 0; x < widthTiles; x += 1) {
-    setGroundColumn(tileGrid, x, groundY, groundTile);
+    setGroundColumn(tileGrid, x, groundY, groundTileSource);
   }
 
   const reservedRanges = [
@@ -1090,10 +1163,10 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
       const steps = randInt(rand, 2, 3);
       const stairsStart = clamp(segStart + 2, 1, segEnd - (steps * 2 + 1));
       for (let i = 0; i < steps; i += 1) {
-        setGroundTileAt(tileGrid, stairsStart + i, groundY - 1 - i, groundTile);
+        setGroundTileAt(tileGrid, stairsStart + i, groundY - 1 - i, groundTileSource);
       }
       for (let i = 1; i <= steps; i += 1) {
-        setGroundTileAt(tileGrid, stairsStart + steps - 1 + i, groundY - steps + i - 1, groundTile);
+        setGroundTileAt(tileGrid, stairsStart + steps - 1 + i, groundY - steps + i - 1, groundTileSource);
       }
       addPlatformRail({
         startX: stairsStart + steps - 1,
@@ -1141,18 +1214,18 @@ function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bo
       groundY,
       startX: 8,
       endX: castleTileX - 11,
-      groundTile,
+      groundTileSource,
       minGapBetweenHoles: 3,
       maxHoleWidth: generation.maxHoleWidth,
     });
   } else {
-    fillGroundSpan(tileGrid, playableStart, playableEnd, groundY, groundTile);
+    fillGroundSpan(tileGrid, playableStart, playableEnd, groundY, groundTileSource);
     holes = [];
   }
   convertLowFloatingPlatformsToGround({
     tileGrid,
     groundY,
-    groundTile,
+    groundTile: groundTileSource,
     holes,
   });
 
@@ -1353,6 +1426,40 @@ function getSimplePlatformMidTile(biome) {
   return simple[12] || simple[13] || simple[11] || simple[14] || simple[10] || simple[15] || biome?.defaultSurface || biome?.defaultFill || null;
 }
 
+function createGroundTileSource({ biome, rand, groundY }) {
+  const terrain = biome?.terrainTiles || {};
+  const surfacePool =
+    terrain.surface?.length
+      ? terrain.surface
+      : [biome?.groundLineTile, biome?.defaultSurface, biome?.groundTile, biome?.defaultFill].filter(Boolean);
+  const middlePool = terrain.middle?.length ? terrain.middle : surfacePool;
+  const deepPool = terrain.deep?.length ? terrain.deep : middlePool;
+  const mountainPool = terrain.mountain?.length ? terrain.mountain : surfacePool;
+  const fallback = surfacePool[0] || middlePool[0] || deepPool[0] || mountainPool[0] || null;
+  const pick = (pool) => {
+    if (!pool?.length) {
+      return fallback;
+    }
+    return pool[randInt(rand, 0, pool.length - 1)] || fallback;
+  };
+
+  return {
+    pick(x, y) {
+      if (y < groundY) {
+        return pick(mountainPool);
+      }
+      const depth = y - groundY;
+      if (depth <= 0) {
+        return pick(surfacePool);
+      }
+      if (depth === 1) {
+        return pick(middlePool);
+      }
+      return pick(deepPool);
+    },
+  };
+}
+
 function asGroundSolidTile(tile) {
   return tile ? { ...tile, groundSolid: true } : tile;
 }
@@ -1361,7 +1468,8 @@ function setGroundTileAt(tileGrid, x, y, groundTile) {
   if (!tileGrid[y] || x < 0 || x >= tileGrid[0].length) {
     return;
   }
-  setTile(tileGrid, x, y, asGroundSolidTile(groundTile));
+  const sourceTile = typeof groundTile?.pick === "function" ? groundTile.pick(x, y) : groundTile;
+  setTile(tileGrid, x, y, asGroundSolidTile(sourceTile));
 }
 
 function fillGroundSpan(tileGrid, startX, endX, groundY, groundTile) {
@@ -1583,12 +1691,13 @@ function collectGroundLanes(tileGrid, groundY, fromX, toX, reservedRanges) {
   return lanes;
 }
 
-function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile, minGapBetweenHoles, maxHoleWidth }) {
+function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile, groundTileSource, minGapBetweenHoles, maxHoleWidth }) {
   const width = tileGrid[0]?.length || 0;
   const fromX = clamp(startX, 0, Math.max(0, width - 1));
   const toX = clamp(endX, fromX, Math.max(0, width - 1));
   const minGap = Math.max(3, minGapBetweenHoles || 5);
   const maxWidth = Math.max(1, maxHoleWidth || 2);
+  const terrainSource = groundTileSource || groundTile;
 
   const collectHoles = () => {
     const spans = [];
@@ -1614,7 +1723,7 @@ function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile
       continue;
     }
     for (let x = hole.start + maxWidth; x <= hole.end; x += 1) {
-      setGroundColumn(tileGrid, x, groundY, groundTile);
+      setGroundColumn(tileGrid, x, groundY, terrainSource);
     }
   }
 
@@ -1628,7 +1737,7 @@ function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile
       continue;
     }
     for (let x = curr.start; x <= curr.end; x += 1) {
-      setGroundColumn(tileGrid, x, groundY, groundTile);
+      setGroundColumn(tileGrid, x, groundY, terrainSource);
     }
   }
 
@@ -1643,7 +1752,7 @@ function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile
         continue;
       }
       if (!tileGrid[groundY][x]) {
-        setGroundColumn(tileGrid, x, groundY, groundTile);
+        setGroundColumn(tileGrid, x, groundY, terrainSource);
       }
       if (tileGrid[groundY - 1]) {
         tileGrid[groundY - 1][x] = null;
