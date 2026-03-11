@@ -327,7 +327,7 @@ const state = {
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
   mobileButtonsOffsetY: 155,
-  mobileGameOffsetY: 0,
+  mobileGameOffsetY: -200,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
