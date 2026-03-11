@@ -176,6 +176,25 @@
           </div>
         </section>
 
+        <section id="visualDebugPanel" class="debug-panel hidden" aria-label="Visual debug controls">
+          <h2>Debug visuel</h2>
+          <p>Ajustements live pour mobile</p>
+
+          <label for="debugButtonsOffsetSlider">Offset vertical boutons</label>
+          <div class="debug-slider-row">
+            <input id="debugButtonsOffsetSlider" type="range" min="0" max="180" step="1" value="75" />
+            <strong id="debugButtonsOffsetValue">75px</strong>
+          </div>
+
+          <label for="debugGameOffsetSlider">Offset vertical zone de jeu</label>
+          <div class="debug-slider-row">
+            <input id="debugGameOffsetSlider" type="range" min="-200" max="200" step="1" value="0" />
+            <strong id="debugGameOffsetValue">0px</strong>
+          </div>
+
+          <button id="closeVisualDebugBtn" class="secondary-btn" type="button">Fermer</button>
+        </section>
+
         <section id="gameOverPanel" class="game-over hidden">
           <h2 id="gameOverTitle">Game Over</h2>
           <p id="gameOverText">You lost all hearts.</p>

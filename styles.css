@@ -730,6 +730,60 @@ body {
   background: rgba(10, 28, 30, 0.92);
 }
 
+
+.debug-panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92%, 420px);
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(10, 16, 34, 0.72);
+  backdrop-filter: blur(3px);
+  z-index: 85;
+  display: grid;
+  gap: 8px;
+}
+
+.debug-panel h2 {
+  margin: 0;
+  font-family: "Bangers", cursive;
+  letter-spacing: 0.05em;
+}
+
+.debug-panel p {
+  margin: 0 0 4px;
+  opacity: 0.9;
+}
+
+.debug-slider-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+body.mobile-debug-adjust #gameCanvas {
+  transform: translateY(var(--mobile-game-offset, 0px));
+}
+
+@media (max-width: 430px) {
+  body {
+    --mobile-controls-offset: 75px;
+  }
+
+  .icon-button,
+  .touch-btn {
+    opacity: 0.7;
+  }
+
+  .controls-zone {
+    transform: translateY(calc(var(--mobile-controls-offset, 75px) * -1));
+  }
+}
+
 .hidden,
 [hidden] {
   display: none !important;
