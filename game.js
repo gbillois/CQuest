@@ -431,6 +431,7 @@ async function init() {
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();
+  ensureEmergencyRoster();
 
   generateLevelsFromConfig(config);
   await preloadLevelAssetImages(state.levels[0]);
@@ -441,15 +442,48 @@ async function init() {
   bindControls();
   applyMobileVisualDebugOffsets();
 
-  if (!state.heroes.length) {
-    throw new Error("No heroes found in game_assets/heroes");
-  }
-
   loadLevel(0, true);
   state.ready = true;
   showTitleScreen();
   scheduleBackgroundWarmup(config);
   requestAnimationFrame(gameLoop);
+}
+
+function ensureEmergencyRoster() {
+  if (!state.heroes.length) {
+    const fallbackHeroId = KNOWN_HERO_DIRS[0] || "paladin";
+    console.warn(`[startup] No heroes found, using emergency fallback hero: ${fallbackHeroId}`);
+    state.heroes.push({
+      id: fallbackHeroId,
+      name: formatHeroName(fallbackHeroId),
+      size: { width: 56, height: 56 },
+      sprite: {
+        idleSE: normalizeAssetPath(`game_assets/heroes/${fallbackHeroId}/rotations/south-east.png`),
+        idleSW: normalizeAssetPath(`game_assets/heroes/${fallbackHeroId}/rotations/south-west.png`),
+        runSE: [],
+        runSW: [],
+        jumpSE: [],
+        jumpSW: [],
+      },
+    });
+  }
+
+  if (!state.enemies.length) {
+    const fallbackEnemyId = KNOWN_ENEMY_DIRS[0] || "desert-mummy";
+    console.warn(`[startup] No enemies found, using emergency fallback enemy: ${fallbackEnemyId}`);
+    state.enemies.push({
+      id: fallbackEnemyId,
+      name: fallbackEnemyId,
+      biomeHint: fallbackEnemyId.split("-")[0],
+      size: { width: 48, height: 48 },
+      sprite: {
+        idleE: normalizeAssetPath(`game_assets/enemies/${fallbackEnemyId}/rotations/east.png`),
+        idleW: normalizeAssetPath(`game_assets/enemies/${fallbackEnemyId}/rotations/west.png`),
+        walkE: [],
+        walkW: [],
+      },
+    });
+  }
 }
 
 function enforceMinimumJumpHeight() {
