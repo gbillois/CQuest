@@ -2242,10 +2242,6 @@ function endCheatMenuLongPress() {
   cancelCheatMenuLongPress();
 }
 
-function isMobileViewport() {
-  return window.matchMedia("(max-width: 430px)").matches;
-}
-
 function applyMobileVisualDebugOffsets() {
   const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
   const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
@@ -2293,7 +2289,7 @@ function cancelVisualDebugLongPress() {
 }
 
 function beginVisualDebugLongPress() {
-  if (!state.ready || !ui.hudScoreValue || state.visualDebugLongPressTimer || !isMobileViewport()) {
+  if (!state.ready || !ui.hudScoreValue || state.visualDebugLongPressTimer) {
     return;
   }
   state.visualDebugLongPressTimer = setTimeout(() => {
