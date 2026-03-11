@@ -18,9 +18,9 @@ import {
   updateBossQuestionCountdown, triggerBonusBlock, hitPlayer, defeatEnemy,
   startBossMode, getBossPrepLevelIndex, resetBossState, setEntityHooks,
   tryEnterTower, collideWithEnemies, checkGoal, damagePlayer, respawnPlayer,
-  castHeroProjectile,
+  castHeroProjectile, updateCrumblingPlatforms, updateMovingPlatforms, updateConjugationGates,
 } from "./entities.js";
-import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom } from "./renderer.js";
+import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, toggleDebugOverlay } from "./renderer.js";
 import {
   populateSettingsPanel, populatePedagogyPanel, renderErrorList,
   bindControls, applyMobileVisualDebugOffsets, loadLevel, showTitleScreen,
@@ -120,6 +120,48 @@ async function init() {
   window.scoreLevelQuality = scoreLevelQuality;
   window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
 
+  // F11: toggle level design debug overlay.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F11") {
+      e.preventDefault();
+      toggleDebugOverlay();
+    }
+  });
+
+  // A/B testing: generate 5 levels with same difficulty, log comparison.
+  window.compareGenerations = (difficultyProfile) => {
+    const profile = difficultyProfile || state.generationProfile;
+    const savedProfile = state.generationProfile;
+    state.generationProfile = profile;
+    const results = [];
+    for (let trial = 0; trial < 5; trial++) {
+      const trialSeed = createRunSeed();
+      state.levelSeedBase = trialSeed;
+      generateLevelsFromConfig(config);
+      const validation = validateAllLevels();
+      results.push({
+        trial: trial + 1,
+        seed: trialSeed,
+        summary: validation.summary,
+        levels: validation.results.map(r => ({
+          id: r.id, biome: r.biome, shape: r.shape,
+          blocks: r.blocks, uniqueBlocks: r.uniqueBlocks,
+          grade: r.grade, score: r.overall, designScore: r.designScore,
+          secrets: r.secrets, gates: r.conjugationGates,
+        })),
+      });
+    }
+    // Restore original state.
+    state.generationProfile = savedProfile;
+    state.levelSeedBase = createRunSeed();
+    generateLevelsFromConfig(config);
+    console.table(results.map(r => ({
+      Trial: r.trial, Seed: r.seed,
+      ...Object.fromEntries(r.levels.map(l => [`L${l.id}`, `${l.grade}(${l.score}) ${l.shape} [${l.uniqueBlocks}blk]`])),
+    })));
+    return results;
+  };
+
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
   await loadHeroes();
   initializeHeroProgress();
@@ -206,7 +248,11 @@ function update(delta) {
   updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
+  updateCrumblingPlatforms(delta);
+  updateMovingPlatforms(delta);
+  updateConjugationGates();
   updateCamera(delta);
+  updateParticles(delta);
 
   if (state.message && performance.now() > state.messageUntil) {
     state.message = "";

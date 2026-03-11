@@ -1,0 +1,646 @@
+{
+  "blocks": [
+    {
+      "id": "broken_stairs",
+      "category": "traversal",
+      "name": "L'escalier brisé",
+      "description": "Montée par paliers avec des gaps croissants entre les marches. Enseigne la gestion de l'élan et la précision des sauts.",
+      "emotion": "engagement",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 10,
+      "max_width_tiles": 18,
+      "height_variation": "ascending",
+      "requires_mechanics": ["jump"],
+      "teaches": "Gestion de l'élan et timing des sauts en montée",
+      "compatible_before": ["rest_zone", "sprint_corridor", "run"],
+      "compatible_after": ["controlled_descent", "rest_zone", "revelation"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "steps": 3, "gap_tiles": 1, "step_height": 1 },
+        { "name": "normal", "steps": 4, "gap_tiles": 2, "step_height": 1 },
+        { "name": "hard", "steps": 5, "gap_tiles": 2, "step_height": 2 }
+      ]
+    },
+    {
+      "id": "crumbling_bridge",
+      "category": "traversal",
+      "name": "Le pont qui s'effrite",
+      "description": "4-6 plateformes temporaires alignées au-dessus du vide, disparaissent après contact. Force le timing et l'engagement.",
+      "emotion": "tension",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 12,
+      "max_width_tiles": 20,
+      "height_variation": "flat",
+      "requires_mechanics": ["temp_platforms"],
+      "teaches": "Timing et engagement (pas de retour possible)",
+      "compatible_before": ["rest_zone", "revelation"],
+      "compatible_after": ["rest_zone", "guardian_gate"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "platform_count": 4, "disappear_delay_s": 1.2 },
+        { "name": "normal", "platform_count": 5, "disappear_delay_s": 0.8 },
+        { "name": "hard", "platform_count": 6, "disappear_delay_s": 0.5, "gaps_between": true }
+      ]
+    },
+    {
+      "id": "controlled_descent",
+      "category": "traversal",
+      "name": "La descente contrôlée",
+      "description": "Série de petites plateformes en descente. Le joueur doit freiner sa chute et viser précisément.",
+      "emotion": "precision",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 8,
+      "max_width_tiles": 16,
+      "height_variation": "descending",
+      "requires_mechanics": ["jump"],
+      "teaches": "Contrôle de la chute et précision d'atterrissage",
+      "compatible_before": ["broken_stairs", "cliff_climb", "victory_climb"],
+      "compatible_after": ["rest_zone", "underground_passage", "guardian_gate"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "platforms": 3, "width_each": 3, "drop_per_step": 2 },
+        { "name": "normal", "platforms": 4, "width_each": 2, "drop_per_step": 2 },
+        { "name": "hard", "platforms": 5, "width_each": 2, "drop_per_step": 3 }
+      ]
+    },
+    {
+      "id": "canyon_crossing",
+      "category": "traversal",
+      "name": "Le canyon",
+      "description": "Grand vide (8-12 tiles) avec une seule plateforme mobile lente au milieu. Tension maximale, timing critique.",
+      "emotion": "tension_max",
+      "difficulty_range": [3, 5],
+      "min_width_tiles": 14,
+      "max_width_tiles": 22,
+      "height_variation": "flat",
+      "requires_mechanics": ["moving_platforms"],
+      "teaches": "Patience et timing sur plateforme mobile",
+      "compatible_before": ["rest_zone", "revelation"],
+      "compatible_after": ["rest_zone", "victory_climb"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "normal", "gap_tiles": 8, "platform_speed": 40, "platform_width": 3 },
+        { "name": "hard", "gap_tiles": 10, "platform_speed": 30, "platform_width": 2 },
+        { "name": "extreme", "gap_tiles": 12, "platform_speed": 25, "platform_width": 2 }
+      ]
+    },
+    {
+      "id": "air_highway",
+      "category": "traversal",
+      "name": "L'autoroute aérienne",
+      "description": "Longue chaîne de 6-10 plateformes rapprochées en hauteur. Le joueur court et saute sans s'arrêter.",
+      "emotion": "speed",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 16,
+      "max_width_tiles": 28,
+      "height_variation": "elevated_flat",
+      "requires_mechanics": ["jump"],
+      "teaches": "Momentum et fluidité de mouvement",
+      "compatible_before": ["cliff_climb", "broken_stairs"],
+      "compatible_after": ["controlled_descent", "revelation", "rest_zone"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "platform_count": 6, "gap": 1, "height_above_ground": 4 },
+        { "name": "normal", "platform_count": 8, "gap": 2, "height_above_ground": 5 },
+        { "name": "hard", "platform_count": 10, "gap": 2, "height_above_ground": 6, "varying_heights": true }
+      ]
+    },
+    {
+      "id": "pendulum_pass",
+      "category": "traversal",
+      "name": "Le passage pendulaire",
+      "description": "2-3 plateformes mobiles en va-et-vient synchronisé. Le joueur doit lire le rythme pour avancer.",
+      "emotion": "rhythm",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 12,
+      "max_width_tiles": 18,
+      "height_variation": "flat",
+      "requires_mechanics": ["moving_platforms"],
+      "teaches": "Lecture de patterns rythmiques",
+      "compatible_before": ["rest_zone", "sprint_corridor"],
+      "compatible_after": ["rest_zone", "guardian_gate"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "platforms": 2, "speed": 35, "sync": "alternate" },
+        { "name": "normal", "platforms": 3, "speed": 45, "sync": "wave" },
+        { "name": "hard", "platforms": 3, "speed": 55, "sync": "chaos" }
+      ]
+    },
+    {
+      "id": "cliff_climb",
+      "category": "traversal",
+      "name": "L'escalade de falaise",
+      "description": "Plateformes en zigzag vertical ascendant. Le joueur monte en alternant gauche/droite.",
+      "emotion": "verticality",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 8,
+      "max_width_tiles": 14,
+      "height_variation": "strong_ascending",
+      "requires_mechanics": ["jump"],
+      "teaches": "Navigation verticale et conscience spatiale",
+      "compatible_before": ["rest_zone", "sprint_corridor"],
+      "compatible_after": ["air_highway", "revelation", "skyline_secret"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "levels": 3, "platform_width": 3, "zigzag_offset": 3 },
+        { "name": "normal", "levels": 4, "platform_width": 2, "zigzag_offset": 4 },
+        { "name": "hard", "levels": 5, "platform_width": 2, "zigzag_offset": 4, "crumbling": true }
+      ]
+    },
+    {
+      "id": "pit_bounce",
+      "category": "traversal",
+      "name": "Le trampoline du gouffre",
+      "description": "Fosse profonde (4-5 tiles) avec plateforme rebondissante au fond. Surprise puis éjection vers le haut.",
+      "emotion": "surprise",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 6,
+      "max_width_tiles": 10,
+      "height_variation": "dip_and_launch",
+      "requires_mechanics": ["bounce_platforms"],
+      "teaches": "Exploration et confiance dans les mécaniques du jeu",
+      "compatible_before": ["sprint_corridor", "air_highway"],
+      "compatible_after": ["air_highway", "skyline_secret", "rest_zone"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "depth": 3, "launch_height": 5 },
+        { "name": "normal", "depth": 4, "launch_height": 6, "hidden_bonus": true },
+        { "name": "hard", "depth": 5, "launch_height": 7, "moving_landing": true }
+      ]
+    },
+    {
+      "id": "guardian_gate",
+      "category": "conjugation",
+      "name": "Le gardien",
+      "description": "Une porte/PNJ bloque le passage. La bonne conjugaison l'ouvre. Mauvaise réponse = petit segment de retry, pas de punition lourde.",
+      "emotion": "intellectual_challenge",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 8,
+      "max_width_tiles": 12,
+      "height_variation": "flat",
+      "requires_mechanics": ["conjugation_gate"],
+      "teaches": "Conjugaison intégrée au flow du jeu",
+      "compatible_before": ["crumbling_bridge", "sprint_corridor", "broken_stairs"],
+      "compatible_after": ["rest_zone", "revelation", "reward_shortcut"],
+      "conjugation_integration": "gate_blocking",
+      "conjugation_difficulty": "easy",
+      "variants": [
+        { "name": "simple", "retry_segment_tiles": 4, "hint_on_fail": true },
+        { "name": "normal", "retry_segment_tiles": 6, "hint_on_fail": false },
+        { "name": "hard", "retry_segment_tiles": 8, "timed": true, "time_limit_s": 15 }
+      ]
+    },
+    {
+      "id": "path_choice",
+      "category": "conjugation",
+      "name": "Le choix de chemin",
+      "description": "2-3 portes avec des conjugaisons différentes. Seule la correcte mène au bon chemin. Les autres mènent à un cul-de-sac avec bonus de consolation.",
+      "emotion": "decision",
+      "difficulty_range": [1, 4],
+      "min_width_tiles": 14,
+      "max_width_tiles": 22,
+      "height_variation": "branching",
+      "requires_mechanics": ["conjugation_gate", "branching_paths"],
+      "teaches": "Réflexion sous pression avec récompense de consolation",
+      "compatible_before": ["rest_zone", "revelation"],
+      "compatible_after": ["sprint_corridor", "rest_zone", "broken_stairs"],
+      "conjugation_integration": "multi_choice_paths",
+      "conjugation_difficulty": "easy",
+      "variants": [
+        { "name": "simple", "doors": 2, "dead_end_bonus": "coin" },
+        { "name": "normal", "doors": 3, "dead_end_bonus": "potion" },
+        { "name": "hard", "doors": 3, "dead_end_bonus": "none", "timed": true }
+      ]
+    },
+    {
+      "id": "letter_bridge",
+      "category": "conjugation",
+      "name": "Le pont de lettres",
+      "description": "Plateformes portant chacune une lettre/syllabe. Seules celles de la bonne conjugaison sont solides, les autres s'effondrent.",
+      "emotion": "tension_and_thought",
+      "difficulty_range": [2, 5],
+      "min_width_tiles": 12,
+      "max_width_tiles": 20,
+      "height_variation": "flat",
+      "requires_mechanics": ["letter_platforms", "temp_platforms"],
+      "teaches": "Orthographe de la conjugaison par la pratique motrice",
+      "compatible_before": ["rest_zone", "revelation"],
+      "compatible_after": ["rest_zone", "victory_climb"],
+      "conjugation_integration": "letter_selection",
+      "conjugation_difficulty": "medium",
+      "variants": [
+        { "name": "facile", "letters": 4, "wrong_platforms": 2, "collapse_delay_s": 1.0 },
+        { "name": "normal", "letters": 5, "wrong_platforms": 3, "collapse_delay_s": 0.6 },
+        { "name": "hard", "letters": 6, "wrong_platforms": 4, "collapse_delay_s": 0.3 }
+      ]
+    },
+    {
+      "id": "verb_race",
+      "category": "conjugation",
+      "name": "La course aux lettres",
+      "description": "Les lettres de la bonne conjugaison sont dispersées sur des plateformes. Le joueur doit les collecter dans l'ordre avant la fin du timer.",
+      "emotion": "adrenaline",
+      "difficulty_range": [3, 5],
+      "min_width_tiles": 16,
+      "max_width_tiles": 24,
+      "height_variation": "scattered",
+      "requires_mechanics": ["collectible_letters", "timer"],
+      "teaches": "Conjugaison sous pression temporelle avec gameplay actif",
+      "compatible_before": ["rest_zone", "sprint_corridor"],
+      "compatible_after": ["rest_zone", "revelation"],
+      "conjugation_integration": "collection_order",
+      "conjugation_difficulty": "medium",
+      "variants": [
+        { "name": "facile", "time_limit_s": 20, "letters_on_ground": true },
+        { "name": "normal", "time_limit_s": 15, "letters_on_platforms": true },
+        { "name": "hard", "time_limit_s": 10, "letters_scattered_vertically": true }
+      ]
+    },
+    {
+      "id": "secret_conjugation",
+      "category": "conjugation",
+      "name": "La récompense secrète",
+      "description": "Zone cachée accessible uniquement par la bonne conjugaison affichée sur un mur. Récompense importante à l'intérieur.",
+      "emotion": "exploration",
+      "difficulty_range": [2, 5],
+      "min_width_tiles": 6,
+      "max_width_tiles": 10,
+      "height_variation": "hidden",
+      "requires_mechanics": ["conjugation_gate", "hidden_room"],
+      "teaches": "Conjugaison comme récompense d'exploration, pas comme obstacle",
+      "compatible_before": ["any"],
+      "compatible_after": ["any"],
+      "conjugation_integration": "secret_gate",
+      "conjugation_difficulty": "hard",
+      "variants": [
+        { "name": "wall_secret", "trigger": "wall_text", "reward": "gold_cache" },
+        { "name": "floor_secret", "trigger": "floor_inscription", "reward": "health_bonus" },
+        { "name": "sky_secret", "trigger": "floating_text", "reward": "rare_item" }
+      ]
+    },
+    {
+      "id": "conjugation_cascade",
+      "category": "conjugation",
+      "name": "La cascade verbale",
+      "description": "Série de 3 mini-défis conjugaison enchaînés rapidement. Chaque réussite ouvre le segment suivant. Flow continu.",
+      "emotion": "flow",
+      "difficulty_range": [3, 5],
+      "min_width_tiles": 18,
+      "max_width_tiles": 26,
+      "height_variation": "ascending",
+      "requires_mechanics": ["conjugation_gate"],
+      "teaches": "Fluidité et rapidité en conjugaison",
+      "compatible_before": ["rest_zone"],
+      "compatible_after": ["victory_climb", "revelation"],
+      "conjugation_integration": "sequential_gates",
+      "conjugation_difficulty": "progressive",
+      "variants": [
+        { "name": "normal", "gates": 3, "difficulty_curve": ["easy", "easy", "medium"] },
+        { "name": "hard", "gates": 3, "difficulty_curve": ["easy", "medium", "hard"] }
+      ]
+    },
+    {
+      "id": "rest_zone",
+      "category": "rhythm",
+      "name": "La zone de repos",
+      "description": "Large plateforme stable, décor apaisant, collectible facile. Le joueur souffle après un passage intense.",
+      "emotion": "serenity",
+      "difficulty_range": [0, 1],
+      "min_width_tiles": 8,
+      "max_width_tiles": 14,
+      "height_variation": "flat",
+      "requires_mechanics": [],
+      "teaches": "Respiration et appréciation de la progression",
+      "compatible_before": ["crumbling_bridge", "canyon_crossing", "rising_tension", "guardian_gate"],
+      "compatible_after": ["any"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "simple", "width": 8, "bonus_count": 1, "decor": "flowers" },
+        { "name": "scenic", "width": 10, "bonus_count": 2, "decor": "waterfall" },
+        { "name": "camp", "width": 12, "bonus_count": 2, "decor": "campfire", "npc_hint": true }
+      ]
+    },
+    {
+      "id": "sprint_corridor",
+      "category": "rhythm",
+      "name": "Le corridor de sprint",
+      "description": "Passage étroit avec plafond bas forçant la course sans arrêt. Adrénaline pure, pas de réflexion.",
+      "emotion": "adrenaline",
+      "difficulty_range": [2, 3],
+      "min_width_tiles": 10,
+      "max_width_tiles": 16,
+      "height_variation": "flat_narrow",
+      "requires_mechanics": [],
+      "teaches": "Engagement et momentum",
+      "compatible_before": ["rest_zone", "guardian_gate"],
+      "compatible_after": ["canyon_crossing", "guardian_gate", "pit_bounce"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "length": 10, "ceiling_height": 3 },
+        { "name": "normal", "length": 14, "ceiling_height": 2, "ground_holes": 1 },
+        { "name": "hard", "length": 16, "ceiling_height": 2, "ground_holes": 2, "enemies": true }
+      ]
+    },
+    {
+      "id": "revelation",
+      "category": "rhythm",
+      "name": "La révélation",
+      "description": "Le décor s'ouvre soudainement sur un panorama large. Parallaxe profonde, effet de grandeur. Moment contemplatif.",
+      "emotion": "awe",
+      "difficulty_range": [0, 1],
+      "min_width_tiles": 10,
+      "max_width_tiles": 16,
+      "height_variation": "open_vista",
+      "requires_mechanics": [],
+      "teaches": "Appréciation du monde de jeu",
+      "compatible_before": ["cliff_climb", "broken_stairs", "crumbling_bridge"],
+      "compatible_after": ["controlled_descent", "air_highway", "rest_zone"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "mountaintop", "vista_type": "sky", "parallax_layers": 3 },
+        { "name": "cavern_exit", "vista_type": "forest", "parallax_layers": 2 },
+        { "name": "cliff_edge", "vista_type": "ocean", "parallax_layers": 4 }
+      ]
+    },
+    {
+      "id": "inverted_trap",
+      "category": "rhythm",
+      "name": "Le piège inversé",
+      "description": "Passage qui semble dangereux mais est facile, ou l'inverse. Subversion des attentes du joueur.",
+      "emotion": "surprise",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 8,
+      "max_width_tiles": 14,
+      "height_variation": "deceptive",
+      "requires_mechanics": [],
+      "teaches": "Ne pas se fier aux apparences",
+      "compatible_before": ["sprint_corridor", "rest_zone"],
+      "compatible_after": ["rest_zone", "revelation"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "fake_danger", "appearance": "spikes_and_lava", "reality": "safe_path" },
+        { "name": "hidden_challenge", "appearance": "easy_flat", "reality": "collapsing_floor" },
+        { "name": "false_dead_end", "appearance": "wall", "reality": "breakable_wall_to_shortcut" }
+      ]
+    },
+    {
+      "id": "rising_tension",
+      "category": "rhythm",
+      "name": "La montée en pression",
+      "description": "Plateformes qui s'effondrent progressivement derrière le joueur. Pas de retour, vitesse croissante.",
+      "emotion": "anxiety",
+      "difficulty_range": [3, 5],
+      "min_width_tiles": 14,
+      "max_width_tiles": 22,
+      "height_variation": "flat_to_ascending",
+      "requires_mechanics": ["chase_collapse"],
+      "teaches": "Prise de décision rapide sous pression",
+      "compatible_before": ["rest_zone", "guardian_gate"],
+      "compatible_after": ["rest_zone", "revelation", "victory_climb"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "normal", "collapse_speed": "slow", "length": 14, "safe_zones": 1 },
+        { "name": "hard", "collapse_speed": "medium", "length": 18, "safe_zones": 0 },
+        { "name": "extreme", "collapse_speed": "fast", "length": 22, "with_conjugation_gate": true }
+      ]
+    },
+    {
+      "id": "victory_climb",
+      "category": "rhythm",
+      "name": "L'ascension triomphale",
+      "description": "Montée spectaculaire vers un sommet avec récompenses étalées. Le joueur sent qu'il a accompli quelque chose.",
+      "emotion": "pride",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 10,
+      "max_width_tiles": 16,
+      "height_variation": "strong_ascending",
+      "requires_mechanics": ["jump"],
+      "teaches": "Sentiment d'accomplissement",
+      "compatible_before": ["rising_tension", "canyon_crossing", "conjugation_cascade"],
+      "compatible_after": ["revelation", "rest_zone", "controlled_descent"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "facile", "height": 4, "platforms": 4, "bonuses_per_platform": 1 },
+        { "name": "normal", "height": 6, "platforms": 5, "bonuses_per_platform": 1 },
+        { "name": "hard", "height": 8, "platforms": 6, "bonuses_per_platform": 2, "crumbling_bottom": true }
+      ]
+    },
+    {
+      "id": "hidden_alcove",
+      "category": "exploration",
+      "name": "L'alcôve cachée",
+      "description": "Mur destructible ou passage camouflé menant à une petite salle secrète avec récompenses.",
+      "emotion": "curiosity",
+      "difficulty_range": [1, 2],
+      "min_width_tiles": 4,
+      "max_width_tiles": 8,
+      "height_variation": "hidden",
+      "requires_mechanics": ["breakable_walls"],
+      "teaches": "Exploration et attention au détail",
+      "compatible_before": ["any"],
+      "compatible_after": ["any"],
+      "conjugation_integration": "optional",
+      "variants": [
+        { "name": "wall_crack", "tell": "subtle_crack", "reward": "coins", "bonus_count": 3 },
+        { "name": "false_floor", "tell": "different_tile", "reward": "potion" },
+        { "name": "ceiling_gap", "tell": "light_beam", "reward": "rare_item" }
+      ]
+    },
+    {
+      "id": "reward_shortcut",
+      "category": "exploration",
+      "name": "Le raccourci récompense",
+      "description": "Chemin difficile mais optionnel visible depuis le chemin principal. Skip une section entière si réussi.",
+      "emotion": "risk_reward",
+      "difficulty_range": [3, 5],
+      "min_width_tiles": 8,
+      "max_width_tiles": 14,
+      "height_variation": "elevated",
+      "requires_mechanics": ["jump"],
+      "teaches": "Évaluation risque/récompense",
+      "compatible_before": ["rest_zone", "revelation"],
+      "compatible_after": ["guardian_gate", "rest_zone"],
+      "conjugation_integration": "none",
+      "variants": [
+        { "name": "high_road", "height_above": 5, "platform_count": 3, "skip_tiles": 20 },
+        { "name": "precision_path", "tiny_platforms": true, "platform_count": 4, "skip_tiles": 30 },
+        { "name": "timed_route", "disappearing": true, "time_window_s": 8, "skip_tiles": 25 }
+      ]
+    },
+    {
+      "id": "underground_passage",
+      "category": "exploration",
+      "name": "Le passage souterrain",
+      "description": "Chemin sous le sol principal accessible par une fosse. Riche en bonus, ambiance différente.",
+      "emotion": "mystery",
+      "difficulty_range": [1, 3],
+      "min_width_tiles": 10,
+      "max_width_tiles": 18,
+      "height_variation": "below_ground",
+      "requires_mechanics": [],
+      "teaches": "Explorer au-delà du chemin évident",
+      "compatible_before": ["rest_zone", "controlled_descent"],
+      "compatible_after": ["pit_bounce", "broken_stairs"],
+      "conjugation_integration": "optional",
+      "variants": [
+        { "name": "short", "length": 10, "depth": 3, "bonus_count": 3 },
+        { "name": "long", "length": 16, "depth": 4, "bonus_count": 5, "enemies": 1 },
+        { "name": "maze", "length": 18, "depth": 4, "bonus_count": 6, "branching": true }
+      ]
+    },
+    {
+      "id": "skyline_secret",
+      "category": "exploration",
+      "name": "Le secret des hauteurs",
+      "description": "Zone cachée très haute, accessible par un saut non-évident depuis une plateforme élevée.",
+      "emotion": "discovery",
+      "difficulty_range": [2, 4],
+      "min_width_tiles": 6,
+      "max_width_tiles": 10,
+      "height_variation": "very_high",
+      "requires_mechanics": ["jump"],
+      "teaches": "Regarder vers le haut et tenter l'impossible",
+      "compatible_before": ["cliff_climb", "air_highway"],
+      "compatible_after": ["controlled_descent", "air_highway"],
+      "conjugation_integration": "optional",
+      "variants": [
+        { "name": "cloud_platform", "height_above": 6, "reward": "gold_cache", "visible": false },
+        { "name": "birds_nest", "height_above": 7, "reward": "rare_item", "visible": true },
+        { "name": "observatory", "height_above": 8, "reward": "secret_conjugation", "visible": false }
+      ]
+    }
+  ],
+  "level_shapes": [
+    {
+      "id": "mountain_shape",
+      "name": "La Montagne",
+      "description": "Le joueur monte vers un sommet (50-60%) puis redescend. Le défi principal est au sommet.",
+      "height_curve": [0, 0.2, 0.5, 0.8, 1.0, 0.9, 0.6, 0.3, 0.1, 0],
+      "difficulty_curve": [0.2, 0.3, 0.5, 0.7, 1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
+      "suitable_for_levels": [1, 2],
+      "emotion_arc": ["curiosity", "engagement", "challenge", "triumph", "relief"]
+    },
+    {
+      "id": "valley_shape",
+      "name": "La Vallée",
+      "description": "Descente progressive vers un point bas puis remontée. La remontée est le vrai challenge.",
+      "height_curve": [0, -0.2, -0.5, -0.8, -1.0, -0.8, -0.5, -0.2, 0, 0],
+      "difficulty_curve": [0.2, 0.3, 0.4, 0.6, 0.5, 0.7, 0.9, 1.0, 0.5, 0.2],
+      "suitable_for_levels": [3],
+      "emotion_arc": ["unease", "tension", "depth", "determination", "triumph"]
+    },
+    {
+      "id": "zigzag_shape",
+      "name": "Le Zigzag",
+      "description": "Alternance montée/descente en dents de scie. 3-4 oscillations.",
+      "height_curve": [0, 0.5, 0, 0.7, 0, 0.9, 0, 0.5, 0, 0],
+      "difficulty_curve": [0.2, 0.5, 0.3, 0.7, 0.4, 0.9, 0.3, 0.6, 0.4, 0.2],
+      "suitable_for_levels": [2, 3],
+      "emotion_arc": ["rhythm", "challenge", "relief", "challenge", "satisfaction"]
+    },
+    {
+      "id": "loop_shape",
+      "name": "La Boucle",
+      "description": "Le joueur revient près du départ mais à un étage supérieur. Progression spatiale visible.",
+      "height_curve": [0, 0.3, 0.5, 0.3, 0, 0.2, 0.6, 0.8, 0.5, 0.3],
+      "difficulty_curve": [0.2, 0.4, 0.6, 0.4, 0.3, 0.5, 0.7, 1.0, 0.6, 0.3],
+      "suitable_for_levels": [4, 5],
+      "emotion_arc": ["exploration", "discovery", "return", "elevation", "mastery"]
+    },
+    {
+      "id": "fork_shape",
+      "name": "L'Embranchement",
+      "description": "Deux chemins parallèles de difficulté différente qui se rejoignent.",
+      "height_curve": [0, 0.2, 0.4, 0.4, 0.4, 0.3, 0.2, 0, 0, 0],
+      "difficulty_curve": [0.2, 0.4, 0.6, 0.8, 0.7, 0.5, 0.3, 0.2, 0.2, 0.1],
+      "suitable_for_levels": [3, 4],
+      "fork_point": 0.3,
+      "merge_point": 0.7,
+      "emotion_arc": ["choice", "commitment", "challenge", "convergence", "satisfaction"]
+    },
+    {
+      "id": "tower_shape",
+      "name": "La Tour",
+      "description": "Progression principalement verticale. Change complètement le feeling.",
+      "height_curve": [0, 0.3, 0.6, 0.8, 1.0, 1.0, 0.9, 0.7, 0.4, 0],
+      "difficulty_curve": [0.2, 0.4, 0.6, 0.8, 1.0, 0.9, 0.7, 0.5, 0.3, 0.1],
+      "suitable_for_levels": [4, 5],
+      "emotion_arc": ["anticipation", "effort", "perseverance", "triumph", "descent"]
+    }
+  ],
+  "themes": [
+    {
+      "id": "enchanted_forest",
+      "name": "Forêt enchantée",
+      "biome": "forest",
+      "palette": { "primary": "#2d5a27", "secondary": "#8bc34a", "accent": "#ffd54f", "background": "#1a3a1a" },
+      "particles": { "type": "leaves", "color": "#4caf50", "density": 8, "speed": 20, "direction": "falling" },
+      "ambient_decor": ["butterflies", "fireflies", "birds"],
+      "foreground_elements": ["branches", "vines"],
+      "suggested_audio": "peaceful_forest_ambiance_with_birds",
+      "difficulty_level": "easy"
+    },
+    {
+      "id": "golden_dunes",
+      "name": "Dunes dorées",
+      "biome": "desert",
+      "palette": { "primary": "#c49b4a", "secondary": "#e8c36a", "accent": "#ff7043", "background": "#533922" },
+      "particles": { "type": "sand", "color": "#d4a853", "density": 12, "speed": 35, "direction": "wind_horizontal" },
+      "ambient_decor": ["tumbleweeds", "heat_shimmer", "vultures"],
+      "foreground_elements": ["sand_clouds", "cactus_silhouettes"],
+      "suggested_audio": "desert_wind_with_distant_drums",
+      "difficulty_level": "easy_medium"
+    },
+    {
+      "id": "granite_peaks",
+      "name": "Pics de granit",
+      "biome": "mountain",
+      "palette": { "primary": "#607d8b", "secondary": "#90a4ae", "accent": "#4db6ac", "background": "#2b3a4f" },
+      "particles": { "type": "dust", "color": "#9e9e9e", "density": 5, "speed": 15, "direction": "updraft" },
+      "ambient_decor": ["eagles", "cloud_wisps", "distant_waterfalls"],
+      "foreground_elements": ["fog_wisps", "rock_debris"],
+      "suggested_audio": "mountain_wind_with_echo",
+      "difficulty_level": "medium"
+    },
+    {
+      "id": "frozen_tundra",
+      "name": "Toundra gelée",
+      "biome": "snow",
+      "palette": { "primary": "#b0bec5", "secondary": "#e1f5fe", "accent": "#7c4dff", "background": "#3e5873" },
+      "particles": { "type": "snowflakes", "color": "#ffffff", "density": 15, "speed": 25, "direction": "falling_diagonal" },
+      "ambient_decor": ["northern_lights", "ice_crystals", "frozen_trees"],
+      "foreground_elements": ["frost_overlay", "icicles"],
+      "suggested_audio": "howling_wind_with_ice_crackle",
+      "difficulty_level": "medium_hard"
+    },
+    {
+      "id": "cursed_ruins",
+      "name": "Ruines maudites",
+      "biome": "desolation",
+      "palette": { "primary": "#4a148c", "secondary": "#7b1fa2", "accent": "#ff1744", "background": "#1a0a2e" },
+      "particles": { "type": "embers", "color": "#ff5722", "density": 10, "speed": 30, "direction": "rising" },
+      "ambient_decor": ["floating_skulls", "ghostly_wisps", "crumbling_pillars"],
+      "foreground_elements": ["dark_fog", "chains"],
+      "suggested_audio": "ominous_choir_with_distant_thunder",
+      "difficulty_level": "hard"
+    }
+  ],
+  "anti_monotony_rules": {
+    "max_same_height_platforms": 3,
+    "max_consecutive_same_block_type": 2,
+    "require_vertical_change": true,
+    "min_exploration_bonus_percent": 30,
+    "require_conjugation_integration": true,
+    "min_block_type_variety": 4,
+    "require_rest_after_tension": true,
+    "max_tension_without_rest": 2
+  },
+  "quality_scoring": {
+    "structural_variety": { "weight": 20, "min_block_types": 4, "ideal_block_types": 7 },
+    "rhythm": { "weight": 20, "ideal_tension_rest_ratio": 0.6, "min_oscillations": 2 },
+    "exploration": { "weight": 20, "min_offpath_percent": 20, "ideal_offpath_percent": 35 },
+    "pedagogical_integration": { "weight": 20, "min_integrated_conjugations": 1, "ideal_integrated_conjugations": 3 },
+    "surprise": { "weight": 20, "min_surprises": 1, "ideal_surprises": 3 },
+    "minimum_passing_score": 65
+  }
+}

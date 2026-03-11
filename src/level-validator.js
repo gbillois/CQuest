@@ -1,6 +1,5 @@
-// ─── Level Playability Validator ───
-// Checks that a generated level is traversable from start to goal,
-// and scores overall quality.
+// ─── Level Playability & Design Quality Validator ───
+// Checks traversability + scores level design quality on 5 dimensions (0-100).
 
 import { GAME, PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE } from "./constants.js";
 import { state } from "./state.js";
@@ -46,35 +45,17 @@ function getMaxJumpTiles() {
 
 function getMaxJumpHeightTiles() {
   const tileSize = state.tileSize || 64;
-  // v^2 = 2*g*h => h = v^2/(2*g)
   const maxHeightPx = (GAME.jumpVelocity * GAME.jumpVelocity) / (2 * GAME.gravity);
   return Math.floor(maxHeightPx / tileSize);
 }
 
 // ─── Traversability check ───
-// Walks from start to goal along the ground and platforms,
-// verifying every gap is jumpable and every platform is reachable.
 
 function hasSolidAt(grid, x, y, heightTiles) {
   if (x < 0 || y < 0 || x >= grid[0].length || y >= heightTiles) return false;
   return isSolidTile(grid[y]?.[x]);
 }
 
-function hasLandingSurface(grid, x, startY, endY, heightTiles) {
-  for (let y = startY; y <= endY; y++) {
-    if (hasSolidAt(grid, x, y, heightTiles)) return true;
-  }
-  return false;
-}
-
-/**
- * Check if the level is traversable from start to goal.
- * Uses a simplified reachability flood: for each ground column,
- * check if the next ground column is reachable via jump.
- *
- * @param {object} level - A generated level object.
- * @returns {{ traversable: boolean, issues: string[] }}
- */
 export function checkTraversability(level) {
   const issues = [];
   const grid = level.tileGrid;
@@ -87,7 +68,7 @@ export function checkTraversability(level) {
   const startTileX = Math.floor(level.start.x / (state.tileSize || 64));
   const endTileX = Math.floor(level.end.x / (state.tileSize || 64));
 
-  // Build surface map: for each column, find the highest solid tile at or below groundY.
+  // Build surface map: for each column, find the highest solid tile.
   const surfaceY = new Array(widthTiles).fill(-1);
   for (let x = 0; x < widthTiles; x++) {
     for (let y = 0; y <= groundY + 3; y++) {
@@ -98,33 +79,22 @@ export function checkTraversability(level) {
     }
   }
 
-  // Simple reachability: walk left to right. When we hit a gap (no surface),
-  // check if we can jump across to the next solid column within maxJump tiles.
   let currentX = startTileX;
   let gapStart = -1;
 
   while (currentX < endTileX) {
     if (surfaceY[currentX] >= 0) {
-      // On solid ground — advance.
-      if (gapStart >= 0) {
-        gapStart = -1;
-      }
+      if (gapStart >= 0) gapStart = -1;
       currentX++;
       continue;
     }
+    if (gapStart < 0) gapStart = currentX;
 
-    // We're over a gap.
-    if (gapStart < 0) {
-      gapStart = currentX;
-    }
-
-    // Look ahead for landing.
     let foundLanding = false;
     for (let ahead = 1; ahead <= maxJump + 1; ahead++) {
       const landX = gapStart + ahead;
       if (landX >= widthTiles) break;
       if (surfaceY[landX] >= 0) {
-        // Check height difference is jumpable.
         const jumpFromY = surfaceY[gapStart - 1] >= 0 ? surfaceY[gapStart - 1] : groundY;
         const landOnY = surfaceY[landX];
         if (jumpFromY - landOnY > maxHeight) {
@@ -138,125 +108,116 @@ export function checkTraversability(level) {
     }
 
     if (!foundLanding) {
-      issues.push(`Impassable gap starting at tile x=${gapStart} (>${maxJump} tiles wide, no landing found)`);
-      // Skip past this gap to continue checking the rest.
+      issues.push(`Impassable gap starting at tile x=${gapStart} (>${maxJump} tiles wide)`);
       currentX = gapStart + maxJump + 2;
       gapStart = -1;
     }
   }
 
-  return {
-    traversable: issues.length === 0,
-    issues,
-  };
+  return { traversable: issues.length === 0, issues };
 }
 
-// ─── Level quality scoring ───
+// ─── Level Quality Scoring (Phase 5 Composite) ───
 
-/**
- * Score a level's quality on several dimensions.
- * Returns a score object with 0-100 ratings and an overall grade.
- *
- * @param {object} level - A generated level object.
- * @returns {{ overall: number, breakdown: object, grade: string }}
- */
 export function scoreLevelQuality(level) {
   const breakdown = {};
+  const seq = level.blockSequence || [];
+  const meta = level.blockMetadata || [];
 
-  // 1. Enemy density: 1 enemy per 15-25 tiles is ideal.
-  const tilesPerEnemy = level.widthTiles / Math.max(1, level.initialEnemyCount);
-  if (tilesPerEnemy < 8) {
-    breakdown.enemyDensity = 40; // too crowded
-  } else if (tilesPerEnemy > 40) {
-    breakdown.enemyDensity = 50; // too sparse
-  } else if (tilesPerEnemy >= 15 && tilesPerEnemy <= 25) {
-    breakdown.enemyDensity = 100; // ideal
-  } else {
-    breakdown.enemyDensity = 75; // acceptable
+  // 1. Structural Variety (0-20): distinct block types and vertical direction changes.
+  const uniqueBlocks = new Set(seq);
+  const blockTypeCount = uniqueBlocks.size;
+  let verticalChanges = 0;
+  for (let i = 1; i < meta.length; i++) {
+    const prev = meta[i - 1];
+    const curr = meta[i];
+    if (prev && curr) {
+      const prevCat = prev.category;
+      const currCat = curr.category;
+      if (prevCat !== currCat) verticalChanges++;
+    }
   }
+  const varietyScore = Math.min(20, blockTypeCount * 2.5 + verticalChanges * 1.5);
+  breakdown.structuralVariety = Math.round(varietyScore);
 
-  // 2. Bonus accessibility: bonuses should exist.
-  const bonusCount = level.bonuses?.length || 0;
-  if (bonusCount === 0) {
-    breakdown.bonuses = 30;
-  } else if (bonusCount >= 3 && bonusCount <= 12) {
-    breakdown.bonuses = 100;
-  } else {
-    breakdown.bonuses = 70;
+  // 2. Rhythm (0-20): tension/rest oscillation.
+  const tensionBlocks = new Set(["rising_tension", "crumbling_bridge", "canyon_crossing",
+    "sprint_corridor", "verb_race", "conjugation_cascade"]);
+  const restBlocks = new Set(["rest_zone", "revelation"]);
+  let oscillations = 0;
+  let wasTension = false;
+  for (const blockId of seq) {
+    if (tensionBlocks.has(blockId)) wasTension = true;
+    if (restBlocks.has(blockId) && wasTension) { oscillations++; wasTension = false; }
   }
+  breakdown.rhythm = Math.min(20, oscillations * 7);
 
-  // 3. Traversability.
+  // 3. Exploration (0-20): off-path content.
+  const explorationBlocks = new Set(["hidden_alcove", "reward_shortcut", "underground_passage",
+    "skyline_secret", "secret_conjugation"]);
+  const explorationCount = seq.filter(id => explorationBlocks.has(id)).length;
+  const explorationPercent = (explorationCount / Math.max(1, seq.length)) * 100;
+  const secretZoneCount = (level.secretZones || []).length;
+  const offPathBonuses = (level.bonuses || []).filter(b => b.isOffPath).length;
+  const totalBonuses = (level.bonuses || []).length;
+  const offPathPercent = totalBonuses > 0 ? (offPathBonuses / totalBonuses) * 100 : 0;
+  breakdown.exploration = Math.min(20, Math.round(
+    explorationPercent * 0.4 + secretZoneCount * 4 + Math.min(offPathPercent, 40) * 0.2
+  ));
+
+  // 4. Pedagogical Integration (0-20): conjugation blocks integrated in gameplay.
+  const conjBlocks = new Set(["guardian_gate", "path_choice", "letter_bridge", "verb_race",
+    "secret_conjugation", "conjugation_cascade"]);
+  const conjCount = seq.filter(id => conjBlocks.has(id)).length;
+  const gateCount = (level.conjugationGates || []).length;
+  if (conjCount >= 3 || gateCount >= 3) breakdown.pedagogicalIntegration = 20;
+  else if (conjCount >= 2 || gateCount >= 2) breakdown.pedagogicalIntegration = 15;
+  else if (conjCount >= 1 || gateCount >= 1) breakdown.pedagogicalIntegration = 10;
+  else breakdown.pedagogicalIntegration = 0;
+
+  // 5. Surprise (0-20): unexpected elements.
+  const surpriseBlocks = new Set(["inverted_trap", "pit_bounce", "hidden_alcove",
+    "skyline_secret", "secret_conjugation"]);
+  const surpriseCount = seq.filter(id => surpriseBlocks.has(id)).length;
+  if (surpriseCount >= 3) breakdown.surprise = 20;
+  else if (surpriseCount >= 2) breakdown.surprise = 15;
+  else if (surpriseCount >= 1) breakdown.surprise = 10;
+  else breakdown.surprise = 0;
+
+  // 6. Traversability (bonus check).
   const { traversable, issues } = checkTraversability(level);
   breakdown.traversability = traversable ? 100 : Math.max(0, 100 - issues.length * 25);
 
-  // 4. Path variety: count distinct platform heights used.
-  const platformHeights = new Set();
-  for (let y = 0; y < level.groundY - 1; y++) {
-    for (let x = 0; x < level.widthTiles; x++) {
-      const tile = level.tileGrid[y]?.[x];
-      if (tile && isOneWayPlatformTile(tile)) {
-        platformHeights.add(y);
-        break;
-      }
-    }
-  }
-  if (platformHeights.size >= 3) {
-    breakdown.variety = 100;
-  } else if (platformHeights.size >= 2) {
-    breakdown.variety = 75;
-  } else if (platformHeights.size >= 1) {
-    breakdown.variety = 50;
-  } else {
-    breakdown.variety = 25;
-  }
+  // Composite: design score out of 100.
+  const designTotal = (breakdown.structuralVariety || 0) + (breakdown.rhythm || 0) +
+    (breakdown.exploration || 0) + (breakdown.pedagogicalIntegration || 0) +
+    (breakdown.surprise || 0);
 
-  // 5. Enemy spread: enemies shouldn't cluster.
-  const enemyXs = (level.enemySpawns || []).map((e) => e.x).sort((a, b) => a - b);
-  let minGap = Infinity;
-  for (let i = 1; i < enemyXs.length; i++) {
-    minGap = Math.min(minGap, enemyXs[i] - enemyXs[i - 1]);
-  }
-  const tileSize = state.tileSize || 64;
-  if (enemyXs.length <= 1) {
-    breakdown.enemySpread = 80;
-  } else if (minGap < tileSize * 2) {
-    breakdown.enemySpread = 40; // too close
-  } else if (minGap >= tileSize * 4) {
-    breakdown.enemySpread = 100;
-  } else {
-    breakdown.enemySpread = 70;
-  }
-
-  // Overall weighted average.
-  const weights = {
-    traversability: 3,
-    enemyDensity: 1,
-    bonuses: 1,
-    variety: 1,
-    enemySpread: 1,
-  };
-  let totalWeight = 0;
-  let totalScore = 0;
-  for (const [key, weight] of Object.entries(weights)) {
-    totalWeight += weight;
-    totalScore += (breakdown[key] || 0) * weight;
-  }
-  const overall = Math.round(totalScore / totalWeight);
+  // Overall includes traversability weighting.
+  const overall = Math.round(designTotal * 0.7 + (breakdown.traversability / 100) * 30);
 
   let grade;
-  if (overall >= 90) grade = "A";
-  else if (overall >= 75) grade = "B";
-  else if (overall >= 60) grade = "C";
+  if (overall >= 85) grade = "A";
+  else if (overall >= 70) grade = "B";
+  else if (overall >= 55) grade = "C";
   else if (overall >= 40) grade = "D";
   else grade = "F";
 
-  return { overall, breakdown, grade, issues: checkTraversability(level).issues };
+  return {
+    overall,
+    designScore: designTotal,
+    breakdown,
+    grade,
+    issues,
+    pass: designTotal >= 65,
+    levelShape: level.levelShape || "unknown",
+    blockCount: seq.length,
+    uniqueBlockTypes: uniqueBlocks.size,
+  };
 }
 
-/**
- * Validate all levels in state.levels and return a summary.
- * @returns {{ results: object[], allTraversable: boolean, summary: string }}
- */
+// ─── Validate All Levels ───
+
 export function validateAllLevels() {
   const results = [];
   let allTraversable = true;
@@ -268,19 +229,26 @@ export function validateAllLevels() {
       biome: level.biomeId,
       seed: level.seed,
       size: `${level.widthTiles}x${level.heightTiles}`,
+      shape: level.levelShape || "flat",
       enemies: level.initialEnemyCount,
       bonuses: level.bonuses?.length || 0,
+      secrets: (level.secretZones || []).length,
+      conjugationGates: (level.conjugationGates || []).length,
+      blocks: (level.blockSequence || []).length,
+      uniqueBlocks: score.uniqueBlockTypes,
       traversable: score.breakdown.traversability === 100,
       grade: score.grade,
       overall: score.overall,
+      designScore: score.designScore,
+      breakdown: score.breakdown,
       issues: score.issues,
     };
     if (!result.traversable) allTraversable = false;
     results.push(result);
   }
 
-  const grades = results.map((r) => r.grade).join(", ");
-  const summary = `${results.length} levels validated. Grades: ${grades}. ${allTraversable ? "All traversable." : "TRAVERSABILITY ISSUES FOUND."}`;
+  const grades = results.map((r) => `L${r.id}:${r.grade}(${r.overall})`).join(" ");
+  const summary = `${results.length} levels validated. ${grades}. ${allTraversable ? "All traversable." : "TRAVERSABILITY ISSUES FOUND."}`;
 
   return { results, allTraversable, summary };
 }

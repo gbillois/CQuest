@@ -128,6 +128,9 @@ export function render(timeSeconds) {
   try {
     drawStructures(level);
     drawTiles(level);
+    drawCrumblingPlatforms(level, timeSeconds);
+    drawMovingPlatforms(level, timeSeconds);
+    drawConjugationGates(level, timeSeconds);
     drawGroundDecorations(level);
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
@@ -142,6 +145,12 @@ export function render(timeSeconds) {
   }
 
   ctx.restore();
+
+  // Ambient particles (drawn in screen space above world).
+  drawParticles();
+
+  // Debug level design overlay.
+  drawDebugOverlay();
 
   if (state.message) {
     drawFloatingMessage(state.message);
@@ -335,6 +344,9 @@ export function drawTiles(level) {
   const startY = Math.max(0, Math.floor(visibleWorldTop / tileSize) - 1);
   const endY = Math.min(level.heightTiles - 1, Math.floor(visibleWorldBottom / tileSize) + 1);
 
+  // Build skip-set for triggered crumbling platform tiles (drawn separately with shake).
+  const crumblingSkip = _buildCrumblingSkipSet(level);
+
   for (let y = startY; y <= endY; y += 1) {
     for (let x = startX; x <= endX; x += 1) {
       const tile = level.tileGrid[y][x];
@@ -342,6 +354,10 @@ export function drawTiles(level) {
         continue;
       }
       if (y >= groundTopY && y <= groundBottomY) {
+        continue;
+      }
+      // Skip tiles drawn by drawCrumblingPlatforms with shake offset.
+      if (crumblingSkip && crumblingSkip.has(y * level.widthTiles + x)) {
         continue;
       }
 
@@ -696,6 +712,404 @@ export function pickEnemyFrame(enemy) {
   }
 
   return imageCache.get(idle);
+}
+
+/* ── Crumbling/Moving Platform Helpers ── */
+
+function _buildCrumblingSkipSet(level) {
+  if (!level.crumblingPlatforms?.length) return null;
+  let set = null;
+  for (const plat of level.crumblingPlatforms) {
+    if (plat.removed || !plat.triggered) continue;
+    if (!set) set = new Set();
+    for (let dx = 0; dx < plat.width; dx++) {
+      set.add(plat.y * level.widthTiles + (plat.x + dx));
+    }
+  }
+  return set;
+}
+
+/* ── Crumbling Platforms ── */
+
+function drawCrumblingPlatforms(level, timeSeconds) {
+  if (!level.crumblingPlatforms?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.crumblingPlatforms) {
+    if (plat.removed) continue;
+
+    const basePx = plat.x * tileSize;
+    const basePy = plat.y * tileSize;
+    const pw = plat.width * tileSize;
+
+    // Compute shake offset (only when triggered).
+    let shakeX = 0;
+    let shakeY = 0;
+    let intensity = 0;
+    if (plat.triggered) {
+      const remaining = plat.timer || 0;
+      intensity = clamp(1 - remaining / (plat.disappearDelay || 1), 0, 1);
+      shakeX = Math.sin(timeSeconds * 45) * intensity * 3;
+      shakeY = Math.cos(timeSeconds * 55) * intensity * 2;
+    }
+
+    // Draw actual tile sprites at shaken position.
+    const tilePaths = plat.tilePaths || [];
+    for (let dx = 0; dx < plat.width; dx++) {
+      const tilePath = tilePaths[dx];
+      const tileObj = level.tileGrid[plat.y]?.[plat.x + dx];
+      const path = tilePath || tileObj?.path;
+      if (!path) continue;
+      const image = imageCache.get(path);
+      const drawX = basePx + dx * tileSize + shakeX;
+      const drawY = basePy + shakeY;
+      if (isImageRenderable(image)) {
+        ctx.drawImage(image, drawX, drawY, tileSize, tileSize);
+      } else {
+        ctx.fillStyle = "#7a6655";
+        ctx.fillRect(drawX, drawY, tileSize, tileSize);
+      }
+    }
+
+    if (!plat.triggered) continue;
+
+    // Red flash overlay, increasing opacity.
+    const px = basePx + shakeX;
+    const py = basePy + shakeY;
+    ctx.fillStyle = `rgba(255, 80, 40, ${0.15 + intensity * 0.35})`;
+    ctx.fillRect(px, py, pw, tileSize);
+
+    // Cracks.
+    ctx.strokeStyle = `rgba(60, 20, 10, ${0.3 + intensity * 0.5})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px + pw * 0.2, py);
+    ctx.lineTo(px + pw * 0.35, py + tileSize * 0.6);
+    ctx.lineTo(px + pw * 0.5, py + tileSize);
+    ctx.moveTo(px + pw * 0.7, py);
+    ctx.lineTo(px + pw * 0.6, py + tileSize * 0.4);
+    ctx.stroke();
+
+    // Falling dust particles when about to collapse.
+    if (intensity > 0.5) {
+      ctx.fillStyle = `rgba(180, 140, 100, ${intensity * 0.6})`;
+      for (let i = 0; i < 3; i++) {
+        const dx = px + ((timeSeconds * 120 + i * pw * 0.3) % pw);
+        const dy = py + tileSize + ((timeSeconds * 80 + i * 17) % 12);
+        ctx.fillRect(dx, dy, 2, 2);
+      }
+    }
+  }
+}
+
+/* ── Moving Platforms ── */
+
+function drawMovingPlatforms(level, timeSeconds) {
+  if (!level.movingPlatforms?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.movingPlatforms) {
+    if (plat.worldX == null) continue; // Not yet initialized by runtime.
+
+    const px = plat.worldX;
+    const py = plat.worldY;
+    const pw = plat.worldW || plat.width * tileSize;
+
+    // Draw actual tile sprites at current moving position.
+    const tilePaths = plat.tilePaths || [];
+    for (let dx = 0; dx < plat.width; dx++) {
+      const path = tilePaths[dx];
+      if (!path) {
+        // Fallback: solid colored block.
+        ctx.fillStyle = "#6a8caf";
+        ctx.fillRect(px + dx * tileSize, py, tileSize, tileSize);
+        continue;
+      }
+      const image = imageCache.get(path);
+      if (isImageRenderable(image)) {
+        ctx.drawImage(image, px + dx * tileSize, py, tileSize, tileSize);
+      } else {
+        ctx.fillStyle = "#6a8caf";
+        ctx.fillRect(px + dx * tileSize, py, tileSize, tileSize);
+      }
+    }
+
+    // Subtle glow on edges to signal movement.
+    ctx.fillStyle = "rgba(150, 200, 255, 0.3)";
+    ctx.fillRect(px, py, pw, 2);
+    ctx.fillRect(px, py + tileSize - 2, pw, 2);
+  }
+}
+
+/* ── Conjugation Gates ── */
+
+function drawConjugationGates(level, timeSeconds) {
+  if (!level.conjugationGates?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const gate of level.conjugationGates) {
+    const gx = gate.x;
+    const gy = gate.y;
+
+    if (gate.opened) {
+      // Opened gate: subtle green glow.
+      ctx.fillStyle = "rgba(52, 168, 83, 0.15)";
+      ctx.fillRect(gx, gy, tileSize, tileSize * 2);
+      continue;
+    }
+
+    // Pulsing glow effect.
+    const pulse = 0.5 + Math.sin(timeSeconds * 3) * 0.3;
+
+    // Gate barrier visual.
+    ctx.fillStyle = `rgba(52, 168, 83, ${0.3 * pulse})`;
+    ctx.fillRect(gx - 2, gy, tileSize + 4, tileSize * 2);
+
+    // Shield icon (circle with border).
+    ctx.strokeStyle = `rgba(52, 168, 83, ${0.7 * pulse})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(gx + tileSize * 0.5, gy + tileSize, tileSize * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Center symbol.
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * pulse})`;
+    ctx.font = `bold ${Math.max(10, Math.round(tileSize * 0.35))}px Nunito, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", gx + tileSize * 0.5, gy + tileSize);
+
+    // Difficulty indicator (small dots).
+    const dots = gate.difficulty === "hard" ? 3 : gate.difficulty === "medium" ? 2 : 1;
+    const dotColor = gate.difficulty === "hard" ? "#ff6b6b" : gate.difficulty === "medium" ? "#ffd56a" : "#74f3d8";
+    for (let d = 0; d < dots; d++) {
+      ctx.fillStyle = dotColor;
+      ctx.beginPath();
+      ctx.arc(gx + tileSize * 0.5 + (d - (dots - 1) / 2) * 8, gy + tileSize * 1.7, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.textBaseline = "alphabetic";
+}
+
+/* ── Ambient Particles System ── */
+
+let _particles = [];
+let _particlesLevelId = -1;
+
+function initParticles(level) {
+  const config = level.particles;
+  if (!config || _particlesLevelId === level.id) return;
+  _particlesLevelId = level.id;
+  _particles = [];
+  const count = config.count || 8;
+  for (let i = 0; i < count; i++) {
+    _particles.push({
+      x: Math.random() * VIRTUAL_WIDTH,
+      y: Math.random() * VIRTUAL_HEIGHT,
+      size: config.sizeRange ? config.sizeRange[0] + Math.random() * (config.sizeRange[1] - config.sizeRange[0]) : 3,
+      speed: (config.speed || 20) * (0.5 + Math.random() * 0.8),
+      opacity: (config.opacity || 0.5) * (0.5 + Math.random() * 0.5),
+      phase: Math.random() * Math.PI * 2,
+      wobble: 0.5 + Math.random() * 1.5,
+    });
+  }
+}
+
+export function updateParticles(delta) {
+  const level = state.currentLevel;
+  if (!level?.particles) return;
+  initParticles(level);
+  const config = level.particles;
+  const dir = config.direction || "falling";
+
+  for (const p of _particles) {
+    p.phase += delta * p.wobble;
+    const wobbleX = Math.sin(p.phase) * 15;
+
+    if (dir === "falling" || dir === "falling_diagonal") {
+      p.y += p.speed * delta;
+      p.x += (dir === "falling_diagonal" ? p.speed * 0.4 : 0) * delta + wobbleX * delta;
+      if (p.y > VIRTUAL_HEIGHT + 10) { p.y = -10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    } else if (dir === "rising") {
+      p.y -= p.speed * delta;
+      p.x += wobbleX * delta;
+      if (p.y < -10) { p.y = VIRTUAL_HEIGHT + 10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    } else if (dir === "wind_horizontal") {
+      p.x += p.speed * delta;
+      p.y += Math.sin(p.phase) * 8 * delta;
+      if (p.x > VIRTUAL_WIDTH + 10) { p.x = -10; p.y = Math.random() * VIRTUAL_HEIGHT; }
+    } else if (dir === "updraft") {
+      p.y -= p.speed * 0.5 * delta;
+      p.x += wobbleX * delta;
+      if (p.y < -10) { p.y = VIRTUAL_HEIGHT + 10; p.x = Math.random() * VIRTUAL_WIDTH; }
+    }
+
+    // Wrap X.
+    if (p.x < -20) p.x = VIRTUAL_WIDTH + 10;
+    if (p.x > VIRTUAL_WIDTH + 20) p.x = -10;
+  }
+}
+
+function drawParticles() {
+  const level = state.currentLevel;
+  if (!level?.particles || !_particles.length) return;
+  const config = level.particles;
+  const color = config.color || "#ffffff";
+
+  ctx.save();
+  for (const p of _particles) {
+    ctx.globalAlpha = p.opacity;
+    ctx.fillStyle = color;
+
+    if (config.type === "snowflakes") {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (config.type === "embers") {
+      ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size * 1.5);
+    } else if (config.type === "leaves") {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.phase);
+      ctx.fillRect(-p.size, -p.size * 0.4, p.size * 2, p.size * 0.8);
+      ctx.restore();
+    } else {
+      ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
+    }
+  }
+  ctx.restore();
+}
+
+/* ── Debug Level Design Overlay (F11) ── */
+
+let _debugOverlayVisible = false;
+
+export function toggleDebugOverlay() {
+  _debugOverlayVisible = !_debugOverlayVisible;
+}
+
+export function isDebugOverlayVisible() {
+  return _debugOverlayVisible;
+}
+
+function drawDebugOverlay() {
+  if (!_debugOverlayVisible || !state.currentLevel) return;
+  const level = state.currentLevel;
+  const meta = level.blockMetadata || [];
+  if (!meta.length) return;
+
+  ctx.save();
+
+  // ── Block type overlay (colored regions) ──
+  const tileSize = state.tileSize;
+  const zoom = getWorldZoom();
+  const categoryColors = {
+    traversal: "rgba(66, 133, 244, 0.25)",
+    conjugation: "rgba(52, 168, 83, 0.3)",
+    rhythm: "rgba(251, 188, 4, 0.25)",
+    exploration: "rgba(234, 67, 53, 0.25)",
+  };
+
+  ctx.save();
+  ctx.translate(0, VIRTUAL_HEIGHT);
+  ctx.scale(zoom, zoom);
+  ctx.translate(0, -VIRTUAL_HEIGHT);
+  ctx.translate(-Math.floor(state.cameraX), Math.floor(getWorldRenderOffsetY(level)));
+
+  for (const block of meta) {
+    const color = categoryColors[block.category] || "rgba(128, 128, 128, 0.2)";
+    const x = block.startX * tileSize;
+    const w = (block.endX - block.startX + 1) * tileSize;
+    const y = 0;
+    const h = level.heightTiles * tileSize;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+
+    // Block label at top.
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.max(8, Math.round(10 / zoom))}px monospace`;
+    ctx.textAlign = "center";
+    ctx.fillText(block.blockId.replace(/_/g, " "), x + w / 2, 14 / zoom + y);
+  }
+
+  // ── Secret zones (highlighted) ──
+  for (const secret of level.secretZones || []) {
+    ctx.strokeStyle = "rgba(255, 215, 0, 0.8)";
+    ctx.lineWidth = 2 / zoom;
+    ctx.setLineDash([4 / zoom, 4 / zoom]);
+    ctx.strokeRect(secret.x, secret.y, (secret.width || 3) * tileSize, (secret.height || 2) * tileSize);
+    ctx.setLineDash([]);
+  }
+
+  // ── Conjugation gates (green markers) ──
+  for (const gate of level.conjugationGates || []) {
+    ctx.fillStyle = "rgba(52, 168, 83, 0.7)";
+    ctx.beginPath();
+    ctx.arc(gate.x + tileSize / 2, gate.y + tileSize / 2, tileSize * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.round(10 / zoom)}px monospace`;
+    ctx.textAlign = "center";
+    ctx.fillText(gate.type, gate.x + tileSize / 2, gate.y + tileSize / 2 + 3 / zoom);
+  }
+
+  ctx.restore();
+
+  // ── Difficulty curve graph (top-right HUD) ──
+  const graphX = VIRTUAL_WIDTH - 160;
+  const graphY = 10;
+  const graphW = 150;
+  const graphH = 60;
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(graphX, graphY, graphW, graphH);
+  ctx.strokeStyle = "#555";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(graphX, graphY, graphW, graphH);
+
+  // Title.
+  ctx.fillStyle = "#ccc";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "left";
+  ctx.fillText("Difficulty Curve", graphX + 4, graphY + 10);
+  ctx.fillText(`Shape: ${level.levelShape || "?"}`, graphX + 4, graphY + 20);
+  ctx.fillText(`Score: ${level.designScore?.overall || "?"}/${100}`, graphX + 4, graphY + 30);
+
+  // Draw the curve.
+  if (meta.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#ff6b6b";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < meta.length; i++) {
+      const px = graphX + 4 + (i / (meta.length - 1)) * (graphW - 8);
+      const py = graphY + graphH - 4 - (meta[i].difficulty || 0) * (graphH - 16);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  // Block type legend.
+  const legendY = graphY + graphH + 5;
+  const legendItems = [
+    { label: "Traversal", color: "#4285f4" },
+    { label: "Conjugation", color: "#34a853" },
+    { label: "Rhythm", color: "#fbbc04" },
+    { label: "Exploration", color: "#ea4335" },
+  ];
+  ctx.font = "7px monospace";
+  for (let i = 0; i < legendItems.length; i++) {
+    const lx = graphX + (i % 2) * 75;
+    const ly = legendY + Math.floor(i / 2) * 12;
+    ctx.fillStyle = legendItems[i].color;
+    ctx.fillRect(lx, ly, 8, 8);
+    ctx.fillStyle = "#ccc";
+    ctx.textAlign = "left";
+    ctx.fillText(legendItems[i].label, lx + 11, ly + 7);
+  }
+
+  ctx.restore();
 }
 
 /* ── UI rendering ── */
