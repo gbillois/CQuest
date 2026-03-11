@@ -18,7 +18,7 @@ import {
   updateBossQuestionCountdown, triggerBonusBlock, hitPlayer, defeatEnemy,
   startBossMode, getBossPrepLevelIndex, resetBossState, setEntityHooks,
   tryEnterTower, collideWithEnemies, checkGoal, damagePlayer, respawnPlayer,
-  castHeroProjectile,
+  castHeroProjectile, updateCrumblingPlatforms, updateMovingPlatforms, updateConjugationGates,
 } from "./entities.js";
 import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, toggleDebugOverlay } from "./renderer.js";
 import {
@@ -248,6 +248,9 @@ function update(delta) {
   updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
+  updateCrumblingPlatforms(delta);
+  updateMovingPlatforms(delta);
+  updateConjugationGates();
   updateCamera(delta);
   updateParticles(delta);
 

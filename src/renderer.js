@@ -128,6 +128,9 @@ export function render(timeSeconds) {
   try {
     drawStructures(level);
     drawTiles(level);
+    drawCrumblingPlatforms(level, timeSeconds);
+    drawMovingPlatforms(level, timeSeconds);
+    drawConjugationGates(level, timeSeconds);
     drawGroundDecorations(level);
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
@@ -702,6 +705,148 @@ export function pickEnemyFrame(enemy) {
   }
 
   return imageCache.get(idle);
+}
+
+/* ── Crumbling Platforms ── */
+
+function drawCrumblingPlatforms(level, timeSeconds) {
+  if (!level.crumblingPlatforms?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.crumblingPlatforms) {
+    if (plat.removed) continue;
+    if (!plat.triggered) continue;
+
+    // Shake effect: oscillate position as timer counts down.
+    const remaining = plat.timer || 0;
+    const intensity = clamp(1 - remaining / (plat.disappearDelay || 1), 0, 1);
+    const shakeX = Math.sin(timeSeconds * 45) * intensity * 3;
+    const shakeY = Math.cos(timeSeconds * 55) * intensity * 2;
+
+    // Draw warning overlay on crumbling tiles.
+    const px = plat.x * tileSize + shakeX;
+    const py = plat.y * tileSize + shakeY;
+    const pw = plat.width * tileSize;
+
+    // Red flash overlay, increasing opacity.
+    ctx.fillStyle = `rgba(255, 80, 40, ${0.15 + intensity * 0.35})`;
+    ctx.fillRect(px, py, pw, tileSize);
+
+    // Cracks (simple lines).
+    ctx.strokeStyle = `rgba(60, 20, 10, ${0.3 + intensity * 0.5})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px + pw * 0.2, py);
+    ctx.lineTo(px + pw * 0.35, py + tileSize * 0.6);
+    ctx.lineTo(px + pw * 0.5, py + tileSize);
+    ctx.moveTo(px + pw * 0.7, py);
+    ctx.lineTo(px + pw * 0.6, py + tileSize * 0.4);
+    ctx.stroke();
+
+    // Falling particle dust when about to collapse.
+    if (intensity > 0.5) {
+      ctx.fillStyle = `rgba(180, 140, 100, ${intensity * 0.6})`;
+      for (let i = 0; i < 3; i++) {
+        const dx = px + ((timeSeconds * 120 + i * pw * 0.3) % pw);
+        const dy = py + tileSize + ((timeSeconds * 80 + i * 17) % 12);
+        ctx.fillRect(dx, dy, 2, 2);
+      }
+    }
+  }
+}
+
+/* ── Moving Platforms ── */
+
+function drawMovingPlatforms(level, timeSeconds) {
+  if (!level.movingPlatforms?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.movingPlatforms) {
+    if (plat.worldX == null) continue; // Not yet initialized by runtime.
+
+    const px = plat.worldX;
+    const py = plat.worldY;
+    const pw = plat.worldW;
+
+    // Draw platform body (semi-transparent highlight over tile positions).
+    ctx.fillStyle = "rgba(100, 160, 255, 0.2)";
+    ctx.fillRect(px, py, pw, tileSize);
+
+    // Draw movement trail indicator.
+    ctx.strokeStyle = "rgba(100, 160, 255, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    if (plat.axis === "horizontal") {
+      const range = plat.rangeX || (3 * tileSize);
+      ctx.beginPath();
+      ctx.moveTo(plat.originX - range, py + tileSize * 0.5);
+      ctx.lineTo(plat.originX + range + pw, py + tileSize * 0.5);
+      ctx.stroke();
+    } else {
+      const range = plat.rangeY || (2 * tileSize);
+      ctx.beginPath();
+      ctx.moveTo(px + pw * 0.5, plat.originY - range);
+      ctx.lineTo(px + pw * 0.5, plat.originY + range + tileSize);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // Glow on edges.
+    ctx.fillStyle = "rgba(150, 200, 255, 0.4)";
+    ctx.fillRect(px, py, pw, 2);
+    ctx.fillRect(px, py + tileSize - 2, pw, 2);
+  }
+}
+
+/* ── Conjugation Gates ── */
+
+function drawConjugationGates(level, timeSeconds) {
+  if (!level.conjugationGates?.length) return;
+  const tileSize = state.tileSize;
+
+  for (const gate of level.conjugationGates) {
+    const gx = gate.x;
+    const gy = gate.y;
+
+    if (gate.opened) {
+      // Opened gate: subtle green glow.
+      ctx.fillStyle = "rgba(52, 168, 83, 0.15)";
+      ctx.fillRect(gx, gy, tileSize, tileSize * 2);
+      continue;
+    }
+
+    // Pulsing glow effect.
+    const pulse = 0.5 + Math.sin(timeSeconds * 3) * 0.3;
+
+    // Gate barrier visual.
+    ctx.fillStyle = `rgba(52, 168, 83, ${0.3 * pulse})`;
+    ctx.fillRect(gx - 2, gy, tileSize + 4, tileSize * 2);
+
+    // Shield icon (circle with border).
+    ctx.strokeStyle = `rgba(52, 168, 83, ${0.7 * pulse})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(gx + tileSize * 0.5, gy + tileSize, tileSize * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Center symbol.
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * pulse})`;
+    ctx.font = `bold ${Math.max(10, Math.round(tileSize * 0.35))}px Nunito, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", gx + tileSize * 0.5, gy + tileSize);
+
+    // Difficulty indicator (small dots).
+    const dots = gate.difficulty === "hard" ? 3 : gate.difficulty === "medium" ? 2 : 1;
+    const dotColor = gate.difficulty === "hard" ? "#ff6b6b" : gate.difficulty === "medium" ? "#ffd56a" : "#74f3d8";
+    for (let d = 0; d < dots; d++) {
+      ctx.fillStyle = dotColor;
+      ctx.beginPath();
+      ctx.arc(gx + tileSize * 0.5 + (d - (dots - 1) / 2) * 8, gy + tileSize * 1.7, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.textBaseline = "alphabetic";
 }
 
 /* ── Ambient Particles System ── */

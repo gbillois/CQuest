@@ -457,6 +457,196 @@ export function collectBonuses() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   Crumbling Platforms
+   ═══════════════════════════════════════════════════════════ */
+
+export function updateCrumblingPlatforms(delta) {
+  const level = state.currentLevel;
+  if (!level?.crumblingPlatforms?.length) return;
+  const player = state.player;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.crumblingPlatforms) {
+    if (plat.removed) continue;
+
+    // Check player standing on this platform.
+    if (!plat.triggered) {
+      const platWorldX = plat.x * tileSize;
+      const platWorldY = plat.y * tileSize;
+      const platWorldW = plat.width * tileSize;
+      const playerFeetY = player.y + player.h;
+      const playerCenterX = player.x + player.w * 0.5;
+
+      if (
+        player.onGround &&
+        Math.abs(playerFeetY - platWorldY) < 4 &&
+        playerCenterX >= platWorldX &&
+        playerCenterX <= platWorldX + platWorldW
+      ) {
+        plat.triggered = true;
+        plat.timer = plat.disappearDelay;
+        plat.shakeTime = plat.disappearDelay; // Shake for entire delay.
+      }
+      continue;
+    }
+
+    // Count down to removal.
+    plat.timer -= delta;
+    plat.shakeTime -= delta;
+
+    if (plat.timer <= 0) {
+      // Remove tiles from the grid.
+      for (let dx = 0; dx < plat.width; dx++) {
+        const tx = plat.x + dx;
+        if (tx >= 0 && tx < level.widthTiles && plat.y >= 0 && plat.y < level.heightTiles) {
+          level.tileGrid[plat.y][tx] = null;
+        }
+      }
+      plat.removed = true;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Moving Platforms
+   ═══════════════════════════════════════════════════════════ */
+
+export function updateMovingPlatforms(delta) {
+  const level = state.currentLevel;
+  if (!level?.movingPlatforms?.length) return;
+  const player = state.player;
+  const tileSize = state.tileSize;
+
+  for (const plat of level.movingPlatforms) {
+    // Initialize runtime state.
+    if (plat.originX == null) {
+      plat.originX = plat.x * tileSize;
+      plat.originY = plat.y * tileSize;
+      plat.elapsed = plat.phase || 0;
+      plat.prevWorldX = plat.originX;
+      plat.prevWorldY = plat.originY;
+      plat.worldX = plat.originX;
+      plat.worldY = plat.originY;
+      plat.worldW = plat.width * tileSize;
+
+      // Remove static tiles so the platform can move freely.
+      for (let dx = 0; dx < plat.width; dx++) {
+        const tx = plat.x + dx;
+        if (tx >= 0 && tx < level.widthTiles && plat.y >= 0 && plat.y < level.heightTiles) {
+          level.tileGrid[plat.y][tx] = null;
+        }
+      }
+    }
+
+    plat.elapsed += delta;
+
+    const prevX = plat.prevWorldX;
+    const prevY = plat.prevWorldY;
+    let newX = plat.originX;
+    let newY = plat.originY;
+
+    if (plat.axis === "horizontal") {
+      const range = plat.rangeX || (3 * tileSize);
+      newX = plat.originX + Math.sin(plat.elapsed * (plat.speed / 30)) * range;
+    } else {
+      const range = plat.rangeY || (2 * tileSize);
+      newY = plat.originY + Math.sin(plat.elapsed * (plat.speed / 30)) * range;
+    }
+
+    const dx = newX - prevX;
+    const dy = newY - prevY;
+    plat.prevWorldX = newX;
+    plat.prevWorldY = newY;
+
+    // Move tiles in grid: clear old, set new positions.
+    // Instead of moving grid tiles (complex), use collision rects approach:
+    // Store world position and check player riding.
+    plat.worldX = newX;
+    plat.worldY = newY;
+
+    // Check if player is riding this platform.
+    const playerFeetY = player.y + player.h;
+    const playerCenterX = player.x + player.w * 0.5;
+    const onPlatform =
+      player.onGround &&
+      Math.abs(playerFeetY - newY) < 6 &&
+      playerCenterX >= newX &&
+      playerCenterX <= newX + plat.worldW;
+
+    if (onPlatform) {
+      player.x += dx;
+      player.y += dy;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Conjugation Gates
+   ═══════════════════════════════════════════════════════════ */
+
+export function updateConjugationGates() {
+  const level = state.currentLevel;
+  if (!level?.conjugationGates?.length) return;
+  if (!state.duel || state.duel.QS.active || state.screenMode === "question") return;
+  if (state.paused || state.gameOver || state.deathSequence.active) return;
+  if (state.playerHitInvuln > 0) return;
+
+  const player = state.player;
+  const tileSize = state.tileSize;
+
+  for (const gate of level.conjugationGates) {
+    if (gate.opened) continue;
+
+    // Proximity check: player within 1.5 tiles of gate.
+    const gateCenterX = gate.x + tileSize * 0.5;
+    const gateCenterY = gate.y + tileSize * 0.5;
+    const playerCenterX = player.x + player.w * 0.5;
+    const playerCenterY = player.y + player.h * 0.5;
+    const dist = Math.hypot(gateCenterX - playerCenterX, gateCenterY - playerCenterY);
+
+    if (dist > tileSize * 1.8) continue;
+
+    // Cooldown to prevent immediate re-trigger.
+    if (gate._cooldownUntil && performance.now() < gate._cooldownUntil) continue;
+
+    // Open a standalone conjugation question for this gate.
+    const diffLabel = gate.difficulty === "hard" ? "Difficile" : gate.difficulty === "medium" ? "Moyen" : "Facile";
+    const typeLabel = gate.type.replace(/_/g, " ");
+    const opened = state.duel.openStandaloneQuestion({
+      vd: state.duel.randomVerbData(),
+      uiMeta: {
+        enemyEmoji: "\uD83D\uDEE1\uFE0F",
+        groupLabel: `Porte: ${typeLabel} (${diffLabel})`,
+      },
+      onCorrect: () => {
+        gate.opened = true;
+        // Remove blocking tiles if gate is a guardian type.
+        if (gate.type === "guardian" || gate.type === "cascade") {
+          const tx = gate.tileX;
+          const ty = gate.tileY;
+          if (ty >= 0 && ty < level.heightTiles && tx >= 0 && tx < level.widthTiles) {
+            level.tileGrid[ty][tx] = null;
+            if (ty - 1 >= 0) level.tileGrid[ty - 1][tx] = null;
+          }
+        }
+        _showMessage?.("Porte ouverte !");
+        state.score += 50;
+      },
+      onWrong: () => {
+        gate._cooldownUntil = performance.now() + 2000;
+        _showMessage?.("Mauvaise reponse - reessayez !");
+      },
+    });
+
+    if (opened) {
+      // Stop player movement during gate challenge.
+      player.vx = 0;
+      break; // Only one gate at a time.
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
    Enemy drops
    ═══════════════════════════════════════════════════════════ */
 

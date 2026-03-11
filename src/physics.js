@@ -89,6 +89,22 @@ export function getNearbySolidRects(entity, level) {
     rects.push(getBonusBlockCollisionRect(block));
   }
 
+  // Moving platforms: add collision rects at their current world positions.
+  if (level.movingPlatforms) {
+    for (const plat of level.movingPlatforms) {
+      if (plat.worldX == null) continue;
+      const px = plat.worldX;
+      const py = plat.worldY;
+      const pw = plat.worldW || plat.width * state.tileSize;
+      // Only check if roughly nearby.
+      const platMinX = Math.floor(px / state.tileSize);
+      const platMaxX = Math.floor((px + pw) / state.tileSize);
+      const platMinY = Math.floor(py / state.tileSize);
+      if (platMaxX < minX - 1 || platMinX > maxX + 1 || platMinY < minY - 1 || platMinY > maxY + 1) continue;
+      rects.push({ x: px, y: py, w: pw, h: state.tileSize, oneWay: true });
+    }
+  }
+
   return rects;
 }
 
