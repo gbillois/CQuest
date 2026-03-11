@@ -445,12 +445,22 @@ export function drawGroundDecorations(level) {
     if (!isImageRenderable(image)) {
       continue;
     }
+    // Skip decoration sprites whose visible content fills less than half the
+    // tile height (e.g. mountain detail overlays that are only ~9px tall on a
+    // 32px canvas produce tiny, odd-looking decorations).
+    const bounds = getSpriteOpaqueBounds(image);
+    if (bounds) {
+      const sourceH = image.naturalHeight || image.height || tileSize;
+      const contentH = bounds.bottom - bounds.top + 1;
+      if (contentH < sourceH * 0.5) {
+        continue;
+      }
+    }
     const x = decor.xTile * tileSize;
     const groundTileY = level.groundY;
     const groundTile = level.tileGrid[groundTileY]?.[decor.xTile] || null;
     const groundRect = groundTile ? getSolidTileCollisionRect(groundTile, decor.xTile, groundTileY) : null;
     const surfaceY = groundRect ? groundRect.y : groundTileY * tileSize;
-    const bounds = getSpriteOpaqueBounds(image);
     if (bounds) {
       const sourceH = image.naturalHeight || image.height || tileSize;
       const scaleY = tileSize / sourceH;
