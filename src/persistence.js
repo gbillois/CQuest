@@ -3,6 +3,7 @@ import {
   HERO_UNLOCK_STORAGE_KEY,
   HERO_SELECTED_STORAGE_KEY,
   WORLD_ZOOM_STORAGE_KEY,
+  TILE_STYLE_MODE_STORAGE_KEY,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -87,6 +88,26 @@ export function loadWorldZoom() {
 export function saveWorldZoom(value) {
   try {
     localStorage.setItem(WORLD_ZOOM_STORAGE_KEY, String(normalizeWorldZoom(value)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function normalizeTileStyleMode(value) {
+  return String(value || "").toLowerCase() === "basic" ? "basic" : "new";
+}
+
+export function loadTileStyleMode() {
+  try {
+    return normalizeTileStyleMode(localStorage.getItem(TILE_STYLE_MODE_STORAGE_KEY));
+  } catch {
+    return "new";
+  }
+}
+
+export function saveTileStyleMode(value) {
+  try {
+    localStorage.setItem(TILE_STYLE_MODE_STORAGE_KEY, normalizeTileStyleMode(value));
   } catch {
     // Ignore storage issues.
   }

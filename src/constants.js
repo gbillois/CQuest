@@ -111,6 +111,25 @@ export const BIOME_EMOJI = {
   castle: "🏰", desert: "🏜️", desolation: "💀",
   forest: "🌳", mountain: "⛰️", snow: "❄️", wood: "🌲",
 };
+export const GROUND_TILE_STYLE_BY_BIOME = {
+  desert: "desert",
+  desolation: "desolation",
+  forest: "forest",
+  mountain: "mountain",
+  snow: "snow",
+};
+export const GROUND_TILE_PREFIX_BY_STYLE = {
+  desert: "desert_from_desert_png",
+  desolation: "desolation_from_desolation_png",
+  forest: "grassy_from_grassy_png",
+  mountain: "rocky_from_rocky_png",
+  snow: "snow_from_snow_png",
+};
+export const PLATFORM_STYLE_IDS = ["wood", "castlewall"];
+export const PLATFORM_TILE_PREFIX_BY_STYLE = {
+  wood: "wood_from_wood_png",
+  castlewall: "castlewall_from_castlewall_png",
+};
 
 // ─── Generation profiles ───
 export const GENERATION_PROFILES = {
@@ -189,3 +208,4 @@ export const HERO_UNLOCK_STORAGE_KEY = "cquest_hero_unlocks_v1";
 export const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
 export const WORLD_ZOOM_STORAGE_KEY = "cquest_world_zoom_v1";
 export const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
+export const TILE_STYLE_MODE_STORAGE_KEY = "cquest_tile_style_mode_v1";

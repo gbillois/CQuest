@@ -126,6 +126,9 @@ export function isOneWayPlatformTile(tile) {
   if (tile?.groundSolid) {
     return false;
   }
+  if (tile?.oneWayPlatform || tile?.walkable_top) {
+    return true;
+  }
   const code = getTileCodeFromPath(tile?.path);
   return code != null && code >= 10 && code <= 15;
 }

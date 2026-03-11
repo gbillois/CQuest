@@ -47,6 +47,7 @@ export const ui = {
   shopGoldValue: document.getElementById("shopGoldValue"),
   levelSelect: document.getElementById("levelSelect"),
   difficultySelect: document.getElementById("difficultySelect"),
+  tileStyleSelect: document.getElementById("tileStyleSelect"),
   worldZoomSlider: document.getElementById("worldZoomSlider"),
   worldZoomValue: document.getElementById("worldZoomValue"),
   questionPanel: document.getElementById("questionPanel"),
@@ -143,6 +144,7 @@ export const state = {
   mobileButtonsOffsetY: 155,
   mobileGameOffsetY: -200,
   generationProfile: "normal",
+  tileStyleMode: "new",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
   pedagogy: {

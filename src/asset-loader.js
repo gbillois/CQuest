@@ -6,6 +6,8 @@ import {
   MAGE_FIREBALL_ICON, BIOME_PARALLAX_BACKGROUNDS, BOSS_DRAGON_ATTACK_SW_FRAMES,
   BOSS_FALLBACK_DRAGON_FRAME, GROUND_THICKNESS_TILES,
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
+  GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_PREFIX_BY_STYLE,
+  PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   getHeroShopConfig,
 } from "./constants.js";
 
@@ -335,6 +337,20 @@ export async function preloadConfigAssetImages(config) {
 
   for (const biome of Object.values(config.biomes || {})) {
     for (const tile of biome.tiles || []) {
+      if (tile.path) {
+        paths.add(tile.path);
+      }
+    }
+  }
+  for (const biomeId of Object.keys(config.biomes || {})) {
+    for (const tile of buildGroundStyleTiles(biomeId)?.all || []) {
+      if (tile.path) {
+        paths.add(tile.path);
+      }
+    }
+  }
+  for (const styleId of PLATFORM_STYLE_IDS) {
+    for (const tile of buildPlatformStyleTiles(styleId)?.platformTiles || []) {
       if (tile.path) {
         paths.add(tile.path);
       }
@@ -754,6 +770,23 @@ export function buildBiomeIndex(config) {
     const groundDecorTiles = [17, 18, 19, 20]
       .map((code) => allTiles.find((tile) => getTileCodeFromPath(tile?.path) === code) || null)
       .filter(Boolean);
+    const groundStyleTiles = buildGroundStyleTiles(biomeId);
+    const fallbackSurfaceGround = allTiles.filter((tile) => {
+      const code = getTileCodeFromPath(tile?.path);
+      return code != null && code >= 1 && code <= 4;
+    });
+    const fallbackMiddleGround = allTiles.filter((tile) => {
+      const code = getTileCodeFromPath(tile?.path);
+      return code != null && code >= 5 && code <= 8;
+    });
+    const fallbackDeepGround = allTiles.filter((tile) => {
+      const code = getTileCodeFromPath(tile?.path);
+      return code != null && code >= 9 && code <= 12;
+    });
+    const fallbackMountain = allTiles.filter((tile) => {
+      const code = getTileCodeFromPath(tile?.path);
+      return code != null && code >= 13 && code <= 16;
+    });
 
     // Use the dedicated *-ground.png tile at the tiles root for ground & mountains.
     const biomeGroundTile = {
@@ -776,9 +809,72 @@ export function buildBiomeIndex(config) {
       slopeTiles: mapIds(biomeData.tile_catalog?.slopes),
       subsurfaceTiles: mapIds(biomeData.tile_catalog?.subsurface),
       detailTiles: mapIds(biomeData.tile_catalog?.detail_overlay),
+      terrainTiles: {
+        styleId: groundStyleTiles?.styleId || null,
+        surface: groundStyleTiles?.surface?.length ? groundStyleTiles.surface : fallbackSurfaceGround,
+        middle: groundStyleTiles?.middle?.length ? groundStyleTiles.middle : fallbackMiddleGround,
+        deep: groundStyleTiles?.deep?.length ? groundStyleTiles.deep : fallbackDeepGround,
+        mountain: groundStyleTiles?.mountain?.length ? groundStyleTiles.mountain : fallbackMountain,
+        all: groundStyleTiles?.all?.length
+          ? groundStyleTiles.all
+          : [...fallbackSurfaceGround, ...fallbackMiddleGround, ...fallbackDeepGround, ...fallbackMountain],
+      },
       simplePlatformTiles: simpleByCode,
       groundDecorTiles,
     };
   }
   state.biomes = biomes;
+}
+
+function buildGroundStyleTiles(biomeId) {
+  const styleId = GROUND_TILE_STYLE_BY_BIOME[biomeId] || null;
+  const prefix = styleId ? GROUND_TILE_PREFIX_BY_STYLE[styleId] : null;
+  if (!styleId || !prefix) {
+    return null;
+  }
+
+  const byRow = { 1: [], 2: [], 3: [], 4: [] };
+  const all = [];
+  let index = 1;
+  for (let row = 1; row <= 4; row += 1) {
+    for (let col = 1; col <= 4; col += 1) {
+      const tile = {
+        id: `${biomeId}_ground_r${pad2(row)}_c${pad2(col)}`,
+        path: `game_assets/ground/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}_${pad2(index)}.png`,
+      };
+      all.push(tile);
+      byRow[row].push(tile);
+      index += 1;
+    }
+  }
+
+  return {
+    styleId,
+    all,
+    surface: byRow[1],
+    middle: byRow[2],
+    deep: byRow[3],
+    mountain: byRow[4],
+  };
+}
+
+function buildPlatformStyleTiles(styleId) {
+  const prefix = PLATFORM_TILE_PREFIX_BY_STYLE[styleId] || null;
+  if (!prefix) {
+    return null;
+  }
+
+  const tiles = [];
+  let index = 1;
+  for (let row = 1; row <= 4; row += 1) {
+    for (let col = 1; col <= 4; col += 1) {
+      tiles.push({
+        id: `platform_${styleId}_r${pad2(row)}_c${pad2(col)}`,
+        path: `game_assets/platforms/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}_${pad2(index)}.png`,
+      });
+      index += 1;
+    }
+  }
+
+  return { id: styleId, platformTiles: tiles };
 }

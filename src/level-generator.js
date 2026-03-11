@@ -7,6 +7,7 @@ import {
   ENEMY_MOVE_SPEED, ENEMY_SCALE, ENEMY_HITBOX_WIDTH_RATIO, ENEMY_HITBOX_HEIGHT_RATIO,
   ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W, ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H,
   PLAYER_HITBOX_HEIGHT, BONUS_MIN_SUPPORT_GAP_TILES, BONUS_MAX_SUPPORT_GAP_TILES,
+  PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   FIXED_LEVEL_BIOME_ORDER, GENERATION_PROFILES,
   getGenerationProfileSettings,
 } from "./constants.js";
@@ -27,6 +28,7 @@ function isSolidTile(tile) {
 
 function isOneWayPlatformTile(tile) {
   if (tile?.groundSolid) return false;
+  if (tile?.oneWayPlatform || tile?.walkable_top) return true;
   const code = getTileCodeFromPath(tile?.path);
   return code != null && code >= 10 && code <= 15;
 }
@@ -82,11 +84,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   const biome = state.biomes[biomeId] || state.biomes.forest || Object.values(state.biomes)[0];
   const rand = mulberry32(seed);
   const generation = getGenerationProfileSettings(state.generationProfile);
+  const useNewTileStyle = state.tileStyleMode !== "basic";
   const tileGrid = Array.from({ length: heightTiles }, () => Array(widthTiles).fill(null));
   const pathNodes = [];
   const platformRails = [];
   const baseGroundY = heightTiles - 4;
-  const groundTile = biome.groundLineTile || biome.defaultSurface || biome.groundTile || biome.defaultFill;
+  const groundTile = useNewTileStyle
+    ? createGroundTileSource({ biome, rand, groundY: baseGroundY })
+    : biome.groundLineTile || biome.defaultSurface || biome.groundTile || biome.defaultFill;
   const startCastleTileX = 4;
   const towerTileX = Math.floor(widthTiles * 0.5);
   const castleTileX = widthTiles - 7;
@@ -103,7 +108,15 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     { min: towerTileX - 9, max: towerTileX + 9 },
     { min: castleTileX - 13, max: widthTiles - 1 },
   ];
-  const platformThemeIds = getPlatformThemeIds(biomeId);
+  const platformStyles = useNewTileStyle ? buildPlatformStylePool() : [];
+  const platformStyleById = new Map(platformStyles.map((style) => [style.id, style]));
+  const forcedPlatformStyleQueue = platformStyles.map((style) => style.id);
+  for (let i = forcedPlatformStyleQueue.length - 1; i > 0; i -= 1) {
+    const j = randInt(rand, 0, i);
+    [forcedPlatformStyleQueue[i], forcedPlatformStyleQueue[j]] = [forcedPlatformStyleQueue[j], forcedPlatformStyleQueue[i]];
+  }
+  const usedPlatformStyleIds = new Set();
+  const platformThemeIds = platformStyles.length ? platformStyles.map((style) => style.id) : getPlatformThemeIds(biomeId);
   const allowGroundHoles = generation.allowGroundHoles;
   let holes = [];
 
@@ -180,7 +193,23 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   const _maxJumpHeightPx = (GAME.jumpVelocity * GAME.jumpVelocity) / (2 * GAME.gravity);
   const _maxJumpHeightTiles = Math.max(1, Math.floor(_maxJumpHeightPx / Math.max(1, state.tileSize)));
 
-  const addPlatformRail = ({ startX, y, length, segmentType, isSecret }) => {
+  const pickPlatformTheme = (forceStyleId = null) => {
+    if (!platformStyles.length) {
+      return null;
+    }
+    if (forceStyleId && platformStyleById.has(forceStyleId)) {
+      return platformStyleById.get(forceStyleId);
+    }
+    while (forcedPlatformStyleQueue.length) {
+      const nextId = forcedPlatformStyleQueue.shift();
+      if (nextId && platformStyleById.has(nextId)) {
+        return platformStyleById.get(nextId);
+      }
+    }
+    return platformStyles[randInt(rand, 0, platformStyles.length - 1)];
+  };
+
+  const addPlatformRail = ({ startX, y, length, segmentType, isSecret, forceStyleId = null }) => {
     if (length < 2) return;
     let railY = clamp(y, 2, Math.max(2, baseGroundY - 2));
     const endX = startX + length - 1;
@@ -203,9 +232,12 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     }
     railY = clamp(railY, 2, Math.max(2, baseGroundY - 2));
 
-    const theme = pickMarioPlatformTheme({ biomeId, fallbackBiome: biome, xTile: startX, castleTileX, segmentType, rand });
+    const theme = pickPlatformTheme(forceStyleId) || pickMarioPlatformTheme({ biomeId, fallbackBiome: biome, xTile: startX, castleTileX, segmentType, rand });
     placePlatform(tileGrid, theme, startX, railY, length, rand);
     platformRails.push({ start: startX, end: endX, y: railY, themeId: theme.id || biomeId, isSecret: !!isSecret });
+    if (theme?.id && platformStyleById.has(theme.id)) {
+      usedPlatformStyleIds.add(theme.id);
+    }
   };
 
   const tryCreateHole = (holeStart, holeWidth) => {
@@ -526,7 +558,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Place ceiling tiles.
         for (let x = startX + 1; x <= endX - 1; x++) {
           if (intersectsRanges(x, x, reservedRanges)) continue;
-          setTile(tileGrid, x, ceilingY, asGroundSolidTile(groundTile));
+          setGroundTileAt(tileGrid, x, ceilingY, groundTile);
         }
         // Add 1-2 small holes for tension.
         if (allowGroundHoles && segWidth > 10) {
@@ -702,6 +734,38 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     }
   }
 
+  if (platformStyles.length) {
+    const missingStyleIds = platformStyles.map((style) => style.id).filter((id) => !usedPlatformStyleIds.has(id));
+    let fallbackOffset = 0;
+    for (const missingStyleId of missingStyleIds) {
+      let placed = false;
+      for (let attempt = 0; attempt < 10 && !placed; attempt += 1) {
+        const baseX = playableStart + 8 + fallbackOffset * 10 + attempt * 4;
+        const startX = clamp(baseX, 1, playableEnd - 3);
+        const y = clamp(baseGroundY - 2 - (attempt % 2), 2, Math.max(2, baseGroundY - 4));
+        const before = platformRails.length;
+        addPlatformRail({
+          startX,
+          y,
+          length: 3,
+          segmentType: "style_balance",
+          forceStyleId: missingStyleId,
+        });
+        placed = platformRails.length > before;
+      }
+      if (!placed && platformRails.length) {
+        const rail = platformRails[randInt(rand, 0, platformRails.length - 1)];
+        const style = platformStyleById.get(missingStyleId);
+        if (rail && style) {
+          placePlatform(tileGrid, style, rail.start, rail.y, rail.end - rail.start + 1, rand);
+          rail.themeId = style.id;
+          usedPlatformStyleIds.add(style.id);
+        }
+      }
+      fallbackOffset += 1;
+    }
+  }
+
   // ─── Post-Generation: Ground Holes & Validation ───
   if (allowGroundHoles) {
     const targetHoleCount = clamp(
@@ -856,11 +920,22 @@ function placePlatform(grid, biomeTheme, startX, y, length, rand) {
   for (let i = 0; i < length; i += 1) {
     const x = startX + i;
     if (!grid[y] || x < 0 || x >= grid[0].length) continue;
-    setTile(grid, x, y, pickPlatformSurfaceTile(biomeTheme, i, length, rand));
+    const tile = pickPlatformSurfaceTile(biomeTheme, i, length, rand);
+    if (!tile) continue;
+    setTile(grid, x, y, {
+      ...tile,
+      oneWayPlatform: true,
+      walkable_top: true,
+      role: tile.role || "platform_surface",
+    });
   }
 }
 
 function pickPlatformSurfaceTile(biome, index, length, rand) {
+  if (biome?.platformTiles?.length) {
+    return biome.platformTiles[randInt(rand, 0, biome.platformTiles.length - 1)] || null;
+  }
+
   const simple = biome?.simplePlatformTiles || {};
   const left = simple[10] || simple[11] || biome.defaultSurface || biome.defaultFill;
   const right = simple[15] || simple[14] || biome.defaultSurface || biome.defaultFill;
@@ -870,6 +945,43 @@ function pickPlatformSurfaceTile(biome, index, length, rand) {
   if (index === 0) return left;
   if (index === length - 1) return right;
   return mid;
+}
+
+function buildPlatformStyleTiles(styleId) {
+  const prefix = PLATFORM_TILE_PREFIX_BY_STYLE[styleId] || null;
+  if (!prefix) {
+    return null;
+  }
+
+  const platformTiles = [];
+  let index = 1;
+  for (let row = 1; row <= 4; row += 1) {
+    for (let col = 1; col <= 4; col += 1) {
+      const rowId = String(row).padStart(2, "0");
+      const colId = String(col).padStart(2, "0");
+      const indexId = String(index).padStart(2, "0");
+      platformTiles.push({
+        id: `platform_${styleId}_r${rowId}_c${colId}`,
+        path: `game_assets/platforms/${styleId}/${prefix}_tile_r${rowId}_c${colId}_${indexId}.png`,
+      });
+      index += 1;
+    }
+  }
+  return {
+    id: styleId,
+    platformTiles,
+  };
+}
+
+function buildPlatformStylePool() {
+  const styles = [];
+  for (const styleId of PLATFORM_STYLE_IDS) {
+    const style = buildPlatformStyleTiles(styleId);
+    if (style?.platformTiles?.length) {
+      styles.push(style);
+    }
+  }
+  return styles;
 }
 
 function getPlatformThemeIds(localBiomeId) {
@@ -917,9 +1029,44 @@ function asGroundSolidTile(tile) {
   return tile ? { ...tile, groundSolid: true } : tile;
 }
 
+function createGroundTileSource({ biome, rand, groundY }) {
+  const terrain = biome?.terrainTiles || {};
+  const surfacePool =
+    terrain.surface?.length
+      ? terrain.surface
+      : [biome?.groundLineTile, biome?.defaultSurface, biome?.groundTile, biome?.defaultFill].filter(Boolean);
+  const middlePool = terrain.middle?.length ? terrain.middle : surfacePool;
+  const deepPool = terrain.deep?.length ? terrain.deep : middlePool;
+  const mountainPool = terrain.mountain?.length ? terrain.mountain : surfacePool;
+  const fallback = surfacePool[0] || middlePool[0] || deepPool[0] || mountainPool[0] || null;
+  const pick = (pool) => {
+    if (!pool?.length) {
+      return fallback;
+    }
+    return pool[randInt(rand, 0, pool.length - 1)] || fallback;
+  };
+
+  return {
+    pick(_x, y) {
+      if (y < groundY) {
+        return pick(mountainPool);
+      }
+      const depth = y - groundY;
+      if (depth <= 0) {
+        return pick(surfacePool);
+      }
+      if (depth === 1) {
+        return pick(middlePool);
+      }
+      return pick(deepPool);
+    },
+  };
+}
+
 function setGroundTileAt(tileGrid, x, y, groundTile) {
   if (!tileGrid[y] || x < 0 || x >= tileGrid[0].length) return;
-  setTile(tileGrid, x, y, asGroundSolidTile(groundTile));
+  const sourceTile = typeof groundTile?.pick === "function" ? groundTile.pick(x, y) : groundTile;
+  setTile(tileGrid, x, y, asGroundSolidTile(sourceTile));
 }
 
 function setGroundColumn(tileGrid, x, groundY, heightTiles, groundTile) {

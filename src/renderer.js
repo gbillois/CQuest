@@ -376,8 +376,10 @@ export function drawTiles(level) {
 
   // Ground is rendered in dedicated passes with overlap so layers interlock visually.
   // Draw from bottom to top to keep the highest row in front.
+  const verticalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_OVERLAP_PX;
+  const horizontalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_HORIZONTAL_OVERLAP_PX;
   for (let y = groundBottomY; y >= groundTopY; y -= 1) {
-    const overlapOffset = (y - groundTopY) * GROUND_TILE_OVERLAP_PX;
+    const overlapOffset = (y - groundTopY) * verticalOverlap;
     for (let x = startX; x <= endX; x += 1) {
       const tile = level.tileGrid[y]?.[x];
       if (!tile) {
@@ -386,9 +388,9 @@ export function drawTiles(level) {
       const image = imageCache.get(tile.path);
       const leftSolid = Boolean(level.tileGrid[y]?.[x - 1]);
       const rightSolid = Boolean(level.tileGrid[y]?.[x + 1]);
-      const halfOverlap = Math.floor(GROUND_TILE_HORIZONTAL_OVERLAP_PX / 2);
+      const halfOverlap = Math.floor(horizontalOverlap / 2);
       const leftExtra = leftSolid ? halfOverlap : 0;
-      const rightExtra = rightSolid ? GROUND_TILE_HORIZONTAL_OVERLAP_PX - halfOverlap : 0;
+      const rightExtra = rightSolid ? horizontalOverlap - halfOverlap : 0;
       const drawX = x * tileSize - leftExtra;
       const drawY = y * tileSize - overlapOffset;
       const drawW = tileSize + leftExtra + rightExtra;

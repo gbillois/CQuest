@@ -15,7 +15,7 @@ import {
   saveHeroUnlocks, saveSelectedHeroId, spendPersistentGold,
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
-  getSelectedHeroId,
+  getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -147,6 +147,9 @@ export function populateSettingsPanel() {
   ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
   if (ui.difficultySelect) {
     ui.difficultySelect.value = state.generationProfile;
+  }
+  if (ui.tileStyleSelect) {
+    ui.tileStyleSelect.value = normalizeTileStyleMode(state.tileStyleMode);
   }
   syncWorldZoomUi();
   renderHeroShop();
@@ -539,10 +542,13 @@ export function bindControls() {
   ui.applySettingsBtn.addEventListener("click", () => {
     const wasStarted = state.started;
     const requestedProfile = ui.difficultySelect ? ui.difficultySelect.value : state.generationProfile;
+    const requestedTileStyleMode = ui.tileStyleSelect ? normalizeTileStyleMode(ui.tileStyleSelect.value) : normalizeTileStyleMode(state.tileStyleMode);
     const requestedLevelValue = String(ui.levelSelect.value || "0");
     const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
     const levelIndex = clamp(Number(requestedLevelValue) || 0, 0, state.levels.length - 1);
     state.generationProfile = requestedProfile;
+    state.tileStyleMode = requestedTileStyleMode;
+    saveTileStyleMode(state.tileStyleMode);
     state.levelSeedBase = createRunSeed();
     _generateLevelsFromConfig(state.config);
     populateSettingsPanel();

@@ -28,7 +28,10 @@ import {
   startGameFromMenu, buildQuestionUiHooks, exposeConjugationApi,
   setUiHooks, renderHeroShop,
 } from "./ui.js";
-import { loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom, initializeHeroProgress, setRenderHeroShop } from "./persistence.js";
+import {
+  loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom,
+  initializeHeroProgress, setRenderHeroShop, loadTileStyleMode,
+} from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
 
 // ─── Wire late-binding hooks ───
@@ -70,6 +73,7 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
+  state.tileStyleMode = loadTileStyleMode();
   state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
