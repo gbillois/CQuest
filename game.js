@@ -2926,7 +2926,6 @@ function loadLevel(levelIndex, resetScore) {
 
   if (resetScore) {
     state.score = 0;
-    state.coins = 0;
     state.hearts = STARTING_HEARTS;
   }
   updateHudInfo();
