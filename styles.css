@@ -193,10 +193,12 @@ body {
 }
 
 #jumpBtn {
+  grid-column: 4;
   justify-self: end;
 }
 
 #jumpHitBtn {
+  grid-column: 4;
   justify-self: end;
 }
 
