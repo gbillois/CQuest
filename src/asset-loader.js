@@ -755,21 +755,20 @@ export function buildBiomeIndex(config) {
       .map((code) => allTiles.find((tile) => getTileCodeFromPath(tile?.path) === code) || null)
       .filter(Boolean);
 
+    // Use the dedicated *-ground.png tile at the tiles root for ground & mountains.
+    const biomeGroundTile = {
+      id: `${biomeId}_ground`,
+      path: `game_assets/tiles/${biomeId}-ground.png`,
+      collision: "solid",
+    };
+
     biomes[biomeId] = {
       id: biomeId,
       tilesetDir: biomeData.tileset_dir,
-      defaultSurface: tileById[biomeData.default_surface_tile] || null,
-      defaultFill: tileById[biomeData.default_fill_tile] || null,
-      groundLineTile:
-        tileById[`${biomeId}_r03_c02`] ||
-        Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r03_c02_10.png`)) ||
-        tileById[`${biomeId}_r01_c01`] ||
-        Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r01_c01_01.png`)) ||
-        null,
-      groundTile:
-        tileById[`${biomeId}_r03_c01`] ||
-        Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r03_c01_09.png`)) ||
-        null,
+      defaultSurface: biomeGroundTile,
+      defaultFill: biomeGroundTile,
+      groundLineTile: biomeGroundTile,
+      groundTile: biomeGroundTile,
       surfaceTiles,
       surfaceLeftTiles: leftSurfaceTiles.length ? leftSurfaceTiles : surfaceTiles,
       surfaceMidTiles: midSurfaceTiles.length ? midSurfaceTiles : surfaceTiles,

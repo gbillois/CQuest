@@ -109,7 +109,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
   // ─── Level Shape: compute ground height variation ───
   const shape = getLevelShape(index);
-  const maxHeightVariation = Math.min(6, Math.floor((heightTiles - 10) / 2));
+  const maxHeightVariation = Math.min(3, Math.floor((heightTiles - 10) / 2));
 
   // Apply terrain shape: vary ground height based on level shape curve.
   for (let x = playableStart; x <= playableEnd; x += 1) {
@@ -269,7 +269,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           const len = randInt(rand, 2, 3);
           addPlatformRail({ startX: stepX, y: stepY, length: len, segmentType: "stairs" });
           stepX += len + clamp(s + 1, 1, 3); // Gap increases.
-          stepY = clamp(stepY - randInt(rand, 1, 2), 3, localGY - 2);
+          stepY = clamp(stepY - 1, localGY - 3, localGY - 2);
         }
         break;
       }
@@ -307,7 +307,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Series of small platforms going down.
         const steps = clamp(Math.floor(difficulty) + 2, 3, 5);
         let stepX = startX + 1;
-        let stepY = localGY - 4;
+        let stepY = localGY - 3;
         for (let s = 0; s < steps && stepX < endX - 2; s++) {
           const len = randInt(rand, 2, 3);
           addPlatformRail({ startX: stepX, y: stepY, length: len, segmentType: "descent" });
@@ -346,7 +346,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Long chain of platforms at elevated height.
         const platCount = clamp(Math.floor(difficulty * 2) + 4, 5, 10);
         let chainX = startX + 1;
-        let chainY = localGY - clamp(Math.floor(heightValue * 4) + 3, 3, 7);
+        let chainY = localGY - clamp(Math.floor(heightValue * 2) + 2, 2, 3);
         for (let p = 0; p < platCount && chainX < endX - 2; p++) {
           const len = randInt(rand, 2, 4);
           addPlatformRail({ startX: chainX, y: chainY, length: len, segmentType: "air" });
@@ -354,10 +354,10 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           // Anti-monotony: vary height.
           const heightDelta = randInt(rand, -1, 1);
           if (lastPlatformHeight === chainY && sameHeightCount >= 2) {
-            chainY = clamp(chainY + (rand() < 0.5 ? -1 : 1), 3, localGY - 2);
+            chainY = clamp(chainY + (rand() < 0.5 ? -1 : 1), localGY - 3, localGY - 2);
             sameHeightCount = 0;
           } else {
-            chainY = clamp(chainY + heightDelta, 3, localGY - 2);
+            chainY = clamp(chainY + heightDelta, localGY - 3, localGY - 2);
           }
           if (chainY === lastPlatformHeight) sameHeightCount++;
           else sameHeightCount = 0;
@@ -395,14 +395,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
       }
 
       case "cliff_climb": {
-        // Zigzag vertical ascent.
-        const levels = clamp(Math.floor(difficulty) + 2, 3, 5);
+        // Zigzag vertical ascent. Each step is 1 tile higher (reachable via jump).
+        const levels = clamp(Math.floor(difficulty) + 2, 2, 3);
         let climbY = localGY - 2;
         let leftSide = true;
         for (let l = 0; l < levels; l++) {
           const px = leftSide ? startX + 1 : endX - 3;
           addPlatformRail({ startX: px, y: climbY, length: 3, segmentType: "climb" });
-          climbY = clamp(climbY - 2, 3, localGY - 2);
+          climbY = clamp(climbY - 1, localGY - 3, localGY - 2);
           leftSide = !leftSide;
         }
         break;
@@ -420,7 +420,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         const bounceY = clamp(localGY + 2, localGY, heightTiles - 2);
         addPlatformRail({ startX: pitCenter - 1, y: bounceY, length: 2, segmentType: "bounce" });
         // High platform to land on after bounce.
-        addPlatformRail({ startX: pitCenter - 1, y: localGY - 5, length: 3, segmentType: "bounce_landing" });
+        addPlatformRail({ startX: pitCenter - 1, y: localGY - 3, length: 3, segmentType: "bounce_landing" });
         break;
       }
 
@@ -455,11 +455,11 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Two paths: upper (harder, shorter) and lower (easier, longer).
         const forkX = startX + 3;
         const mergeX = endX - 3;
-        const upperY = localGY - 5;
+        const upperY = localGY - 3;
         const lowerY = localGY - 2;
         // Upper path: fewer, smaller platforms.
         addPlatformRail({ startX: forkX, y: upperY, length: 3, segmentType: "choice_upper" });
-        addPlatformRail({ startX: forkX + 5, y: upperY - 1, length: 2, segmentType: "choice_upper" });
+        addPlatformRail({ startX: forkX + 5, y: upperY, length: 2, segmentType: "choice_upper" });
         addPlatformRail({ startX: mergeX - 3, y: upperY, length: 3, segmentType: "choice_upper" });
         // Lower path: wider, easier platforms.
         addPlatformRail({ startX: forkX, y: lowerY, length: 4, segmentType: "choice_lower" });
@@ -526,7 +526,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           const len = randInt(rand, 2, 3);
           addPlatformRail({ startX: rx, y: ry, length: len, segmentType: "race" });
           rx += len + 1; // Tight spacing for speed.
-          ry = clamp(ry + randInt(rand, -1, 1), localGY - 5, localGY - 2);
+          ry = clamp(ry + randInt(rand, -1, 1), localGY - 3, localGY - 2);
         }
         conjugationGates.push({
           x: startX * state.tileSize,
@@ -543,7 +543,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
       case "secret_conjugation": {
         // Hidden area accessible by conjugation.
-        const secretY = localGY - 6;
+        const secretY = localGY - 3;
         addPlatformRail({ startX: segMidX - 2, y: secretY, length: 4, segmentType: "secret", isSecret: true });
         secretZones.push({
           x: segMidX * state.tileSize,
@@ -607,7 +607,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Open area with no platforms blocking the view. Wide ground.
         // Just ensure the area is clear and add a bonus platform high up.
         if (segWidth >= 8) {
-          addPlatformRail({ startX: segMidX - 2, y: localGY - 6, length: 4, segmentType: "vista" });
+          addPlatformRail({ startX: segMidX - 2, y: localGY - 3, length: 4, segmentType: "vista" });
         }
         break;
       }
@@ -646,7 +646,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           addPlatformRail({ startX: tx, y: ty, length: len, segmentType: "tension" });
           const gap = clamp(p + 1, 1, 3); // Gaps grow.
           tx += len + gap;
-          ty = clamp(ty - randInt(rand, 0, 1), 3, localGY - 2);
+          ty = clamp(ty - randInt(rand, 0, 1), localGY - 3, localGY - 2);
         }
         // Add holes for escalating danger.
         if (allowGroundHoles) {
@@ -659,7 +659,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
       case "victory_climb": {
         // Triumphant ascent with bonuses.
-        const levels = clamp(Math.floor(difficulty) + 3, 3, 6);
+        const levels = clamp(Math.floor(difficulty) + 2, 2, 3);
         let vy = localGY - 2;
         let vx = startX + 2;
         const zigzag = segWidth > 10;
@@ -667,14 +667,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           const px = zigzag ? (l % 2 === 0 ? vx : vx + 4) : vx + l * 2;
           if (px >= endX - 2) break;
           addPlatformRail({ startX: px, y: vy, length: 3, segmentType: "victory" });
-          vy = clamp(vy - 2, 3, localGY - 2);
+          vy = clamp(vy - 1, localGY - 3, localGY - 2);
         }
         break;
       }
 
       case "hidden_alcove": {
         // Secret area behind the main path.
-        const secretY = localGY - 5;
+        const secretY = localGY - 3;
         const alcoveX = segMidX;
         addPlatformRail({ startX: alcoveX - 1, y: secretY, length: 3, segmentType: "secret", isSecret: true });
         secretZones.push({
@@ -693,10 +693,10 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
       case "reward_shortcut": {
         // Difficult upper path that skips ahead.
-        const upperY = localGY - 6;
+        const upperY = localGY - 3;
         // Upper shortcut: small platforms, harder.
         addPlatformRail({ startX: startX + 1, y: upperY, length: 2, segmentType: "shortcut" });
-        addPlatformRail({ startX: startX + 5, y: upperY - 1, length: 2, segmentType: "shortcut" });
+        addPlatformRail({ startX: startX + 5, y: upperY, length: 2, segmentType: "shortcut" });
         addPlatformRail({ startX: endX - 3, y: upperY, length: 2, segmentType: "shortcut" });
         // Lower main path: normal.
         addPlatformRail({ startX: startX + 2, y: localGY - 2, length: 4, segmentType: "main" });
@@ -735,11 +735,11 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
       case "skyline_secret": {
         // Very high secret area.
-        const skyY = clamp(localGY - 8, 2, localGY - 6);
+        const skyY = localGY - 3;
         // Hard-to-reach platform.
         addPlatformRail({ startX: segMidX - 1, y: skyY, length: 3, segmentType: "sky_secret", isSecret: true });
         // Stepping stone (barely visible).
-        addPlatformRail({ startX: segMidX + 1, y: localGY - 5, length: 2, segmentType: "sky_step" });
+        addPlatformRail({ startX: segMidX + 1, y: localGY - 2, length: 2, segmentType: "sky_step" });
         // Main path platform.
         addPlatformRail({ startX: startX + 1, y: localGY - 2, length: 3, segmentType: "main" });
         secretZones.push({
