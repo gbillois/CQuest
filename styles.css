@@ -771,7 +771,7 @@ body.mobile-debug-adjust #gameCanvas {
 
 @media (max-width: 430px) {
   body {
-    --mobile-controls-offset: 75px;
+    --mobile-controls-offset: 155px;
   }
 
   .icon-button,
@@ -779,8 +779,12 @@ body.mobile-debug-adjust #gameCanvas {
     opacity: 0.7;
   }
 
+  .icon-button {
+    margin-top: 0;
+  }
+
   .controls-zone {
-    transform: translateY(calc(var(--mobile-controls-offset, 75px) * -1));
+    transform: translateY(calc(var(--mobile-controls-offset, 155px) * -1));
   }
 }
 
