@@ -435,7 +435,6 @@ async function init() {
   generateLevelsFromConfig(config);
   await preloadLevelAssetImages(state.levels[0]);
   await preloadSelectedHeroSprites();
-  await preloadEnemiesForLevel(0);
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();
@@ -5531,6 +5530,7 @@ async function preloadEnemiesForLevel(levelIndex) {
 
 function scheduleBackgroundWarmup(config) {
   window.setTimeout(() => {
+    preloadEnemiesForLevel(0).catch(() => null);
     preloadConfigAssetImages(config).catch(() => null);
     preloadParallaxBackgrounds().catch(() => null);
     preloadBossAssets().catch(() => null);
