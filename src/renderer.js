@@ -440,35 +440,39 @@ export function drawDecorations(level) {
 
 export function drawGroundDecorations(level) {
   const tileSize = state.tileSize;
-  // Draw ground decorations at 2x tile size so sprites whose visual content
-  // fills only half the tile (e.g. mountain decor) render at a natural size.
-  const decorScale = 2;
-  const drawW = tileSize * decorScale;
-  const drawH = tileSize * decorScale;
   for (const decor of level.groundDecorations || []) {
     const image = imageCache.get(decor.path);
     if (!isImageRenderable(image)) {
       continue;
     }
-    const tileX = decor.xTile * tileSize;
-    const drawX = tileX - (drawW - tileSize) / 2; // center horizontally on the tile
+    // Skip decoration sprites whose visible content fills less than half the
+    // tile height (e.g. mountain detail overlays that are only ~9px tall on a
+    // 32px canvas produce tiny, odd-looking decorations).
+    const bounds = getSpriteOpaqueBounds(image);
+    if (bounds) {
+      const sourceH = image.naturalHeight || image.height || tileSize;
+      const contentH = bounds.bottom - bounds.top + 1;
+      if (contentH < sourceH * 0.5) {
+        continue;
+      }
+    }
+    const x = decor.xTile * tileSize;
     const groundTileY = level.groundY;
     const groundTile = level.tileGrid[groundTileY]?.[decor.xTile] || null;
     const groundRect = groundTile ? getSolidTileCollisionRect(groundTile, decor.xTile, groundTileY) : null;
     const surfaceY = groundRect ? groundRect.y : groundTileY * tileSize;
-    const bounds = getSpriteOpaqueBounds(image);
     if (bounds) {
       const sourceH = image.naturalHeight || image.height || tileSize;
-      const scaleY = drawH / sourceH;
+      const scaleY = tileSize / sourceH;
       const bottomPad = Math.max(0, sourceH - 1 - bounds.bottom) * scaleY;
-      // Anchor visible pixels to the actual ground surface.
-      const drawY = Math.round(surfaceY - drawH + bottomPad);
-      ctx.drawImage(image, drawX, drawY, drawW, drawH);
+      // Anchor visible pixels to the actual ground surface (including top inset of ground tile).
+      const drawY = Math.round(surfaceY - tileSize + bottomPad);
+      ctx.drawImage(image, x, drawY, tileSize, tileSize);
     } else {
       // file:// fallback: pixel reads may be blocked, so apply a conservative bottom padding.
-      const fallbackBottomPad = Math.round(drawH * GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO);
-      const drawY = Math.round(surfaceY - drawH + fallbackBottomPad);
-      ctx.drawImage(image, drawX, drawY, drawW, drawH);
+      const fallbackBottomPad = Math.round(tileSize * GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO);
+      const drawY = Math.round(surfaceY - tileSize + fallbackBottomPad);
+      ctx.drawImage(image, x, drawY, tileSize, tileSize);
     }
   }
 }
