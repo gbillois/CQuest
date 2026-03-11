@@ -5352,16 +5352,12 @@ async function buildHeroFromMetadata(dir, metadata) {
     sprite: {
       idleSE: toAssetPath(`./game_assets/heroes/${dir}`, rotations["south-east"]),
       idleSW: toAssetPath(`./game_assets/heroes/${dir}`, rotations["south-west"]),
-      runSE: await keepLoadablePaths(
-        (running["south-east"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file)),
-      ),
-      runSW: await keepLoadablePaths(
-        (running["south-west"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file)),
-      ),
-      jumpSE: await keepLoadablePaths(
+      runSE: normalizeUniqueAssetPaths((running["south-east"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file))),
+      runSW: normalizeUniqueAssetPaths((running["south-west"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file))),
+      jumpSE: normalizeUniqueAssetPaths(
         (jumping["south-east"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file)),
       ),
-      jumpSW: await keepLoadablePaths(
+      jumpSW: normalizeUniqueAssetPaths(
         (jumping["south-west"] || []).map((file) => toAssetPath(`./game_assets/heroes/${dir}`, file)),
       ),
     },
@@ -5430,12 +5426,8 @@ async function buildEnemyFromMetadata(dir, metadata) {
     sprite: {
       idleE: toAssetPath(`./game_assets/enemies/${dir}`, rotations.east || rotations.south),
       idleW: toAssetPath(`./game_assets/enemies/${dir}`, rotations.west || rotations.south),
-      walkE: await keepLoadablePaths(
-        (walkingSet.east || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file)),
-      ),
-      walkW: await keepLoadablePaths(
-        (walkingSet.west || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file)),
-      ),
+      walkE: normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
+      walkW: normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
     },
   };
 
@@ -5539,15 +5531,8 @@ function scheduleBackgroundWarmup(config) {
   }, 0);
 }
 
-async function keepLoadablePaths(paths) {
-  const unique = [...new Set((paths || []).filter(Boolean).map((path) => normalizeAssetPath(path)))];
-  const out = [];
-  for (const path of unique) {
-    if (await tryLoadImage(path)) {
-      out.push(path);
-    }
-  }
-  return out;
+function normalizeUniqueAssetPaths(paths) {
+  return [...new Set((paths || []).filter(Boolean).map((path) => normalizeAssetPath(path)))];
 }
 
 async function collectFramePaths(prefix, maxFrames) {
