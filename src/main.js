@@ -9,6 +9,7 @@ import {
 } from "./asset-loader.js";
 import { generateLevelsFromConfig } from "./level-generator.js";
 import { loadSpriteManifest } from "./sprite-manifest.js";
+import { validateAllLevels, scoreLevelQuality } from "./level-validator.js";
 import { setTriggerBonusBlock, resolveHorizontalCollisions, resolveVerticalCollisions } from "./physics.js";
 import {
   updateEnemies, updateFireballs, updateBonusBlocks, updateEnemyDrops,
@@ -113,6 +114,9 @@ async function init() {
     },
   });
   exposeConjugationApi();
+  // Expose level validator for console debugging.
+  window.validateLevels = validateAllLevels;
+  window.scoreLevelQuality = scoreLevelQuality;
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();

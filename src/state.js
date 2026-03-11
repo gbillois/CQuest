@@ -31,6 +31,8 @@ export const ui = {
   debugGameOffsetValue: document.getElementById("debugGameOffsetValue"),
   debugScaleSlider: document.getElementById("debugScaleSlider"),
   debugScaleValue: document.getElementById("debugScaleValue"),
+  validateLevelsBtn: document.getElementById("validateLevelsBtn"),
+  validateLevelsOutput: document.getElementById("validateLevelsOutput"),
   closeVisualDebugBtn: document.getElementById("closeVisualDebugBtn"),
   hudLives: document.getElementById("hudLives"),
   hudGoldValue: document.getElementById("hudGoldValue"),
