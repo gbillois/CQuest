@@ -7,6 +7,7 @@ import {
   PLAYER_RENDER_GROUND_OFFSET_PX, PLAYER_HIT_BLINK_HZ,
   BOSS_DRAGON_ATTACK_SW_FRAMES, BOSS_FALLBACK_DRAGON_FRAME,
   MIN_WORLD_ZOOM, MAX_WORLD_ZOOM,
+  CAMERA_DEADZONE_X, CAMERA_LERP_SPEED,
 } from "./constants.js";
 import { clamp } from "./utils.js";
 import { state, ctx, ui, imageCache } from "./state.js";
@@ -61,12 +62,20 @@ export function setWorldZoom(nextZoom, { syncUi = true } = {}) {
 
 /* ── Camera ── */
 
-export function updateCamera() {
+export function updateCamera(delta = 1 / 60) {
   const zoom = getWorldZoom();
   const visibleWorldWidth = VIRTUAL_WIDTH / zoom;
   const desired = state.player.x - visibleWorldWidth * 0.35;
   const maxX = Math.max(0, state.currentLevel.worldWidth - visibleWorldWidth);
-  state.cameraX += (clamp(desired, 0, maxX) - state.cameraX) * 0.08;
+  const target = clamp(desired, 0, maxX);
+  const diff = target - state.cameraX;
+  // Deadzone: don't move camera for tiny player movements.
+  if (Math.abs(diff) < CAMERA_DEADZONE_X) {
+    return;
+  }
+  // FPS-independent exponential lerp: 1 - e^(-speed * dt).
+  const t = 1 - Math.exp(-CAMERA_LERP_SPEED * delta);
+  state.cameraX += diff * t;
 }
 
 export function getWorldRenderOffsetY(level) {
@@ -313,12 +322,20 @@ export function drawParallaxLayer(image, speed, alpha, scale, yOffset) {
 
 export function drawTiles(level) {
   const tileSize = state.tileSize;
+  const zoom = getWorldZoom();
   const startX = Math.max(0, Math.floor(state.cameraX / tileSize) - 1);
-  const endX = Math.min(level.widthTiles - 1, Math.floor((state.cameraX + VIRTUAL_WIDTH) / tileSize) + 2);
+  const endX = Math.min(level.widthTiles - 1, Math.floor((state.cameraX + VIRTUAL_WIDTH / zoom) / tileSize) + 2);
   const groundTopY = level.groundY;
   const groundBottomY = Math.min(level.heightTiles - 1, groundTopY + GROUND_THICKNESS_TILES - 1);
 
-  for (let y = 0; y < level.heightTiles; y += 1) {
+  // Vertical culling: compute visible Y range in world coordinates.
+  const offsetY = getWorldRenderOffsetY(level);
+  const visibleWorldTop = -offsetY;
+  const visibleWorldBottom = visibleWorldTop + VIRTUAL_HEIGHT / zoom;
+  const startY = Math.max(0, Math.floor(visibleWorldTop / tileSize) - 1);
+  const endY = Math.min(level.heightTiles - 1, Math.floor(visibleWorldBottom / tileSize) + 1);
+
+  for (let y = startY; y <= endY; y += 1) {
     for (let x = startX; x <= endX; x += 1) {
       const tile = level.tileGrid[y][x];
       if (!tile) {
@@ -463,8 +480,15 @@ export function drawBonuses(level, timeSeconds) {
 }
 
 export function drawEnemies(level) {
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
   for (const enemy of level.enemySpawns) {
     if (!enemy.alive) {
+      continue;
+    }
+    // Off-screen culling with margin.
+    if (enemy.x + enemy.w < camLeft || enemy.x > camRight) {
       continue;
     }
     const image = pickEnemyFrame(enemy);

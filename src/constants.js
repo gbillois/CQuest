@@ -34,6 +34,10 @@ export const PLAYER_RENDER_GROUND_OFFSET_PX = 0;
 export const PLAYER_HITBOX_WIDTH = 28;
 export const PLAYER_HITBOX_HEIGHT = 120;
 export const MIN_PLAYER_JUMP_HEIGHT_TILES = 5.0;
+export const JUMP_CUT_MULTIPLIER = 0.4;
+export const JUMP_BUFFER_WINDOW_SECONDS = 0.1;
+export const CAMERA_DEADZONE_X = 20;
+export const CAMERA_LERP_SPEED = 5;
 export const PLAYER_HIT_INVULN_SECONDS = 1.6;
 export const PLAYER_HIT_STUN_SECONDS = 0.18;
 export const PLAYER_HIT_KNOCKBACK_X = 190;
@@ -67,8 +71,8 @@ export const GROUND_THICKNESS_TILES = 4;
 export const GROUND_TILE_OVERLAP_PX = 20;
 export const GROUND_TILE_HORIZONTAL_OVERLAP_PX = 2;
 export const GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO = 0.22;
-export const GROUND_SURFACE_VARIATION_MAX_UP = 0;
-export const GROUND_SURFACE_VARIATION_MAX_DOWN = 0;
+export const GROUND_SURFACE_VARIATION_MAX_UP = 1;
+export const GROUND_SURFACE_VARIATION_MAX_DOWN = 1;
 
 // ─── Conjugation labels ───
 export const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
