@@ -11,8 +11,13 @@ const GAME = {
 };
 const HERO_SCALE = 1.5;
 const ENEMY_SCALE = 1.5;
-const STARTING_HEARTS = 3;
-const MAX_HEARTS = 3;
+const DEFAULT_STARTING_HEARTS = 3;
+const MAX_HEARTS = 5;
+const PROFILE_STARTING_HEARTS = {
+  easy: 5,
+  normal: 5,
+  chaotic: 3,
+};
 const SPRITE_FALLBACK_FOOT_OFFSET_RATIO = 0.12;
 const PLAYER_RENDER_GROUND_OFFSET_PX = 0;
 const PLAYER_HITBOX_WIDTH = 28;
@@ -149,6 +154,10 @@ const GENERATION_PROFILES = {
 
 function getGenerationProfileSettings(profileId) {
   return GENERATION_PROFILES[profileId] || GENERATION_PROFILES.normal;
+}
+
+function getStartingHearts(profileId) {
+  return PROFILE_STARTING_HEARTS[profileId] || DEFAULT_STARTING_HEARTS;
 }
 
 const HERO_SHOP_CONFIG = {
@@ -311,7 +320,7 @@ const state = {
   score: 0,
   coins: 0,
   persistentGold: 0,
-  hearts: STARTING_HEARTS,
+  hearts: getStartingHearts("normal"),
   cheatLongPressTimer: null,
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
@@ -2926,7 +2935,7 @@ function loadLevel(levelIndex, resetScore) {
 
   if (resetScore) {
     state.score = 0;
-    state.hearts = STARTING_HEARTS;
+    state.hearts = getStartingHearts(state.generationProfile);
   }
   updateHudInfo();
 
