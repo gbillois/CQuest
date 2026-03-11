@@ -316,7 +316,7 @@ const state = {
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
   mobileButtonsOffsetY: 155,
-  mobileGameOffsetY: -200,
+  mobileGameOffsetY: 0,
   generationProfile: "normal",
   worldZoom: WORLD_SCALE,
   screenMode: "game",
@@ -2249,11 +2249,12 @@ function isMobileViewport() {
 function applyMobileVisualDebugOffsets() {
   const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
   const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
+  const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
-  document.body.style.setProperty("--mobile-controls-offset", `${buttonsOffset}px`);
-  document.body.style.setProperty("--mobile-game-offset", `${gameOffset}px`);
-  document.body.classList.toggle("mobile-debug-adjust", gameOffset !== 0);
+  document.body.style.setProperty("--mobile-controls-offset", `${mobileViewport ? buttonsOffset : 0}px`);
+  document.body.style.setProperty("--mobile-game-offset", `${mobileViewport ? gameOffset : 0}px`);
+  document.body.classList.toggle("mobile-debug-adjust", mobileViewport && gameOffset !== 0);
   if (ui.debugButtonsOffsetSlider) {
     ui.debugButtonsOffsetSlider.value = String(buttonsOffset);
   }
