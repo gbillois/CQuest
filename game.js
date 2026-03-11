@@ -706,8 +706,8 @@ function buildBiomeIndex(config) {
       defaultSurface: tileById[biomeData.default_surface_tile] || null,
       defaultFill: tileById[biomeData.default_fill_tile] || null,
       groundLineTile:
-        tileById[`${biomeId}_r03_c02`] ||
-        Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r03_c02_10.png`)) ||
+        tileById[`${biomeId}_r01_c02`] ||
+        Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r01_c02_02.png`)) ||
         tileById[`${biomeId}_r01_c01`] ||
         Object.values(tileById).find((tile) => tile.path?.includes(`/${biomeId}_tile_r01_c01_01.png`)) ||
         null,
