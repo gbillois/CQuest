@@ -425,29 +425,10 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
       }
 
       case "guardian_gate": {
-        // Conjugation-gated passage. Enemy guards a narrow passage.
+        // Keep the traversal shape but without gate mechanics.
         const gateX = segMidX;
-        // Create a "wall" by placing solid tiles above ground.
-        const wallY = localGY - 1;
-        if (tileGrid[wallY]) {
-          setTile(tileGrid, gateX, wallY, asGroundSolidTile(groundTile));
-          if (wallY - 1 >= 0 && tileGrid[wallY - 1]) {
-            setTile(tileGrid, gateX, wallY - 1, asGroundSolidTile(groundTile));
-          }
-        }
-        // Platform before the gate for the player to stand on.
         addPlatformRail({ startX: gateX - 3, y: localGY - 3, length: 2, segmentType: "gate_approach" });
-        // Platform after for landing.
         addPlatformRail({ startX: gateX + 2, y: localGY - 3, length: 2, segmentType: "gate_exit" });
-        conjugationGates.push({
-          x: gateX * state.tileSize,
-          y: wallY * state.tileSize,
-          tileX: gateX,
-          tileY: wallY,
-          type: "guardian",
-          difficulty: difficulty > 0.6 ? "medium" : "easy",
-          opened: false,
-        });
         break;
       }
 
@@ -465,16 +446,6 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         addPlatformRail({ startX: forkX, y: lowerY, length: 4, segmentType: "choice_lower" });
         addPlatformRail({ startX: forkX + 6, y: lowerY, length: 4, segmentType: "choice_lower" });
         addPlatformRail({ startX: mergeX - 4, y: lowerY, length: 4, segmentType: "choice_lower" });
-        // Conjugation gate on upper path for bonus.
-        conjugationGates.push({
-          x: (forkX + 3) * state.tileSize,
-          y: upperY * state.tileSize,
-          tileX: forkX + 3,
-          tileY: upperY,
-          type: "path_choice",
-          difficulty: "easy",
-          opened: false,
-        });
         break;
       }
 
@@ -505,15 +476,6 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         for (let x = startX + 2; x <= Math.min(endX - 2, lx); x++) {
           tryCreateHole(x, 1);
         }
-        conjugationGates.push({
-          x: startX * state.tileSize,
-          y: bridgeY * state.tileSize,
-          tileX: startX,
-          tileY: bridgeY,
-          type: "letter_bridge",
-          difficulty: difficulty > 0.6 ? "medium" : "easy",
-          opened: false,
-        });
         break;
       }
 
@@ -528,16 +490,6 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           rx += len + 1; // Tight spacing for speed.
           ry = clamp(ry + randInt(rand, -1, 1), localGY - 3, localGY - 2);
         }
-        conjugationGates.push({
-          x: startX * state.tileSize,
-          y: localGY * state.tileSize,
-          tileX: startX,
-          tileY: localGY,
-          type: "verb_race",
-          difficulty: "medium",
-          opened: false,
-          timeLimit: clamp(20 - difficulty * 3, 8, 20),
-        });
         break;
       }
 
@@ -554,35 +506,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           width: 4,
           height: 2,
         });
-        conjugationGates.push({
-          x: segMidX * state.tileSize,
-          y: (secretY + 1) * state.tileSize,
-          tileX: segMidX,
-          tileY: secretY + 1,
-          type: "secret_gate",
-          difficulty: "hard",
-          opened: false,
-        });
         break;
       }
 
       case "conjugation_cascade": {
-        // Three mini-gates in sequence.
+        // Three mini-platforms in sequence.
         const gateSpacing = Math.floor(segWidth / 4);
         for (let g = 0; g < 3; g++) {
           const gx = startX + (g + 1) * gateSpacing;
           if (gx >= endX - 1) break;
           addPlatformRail({ startX: gx - 1, y: localGY - 3, length: 3, segmentType: "cascade" });
-          conjugationGates.push({
-            x: gx * state.tileSize,
-            y: (localGY - 1) * state.tileSize,
-            tileX: gx,
-            tileY: localGY - 1,
-            type: "cascade",
-            difficulty: g === 0 ? "easy" : g === 1 ? "medium" : "hard",
-            opened: false,
-            cascadeIndex: g,
-          });
         }
         break;
       }
@@ -1272,9 +1205,11 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
     if (items.length >= count) return false;
     if (tileX < 1 || tileX > tileGrid[0].length - 2 || tileY < 2 || tileY > (heightTiles || tileGrid.length) - 3) return false;
     if (tileGrid[tileY]?.[tileX]) return false;
+    if (isSolidTile(tileGrid[tileY + 1]?.[tileX])) return false;
     if (intersectsRanges(tileX, tileX, reservedRanges || [])) return false;
     if (isInHole(holes || [], tileX)) return false;
     if (items.some((item) => item.tileX === tileX)) return false;
+    if (!hasReachableBonusSupport(tileGrid, tileX, tileY, groundY)) return false;
     const worldX = tileX * tileSize;
     const worldY = tileY * tileSize;
     if (items.some((item) => Math.abs(item.x - worldX) < tileSize && Math.abs(item.y - worldY) < tileSize)) return false;
