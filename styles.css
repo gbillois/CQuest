@@ -169,20 +169,18 @@ body {
 }
 
 .touch-controls {
-  display: flex;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   padding: 0;
-}
-
-#jumpBtn {
-  margin-left: auto;
+  width: 100%;
 }
 
 .touch-btn {
-  width: min(23vw, 104px);
+  width: min(21vw, 92px);
+  justify-self: center;
   aspect-ratio: 1 / 1;
-  max-height: 90px;
+  max-height: 78px;
   border: none;
   background: transparent;
   padding: 0;
@@ -827,22 +825,19 @@ body.mobile-debug-adjust #gameCanvas {
       right: 10px;
       top: 8px;
       bottom: calc(20px + env(safe-area-inset-bottom));
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       align-items: center;
-      justify-content: flex-start;
       gap: 8px;
       pointer-events: none;
     }
 
     .touch-hit-btn {
-      width: min(23vw, 104px);
+      width: min(21vw, 92px);
       min-height: 56px;
+      justify-self: center;
       border-radius: 14px;
       pointer-events: auto;
-    }
-
-    #jumpHitBtn {
-      margin-left: auto;
     }
   }
 }

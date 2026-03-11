@@ -468,7 +468,7 @@ async function setupUiAssets(config) {
   ui.btnLeft.src = uiAssets.button_left || "";
   ui.btnRight.src = uiAssets.button_right || "";
   ui.btnUp.src = uiAssets.button_up || "";
-  ui.btnFire.src = MAGE_FIREBALL_ICON;
+  ui.btnFire.src = uiAssets.button_upgrade || MAGE_FIREBALL_ICON;
 
   const uiPaths = [
     uiAssets.button_shop_top,
@@ -478,6 +478,7 @@ async function setupUiAssets(config) {
     uiAssets.button_left,
     uiAssets.button_right,
     uiAssets.button_up,
+    uiAssets.button_upgrade,
     MAGE_FIREBALL_ICON,
   ].filter(Boolean);
 
@@ -3134,17 +3135,21 @@ function castHeroProjectile() {
   const player = state.player;
   const forwardSign = player.facing === "south-west" ? -1 : 1;
   const originX = player.x + player.w * 0.5;
-  const originY = player.y + player.h * 0.43;
+  const centerOriginY = player.y + player.h * 0.5;
+  const castOriginY = player.y + player.h * 0.43;
 
   if (heroId === "ninja") {
     state.fireballs.push({
       x: originX,
-      y: originY,
+      y: centerOriginY,
       vx: forwardSign * NINJA_SHURIKEN_SPEED,
       vy: 0,
       gravity: 0,
       life: 0.9,
       radius: NINJA_SHURIKEN_RADIUS,
+      kind: "shuriken",
+      spin: Math.random() * Math.PI * 2,
+      spinSpeed: 16,
     });
     return true;
   }
@@ -3152,12 +3157,14 @@ function castHeroProjectile() {
   if (heroId === "pirate") {
     state.fireballs.push({
       x: originX,
-      y: originY,
+      y: castOriginY,
       vx: forwardSign * PIRATE_SABER_SPEED_X,
       vy: PIRATE_SABER_SPEED_Y,
       gravity: PIRATE_SABER_GRAVITY,
       life: 1.35,
       radius: PIRATE_SABER_RADIUS,
+      kind: "saber",
+      rotation: forwardSign > 0 ? 0.35 : -0.35,
     });
     return true;
   }
@@ -3169,16 +3176,17 @@ function castHeroProjectile() {
   const targetX = target.x + target.w * 0.5;
   const targetY = target.y + target.h * 0.5;
   const dx = targetX - originX;
-  const dy = targetY - originY;
+  const dy = targetY - castOriginY;
   const distance = Math.hypot(dx, dy) || 1;
   state.fireballs.push({
     x: originX,
-    y: originY,
+    y: castOriginY,
     vx: (dx / distance) * MAGE_FIREBALL_SPEED,
     vy: (dy / distance) * MAGE_FIREBALL_SPEED,
     gravity: 0,
     life: Math.max(0.45, distance / MAGE_FIREBALL_SPEED + 0.15),
     radius: MAGE_FIREBALL_RADIUS,
+    kind: "fireball",
   });
   return true;
 }
@@ -4835,21 +4843,70 @@ function drawFireballs(level) {
   if (!state.fireballs.length) {
     return;
   }
-  const image = imageCache.get(MAGE_FIREBALL_ICON);
   for (const fireball of state.fireballs) {
-    const size = fireball.radius * 2;
-    const drawX = fireball.x - fireball.radius;
-    const drawY = fireball.y - fireball.radius;
-    if (isImageRenderable(image)) {
-      ctx.drawImage(image, drawX, drawY, size, size);
+    if (fireball.kind === "shuriken") {
+      const angle = (fireball.spin || 0) + performance.now() * 0.001 * (fireball.spinSpeed || 14);
+      ctx.save();
+      ctx.translate(fireball.x, fireball.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = "#d8dee9";
+      ctx.strokeStyle = "#7f8ca2";
+      ctx.lineWidth = 1.5;
+      const arm = fireball.radius;
+      for (let i = 0; i < 4; i += 1) {
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(arm * 0.22, -arm * 0.22);
+        ctx.lineTo(arm, 0);
+        ctx.lineTo(arm * 0.22, arm * 0.22);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#5a6578";
+      ctx.beginPath();
+      ctx.arc(0, 0, arm * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
       continue;
     }
-    ctx.fillStyle = "#ff8e42";
+
+    if (fireball.kind === "saber") {
+      const angle = Math.atan2(fireball.vy, fireball.vx) + (fireball.rotation || 0);
+      const length = fireball.radius * 2.2;
+      const width = fireball.radius * 0.42;
+      ctx.save();
+      ctx.translate(fireball.x, fireball.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = "#f2f5ff";
+      ctx.fillRect(-length * 0.45, -width * 0.5, length, width);
+      ctx.fillStyle = "#ffc86a";
+      ctx.fillRect(-length * 0.58, -width * 0.7, length * 0.12, width * 1.4);
+      ctx.fillStyle = "#9e5a2f";
+      ctx.fillRect(-length * 0.67, -width * 0.28, length * 0.1, width * 0.56);
+      ctx.restore();
+      continue;
+    }
+
+    const gradient = ctx.createRadialGradient(
+      fireball.x - fireball.radius * 0.3,
+      fireball.y - fireball.radius * 0.3,
+      fireball.radius * 0.2,
+      fireball.x,
+      fireball.y,
+      fireball.radius,
+    );
+    gradient.addColorStop(0, "#fff7c2");
+    gradient.addColorStop(0.55, "#ffb347");
+    gradient.addColorStop(1, "#ff6a2f");
+    ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);
     ctx.fill();
   }
 }
+
 
 function drawEnemies(level) {
   for (const enemy of level.enemySpawns) {
