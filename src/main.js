@@ -10,6 +10,7 @@ import {
 import { generateLevelsFromConfig } from "./level-generator.js";
 import { loadSpriteManifest } from "./sprite-manifest.js";
 import { validateAllLevels, scoreLevelQuality } from "./level-validator.js";
+import { logInfo, logError, dumpLogs, setLogLevel, getLogs, clearLogs } from "./logger.js";
 import { setTriggerBonusBlock, resolveHorizontalCollisions, resolveVerticalCollisions } from "./physics.js";
 import {
   updateEnemies, updateFireballs, updateBonusBlocks, updateEnemyDrops,
@@ -114,15 +115,21 @@ async function init() {
     },
   });
   exposeConjugationApi();
-  // Expose level validator for console debugging.
+  // Expose debug APIs on window for console access.
   window.validateLevels = validateAllLevels;
   window.scoreLevelQuality = scoreLevelQuality;
+  window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+
+  logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();
   ensureEmergencyRoster();
 
+  logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
+
   generateLevelsFromConfig(config);
+  logInfo("init", `Generated ${state.levels.length} levels`);
   await preloadLevelAssetImages(state.levels[0]);
   await preloadSelectedHeroSprites();
   populateSettingsPanel();
@@ -135,6 +142,7 @@ async function init() {
   state.ready = true;
   showTitleScreen();
   scheduleBackgroundWarmup(config);
+  logInfo("init", "Game ready — starting loop");
   requestAnimationFrame(gameLoop);
 }
 
@@ -298,6 +306,6 @@ function updatePlayer(delta) {
 
 // ─── Bootstrap ───
 init().catch((error) => {
-  console.error(error);
+  logError("init", "Fatal init error", { message: error?.message, stack: error?.stack });
   updateHudInfo();
 });
