@@ -8,6 +8,7 @@ import {
   preloadSelectedHeroSprites, scheduleBackgroundWarmup, setUpdateHudInfo,
 } from "./asset-loader.js";
 import { generateLevelsFromConfig } from "./level-generator.js";
+import { loadSpriteManifest } from "./sprite-manifest.js";
 import { setTriggerBonusBlock, resolveHorizontalCollisions, resolveVerticalCollisions } from "./physics.js";
 import {
   updateEnemies, updateFireballs, updateBonusBlocks, updateEnemyDrops,
@@ -60,6 +61,9 @@ async function init() {
   state.config = config;
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
+
+  // Load sprite manifest for fast bounding-box lookups (replaces runtime pixel scanning).
+  await loadSpriteManifest();
 
   await setupUiAssets(config);
   buildBiomeIndex(config);

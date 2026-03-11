@@ -8,6 +8,7 @@ import {
 } from "./constants.js";
 import { mulberry32, randInt, createRunSeed, clamp, setTile, buildWeightedBiomeList, weightedPick, weightedPickByKey } from "./utils.js";
 import { state } from "./state.js";
+import { getManifestHitbox } from "./sprite-manifest.js";
 
 // Local helpers to avoid circular dependency on physics.js
 function isSolidTile(tile) {
@@ -1213,6 +1214,18 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
 }
 
 export function getEnemyHitboxSize(enemyDef) {
+  // Use manifest content bounds for accurate hitbox when available.
+  const idlePath = enemyDef?.sprite?.idleE || enemyDef?.sprite?.idleW;
+  if (idlePath) {
+    const mbox = getManifestHitbox(idlePath, ENEMY_SCALE);
+    if (mbox) {
+      return {
+        w: clamp(mbox.w, ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W),
+        h: clamp(mbox.h, ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H),
+      };
+    }
+  }
+  // Fallback: ratio-based estimation from sprite canvas size.
   const spriteW = (enemyDef?.size?.width || 48) * ENEMY_SCALE;
   const spriteH = (enemyDef?.size?.height || 48) * ENEMY_SCALE;
   return {

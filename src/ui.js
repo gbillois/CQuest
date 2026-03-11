@@ -4,7 +4,7 @@ import {
   BIOME_EMOJI, BOSS_LEVEL_VALUE,
   CHEAT_MENU_LONG_PRESS_MS, MAX_HEARTS,
   getHeroShopConfig, getStartingHearts,
-  PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT,
+  PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE,
   PLAYER_DEATH_DELAY_SECONDS,
   ERROR_DB_STORAGE_KEY,
 } from "./constants.js";
@@ -18,6 +18,7 @@ import {
   getSelectedHeroId,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
+import { getManifestHitbox } from "./sprite-manifest.js";
 
 /* ── late-binding for cross-module calls ── */
 
@@ -262,6 +263,13 @@ export function openVisualDebugPanel() {
     return;
   }
   applyMobileVisualDebugOffsets();
+  // Sync the scale slider to the current world zoom value.
+  if (ui.debugScaleSlider) {
+    ui.debugScaleSlider.value = String(state.worldZoom);
+  }
+  if (ui.debugScaleValue) {
+    ui.debugScaleValue.textContent = `${Number(state.worldZoom).toFixed(1)}x`;
+  }
   ui.visualDebugPanel.classList.remove("hidden");
   state.visualDebugOpen = true;
 }
@@ -405,6 +413,13 @@ export function bindControls() {
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
     state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 200);
     applyMobileVisualDebugOffsets();
+  });
+  ui.debugScaleSlider?.addEventListener("input", () => {
+    const value = clamp(Number(ui.debugScaleSlider.value) || 1.0, 0.5, 3.0);
+    if (ui.debugScaleValue) {
+      ui.debugScaleValue.textContent = `${value.toFixed(1)}x`;
+    }
+    _setWorldZoom?.(value);
   });
   ui.closeVisualDebugBtn?.addEventListener("click", closeVisualDebugPanel);
 
@@ -892,8 +907,10 @@ export function loadLevel(levelIndex, resetScore) {
   ensureSelectedHeroIsOwned();
   syncHeroActionButtonVisibility();
   const hero = state.heroes[state.selectedHeroIndex];
-  const playerW = PLAYER_HITBOX_WIDTH;
-  const playerH = PLAYER_HITBOX_HEIGHT;
+  // Derive hitbox from manifest content bounding box when available.
+  const manifestHitbox = hero ? getManifestHitbox(hero.sprite.idleSE, HERO_SCALE) : null;
+  const playerW = manifestHitbox?.w || PLAYER_HITBOX_WIDTH;
+  const playerH = manifestHitbox?.h || PLAYER_HITBOX_HEIGHT;
   state.player = {
     x: state.currentLevel.start.x,
     y: state.currentLevel.start.y - playerH,

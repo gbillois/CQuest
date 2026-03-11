@@ -13,6 +13,10 @@ export const GAME = {
 };
 
 // ─── Scaling ───
+// BASE_UNIT is the reference tile size in pixels. All tile-relative dimensions
+// can be expressed as multiples of BASE_UNIT. If the config changes tile_size,
+// use bu() to convert BASE_UNIT multiples to actual pixel values.
+export const BASE_UNIT = 64;
 export const HERO_SCALE = 1.5;
 export const ENEMY_SCALE = 1.5;
 export const WORLD_SCALE = 1;

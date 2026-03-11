@@ -2,6 +2,7 @@ import { SPRITE_FALLBACK_FOOT_OFFSET_RATIO, GROUND_DECOR_FALLBACK_BOTTOM_PAD_RAT
 import { clamp, aabb } from "./utils.js";
 import { state, imageCache, spriteBoundsCache, spriteBoundsCanvas, spriteBoundsCtx, tileVerticalCollisionInsetCache } from "./state.js";
 import { isImageRenderable } from "./asset-loader.js";
+import { getManifestBounds, getManifestContentBox } from "./sprite-manifest.js";
 
 let _triggerBonusBlock = null;
 export function setTriggerBonusBlock(fn) { _triggerBonusBlock = fn; }
@@ -164,6 +165,23 @@ export function getBonusCollisionInsets(block) {
   if (tileVerticalCollisionInsetCache.has(path)) {
     return tileVerticalCollisionInsetCache.get(path) || { left: 0, right: 0, top: 0, bottom: 0 };
   }
+
+  // Try manifest first.
+  const manifestBounds = getManifestBounds(path);
+  if (manifestBounds) {
+    const cbox = getManifestContentBox(path);
+    const w = cbox?.canvasW || 32;
+    const h = cbox?.canvasH || 32;
+    const inset = {
+      left: manifestBounds.left / w,
+      right: Math.max(0, w - 1 - manifestBounds.right) / w,
+      top: manifestBounds.top / h,
+      bottom: Math.max(0, h - 1 - manifestBounds.bottom) / h,
+    };
+    tileVerticalCollisionInsetCache.set(path, inset);
+    return inset;
+  }
+
   const image = imageCache.get(path);
   if (!isImageRenderable(image)) {
     return { left: 0, right: 0, top: 0, bottom: 0 };
@@ -175,12 +193,14 @@ export function getBonusCollisionInsets(block) {
     return { left: 0, right: 0, top: 0, bottom: 0 };
   }
 
-  return {
+  const inset = {
     left: bounds.left / sourceW,
     right: Math.max(0, sourceW - 1 - bounds.right) / sourceW,
     top: bounds.top / sourceH,
     bottom: Math.max(0, sourceH - 1 - bounds.bottom) / sourceH,
   };
+  tileVerticalCollisionInsetCache.set(path, inset);
+  return inset;
 }
 
 export function getTileCollisionInsets(tile) {
@@ -189,6 +209,26 @@ export function getTileCollisionInsets(tile) {
   }
   if (tileVerticalCollisionInsetCache.has(tile.path)) {
     return tileVerticalCollisionInsetCache.get(tile.path);
+  }
+
+  // Try manifest first — avoids needing the image loaded at all.
+  const manifestBounds = getManifestBounds(tile.path);
+  if (manifestBounds) {
+    const image = imageCache.get(tile.path);
+    const sourceW = image ? (image.naturalWidth || image.width) : 0;
+    const sourceH = image ? (image.naturalHeight || image.height) : 0;
+    // If image is loaded, use its natural dimensions; otherwise estimate from manifest.
+    const cbox = getManifestContentBox(tile.path);
+    const w = sourceW || cbox?.canvasW || 32;
+    const h = sourceH || cbox?.canvasH || 32;
+    const inset = {
+      left: manifestBounds.left / w,
+      right: Math.max(0, w - 1 - manifestBounds.right) / w,
+      top: manifestBounds.top / h,
+      bottom: Math.max(0, h - 1 - manifestBounds.bottom) / h,
+    };
+    tileVerticalCollisionInsetCache.set(tile.path, inset);
+    return inset;
   }
 
   const image = imageCache.get(tile.path);
@@ -275,6 +315,17 @@ export function getSpriteOpaqueBounds(image) {
     return spriteBoundsCache.get(image);
   }
 
+  // Try manifest first — fast O(1) lookup with pre-computed bounds.
+  const src = image.src || image._assetPath || "";
+  if (src) {
+    const manifestBounds = getManifestBounds(src);
+    if (manifestBounds) {
+      spriteBoundsCache.set(image, manifestBounds);
+      return manifestBounds;
+    }
+  }
+
+  // Fallback: runtime pixel scanning (slow, may fail on file:// origins).
   const w = image.naturalWidth || image.width;
   const h = image.naturalHeight || image.height;
   if (!w || !h || !spriteBoundsCtx) {
@@ -290,7 +341,6 @@ export function getSpriteOpaqueBounds(image) {
     spriteBoundsCtx.drawImage(image, 0, 0, w, h);
     data = spriteBoundsCtx.getImageData(0, 0, w, h).data;
   } catch {
-    // On local file origins, reading pixels may be blocked; fallback to classic anchoring.
     spriteBoundsCache.set(image, null);
     return null;
   }
