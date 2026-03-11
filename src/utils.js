@@ -1,3 +1,13 @@
+import { BASE_UNIT } from "./constants.js";
+
+// ─── BASE_UNIT scaling ───
+// Convert a value expressed in BASE_UNIT multiples to actual pixels
+// using the current tile size.  If tileSize === BASE_UNIT (64), this is identity.
+// Pass state.tileSize as the second argument, or omit to use BASE_UNIT (no scaling).
+export function bu(units, tileSize = BASE_UNIT) {
+  return units * (tileSize / BASE_UNIT);
+}
+
 // ─── PRNG ───
 export function mulberry32(seed) {
   let t = seed >>> 0;

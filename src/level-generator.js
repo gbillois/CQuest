@@ -8,6 +8,7 @@ import {
 } from "./constants.js";
 import { mulberry32, randInt, createRunSeed, clamp, setTile, buildWeightedBiomeList, weightedPick, weightedPickByKey } from "./utils.js";
 import { state } from "./state.js";
+import { getManifestHitbox } from "./sprite-manifest.js";
 
 // Local helpers to avoid circular dependency on physics.js
 function isSolidTile(tile) {
@@ -294,6 +295,9 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     fillGroundSpan(tileGrid, playableStart, playableEnd, groundY, groundTile);
     holes = [];
   }
+  // Validate hole widths: ensure every gap is jumpable.
+  validateJumpableHoles(tileGrid, holes, groundY, groundTile);
+
   convertLowFloatingPlatformsToGround({
     tileGrid,
     groundY,
@@ -799,6 +803,42 @@ function ensurePlayableGroundRoute({ tileGrid, groundY, startX, endX, groundTile
   return holes;
 }
 
+/**
+ * Validate that every hole is jumpable given the player physics.
+ * If a hole is too wide, fill tiles from the right side until it's clearable.
+ * Modifies tileGrid and holes array in place.
+ */
+function validateJumpableHoles(tileGrid, holes, groundY, groundTile) {
+  // Max jumpable distance in tiles, derived from physics:
+  // airtime = 2 * |jumpVelocity| / gravity (symmetric parabola)
+  // horizontalRange = moveSpeed * airtime + coyoteTime bonus
+  const airtime = 2 * Math.abs(GAME.jumpVelocity) / GAME.gravity;
+  const coyoteBonus = 0.08 * GAME.moveSpeed;
+  const maxJumpPixels = GAME.moveSpeed * airtime + coyoteBonus;
+  const tileSize = Math.max(1, state.tileSize || 64);
+  // Subtract 1 tile for safety margin (player needs to land fully, not at the edge).
+  const maxJumpTiles = Math.max(1, Math.floor(maxJumpPixels / tileSize) - 1);
+
+  for (let i = holes.length - 1; i >= 0; i -= 1) {
+    const hole = holes[i];
+    const width = hole.end - hole.start + 1;
+    if (width <= maxJumpTiles) {
+      continue;
+    }
+    // Fill from the right to shrink the hole.
+    for (let x = hole.start + maxJumpTiles; x <= hole.end; x += 1) {
+      setGroundColumn(tileGrid, x, groundY, groundTile);
+    }
+    hole.end = hole.start + maxJumpTiles - 1;
+  }
+  // Remove degenerate holes (width <= 0).
+  for (let i = holes.length - 1; i >= 0; i -= 1) {
+    if (holes[i].end < holes[i].start) {
+      holes.splice(i, 1);
+    }
+  }
+}
+
 function augmentGroundHoles({ tileGrid, groundY, startX, endX, reservedRanges, holes, targetCount, rand }) {
   const width = tileGrid[0]?.length || 0;
   if (!width) {
@@ -1213,6 +1253,18 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
 }
 
 export function getEnemyHitboxSize(enemyDef) {
+  // Use manifest content bounds for accurate hitbox when available.
+  const idlePath = enemyDef?.sprite?.idleE || enemyDef?.sprite?.idleW;
+  if (idlePath) {
+    const mbox = getManifestHitbox(idlePath, ENEMY_SCALE);
+    if (mbox) {
+      return {
+        w: clamp(mbox.w, ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W),
+        h: clamp(mbox.h, ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H),
+      };
+    }
+  }
+  // Fallback: ratio-based estimation from sprite canvas size.
   const spriteW = (enemyDef?.size?.width || 48) * ENEMY_SCALE;
   const spriteH = (enemyDef?.size?.height || 48) * ENEMY_SCALE;
   return {

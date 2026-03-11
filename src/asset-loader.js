@@ -41,6 +41,7 @@ export async function loadImage(path, { timeoutMs = IMAGE_LOAD_TIMEOUT_MS } = {}
   }
 
   const image = new Image();
+  image._assetPath = cleanPath;
   const loadingPromise = new Promise((resolve, reject) => {
     let settled = false;
     const timeoutId = window.setTimeout(() => {

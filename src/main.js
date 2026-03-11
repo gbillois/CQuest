@@ -1,5 +1,5 @@
 // ─── Imports ───
-import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY } from "./constants.js";
+import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIPLIER, JUMP_BUFFER_WINDOW_SECONDS } from "./constants.js";
 import { createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
 import {
@@ -8,6 +8,9 @@ import {
   preloadSelectedHeroSprites, scheduleBackgroundWarmup, setUpdateHudInfo,
 } from "./asset-loader.js";
 import { generateLevelsFromConfig } from "./level-generator.js";
+import { loadSpriteManifest } from "./sprite-manifest.js";
+import { validateAllLevels, scoreLevelQuality } from "./level-validator.js";
+import { logInfo, logError, dumpLogs, setLogLevel, getLogs, clearLogs } from "./logger.js";
 import { setTriggerBonusBlock, resolveHorizontalCollisions, resolveVerticalCollisions } from "./physics.js";
 import {
   updateEnemies, updateFireballs, updateBonusBlocks, updateEnemyDrops,
@@ -61,6 +64,9 @@ async function init() {
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
 
+  // Load sprite manifest for fast bounding-box lookups (replaces runtime pixel scanning).
+  await loadSpriteManifest();
+
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
@@ -82,6 +88,8 @@ async function init() {
         state.controls.left = false;
         state.controls.right = false;
         state.controls.jumpBuffered = false;
+        state.controls.jumpHeld = false;
+        state.controls.jumpBufferTime = 0;
         const player = state.player;
         if (player && enemy) {
           const playerCenter = player.x + player.w * 0.5;
@@ -107,12 +115,21 @@ async function init() {
     },
   });
   exposeConjugationApi();
+  // Expose debug APIs on window for console access.
+  window.validateLevels = validateAllLevels;
+  window.scoreLevelQuality = scoreLevelQuality;
+  window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+
+  logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();
   ensureEmergencyRoster();
 
+  logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
+
   generateLevelsFromConfig(config);
+  logInfo("init", `Generated ${state.levels.length} levels`);
   await preloadLevelAssetImages(state.levels[0]);
   await preloadSelectedHeroSprites();
   populateSettingsPanel();
@@ -125,6 +142,7 @@ async function init() {
   state.ready = true;
   showTitleScreen();
   scheduleBackgroundWarmup(config);
+  logInfo("init", "Game ready — starting loop");
   requestAnimationFrame(gameLoop);
 }
 
@@ -188,7 +206,7 @@ function update(delta) {
   updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
-  updateCamera();
+  updateCamera(delta);
 
   if (state.message && performance.now() > state.messageUntil) {
     state.message = "";
@@ -205,10 +223,13 @@ function updatePlayer(delta) {
   const movingRight = state.controls.right;
   const inHitStun = state.playerHitStun > 0;
 
+  // ── Horizontal movement (frame-rate-independent friction) ──
+  // Convert per-frame friction to time-based: friction^(1/dt) where dt≈1/60.
+  // frictionPerSecond = friction^60 ≈ 0.84^60.  We use: vx *= friction^(delta*60).
   if (inHitStun) {
-    player.vx *= 0.92;
+    player.vx *= Math.pow(0.92, delta * 60);
   } else if (movingLeft === movingRight) {
-    player.vx *= GAME.friction;
+    player.vx *= Math.pow(GAME.friction, delta * 60);
   } else if (movingLeft) {
     player.vx = -GAME.moveSpeed;
     player.facing = "south-west";
@@ -221,23 +242,45 @@ function updatePlayer(delta) {
     player.vx = 0;
   }
 
+  // ── Coyote time ──
   if (player.onGround) {
     player.coyoteTime = 0.08;
   } else {
     player.coyoteTime = Math.max(0, player.coyoteTime - delta);
   }
 
-  if (state.controls.jumpBuffered && tryEnterTower()) {
+  // ── Persistent jump buffer ──
+  // If a jump was requested, start the buffer window.
+  if (state.controls.jumpBuffered) {
+    state.controls.jumpBufferTime = JUMP_BUFFER_WINDOW_SECONDS;
     state.controls.jumpBuffered = false;
+  }
+  // Count down the buffer.
+  state.controls.jumpBufferTime = Math.max(0, state.controls.jumpBufferTime - delta);
+
+  const wantsJump = state.controls.jumpBufferTime > 0;
+
+  // ── Tower entry ──
+  if (wantsJump && tryEnterTower()) {
+    state.controls.jumpBufferTime = 0;
     return;
   }
 
-  if (!inHitStun && state.controls.jumpBuffered && (player.onGround || player.coyoteTime > 0)) {
+  // ── Jump execution ──
+  if (!inHitStun && wantsJump && (player.onGround || player.coyoteTime > 0)) {
     player.vy = GAME.jumpVelocity;
     player.onGround = false;
     player.coyoteTime = 0;
+    state.controls.jumpBufferTime = 0;
+    state.controls.jumpHeld = true;
   }
-  state.controls.jumpBuffered = false;
+
+  // ── Variable jump height ──
+  // When the player releases jump while still ascending, cut upward velocity
+  // to allow short hops. Full jump requires holding the button.
+  if (!state.controls.jumpHeld && player.vy < GAME.jumpVelocity * JUMP_CUT_MULTIPLIER) {
+    player.vy = GAME.jumpVelocity * JUMP_CUT_MULTIPLIER;
+  }
 
   player.vy = Math.min(player.vy + GAME.gravity * delta, GAME.maxFallVelocity);
 
@@ -263,6 +306,6 @@ function updatePlayer(delta) {
 
 // ─── Bootstrap ───
 init().catch((error) => {
-  console.error(error);
+  logError("init", "Fatal init error", { message: error?.message, stack: error?.stack });
   updateHudInfo();
 });
