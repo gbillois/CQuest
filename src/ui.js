@@ -19,6 +19,7 @@ import {
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
+import { validateAllLevels } from "./level-validator.js";
 
 /* ── late-binding for cross-module calls ── */
 
@@ -425,6 +426,24 @@ export function bindControls() {
       ui.debugScaleValue.textContent = `${value.toFixed(1)}x`;
     }
     _setWorldZoom?.(value);
+  });
+  ui.validateLevelsBtn?.addEventListener("click", () => {
+    const { results, summary } = validateAllLevels();
+    const lines = [summary, ""];
+    for (const r of results) {
+      lines.push(`Level ${r.id} (${r.biome}): ${r.grade} [${r.overall}/100] — ${r.enemies} enemies, ${r.bonuses} bonuses`);
+      if (r.issues.length) {
+        for (const issue of r.issues) {
+          lines.push(`  ⚠ ${issue}`);
+        }
+      }
+    }
+    const output = lines.join("\n");
+    if (ui.validateLevelsOutput) {
+      ui.validateLevelsOutput.textContent = output;
+      ui.validateLevelsOutput.hidden = false;
+    }
+    console.log("[LevelValidator]", output);
   });
   ui.closeVisualDebugBtn?.addEventListener("click", closeVisualDebugPanel);
 
