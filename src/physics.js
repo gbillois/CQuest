@@ -15,7 +15,13 @@ export function resolveHorizontalCollisions(entity, level) {
   const rects = getNearbySolidRects(entity, level);
   for (const tile of rects) {
     if (tile.oneWay) {
-      continue;
+      // Block horizontally only when the entity is walking on top of (or above)
+      // the platform surface. This prevents walking through a higher platform
+      // when coming from a lower adjacent one.
+      const entityBottom = entity.y + entity.h;
+      if (entityBottom > tile.y + 2) {
+        continue;
+      }
     }
     if (!aabb(entity, tile)) {
       continue;
@@ -137,6 +143,7 @@ export function getSolidTileCollisionRect(tile, tileX, tileY) {
   const x = tileX * tileSize;
   const y = tileY * tileSize;
   const insets = getTileCollisionInsets(tile);
+  const oneWay = isOneWayPlatformTile(tile);
 
   if (!insets) {
     return { x, y, w: tileSize, h: tileSize };
@@ -144,7 +151,9 @@ export function getSolidTileCollisionRect(tile, tileX, tileY) {
 
   const leftInset = clamp((insets.left || 0) * tileSize, 0, tileSize / 2 - 1);
   const rightInset = clamp((insets.right || 0) * tileSize, 0, tileSize / 2 - 1);
-  const topInset = clamp(insets.top * tileSize, 0, tileSize - 2);
+  // One-way platforms: align collision surface at the top of the tile cell so
+  // all platforms on the same grid row share a consistent walking surface.
+  const topInset = oneWay ? 0 : clamp(insets.top * tileSize, 0, tileSize - 2);
   const bottomInset = clamp((insets.bottom || 0) * tileSize, 0, tileSize - 2);
   const usableHeight = Math.max(2, tileSize - topInset - bottomInset);
   const usableWidth = Math.max(2, tileSize - leftInset - rightInset);
@@ -422,6 +431,11 @@ export function resolveBonusPopupVerticalCollision(popup, level) {
   const rects = getNearbySolidRects(popup, level);
   let grounded = false;
   for (const tile of rects) {
+    // Skip bonus block collision rects so popups fall through to the ground
+    // instead of landing on their own (or neighbouring) bonus blocks.
+    if (tile.bonusBlock) {
+      continue;
+    }
     if (!aabb(popup, tile)) {
       continue;
     }

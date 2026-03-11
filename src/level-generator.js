@@ -176,12 +176,33 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   // ─── Build Each Block ───
   const blockMetadata = []; // For debug overlay.
 
+  // Max jump height in tiles (used to ensure platforms are reachable).
+  const _maxJumpHeightPx = (GAME.jumpVelocity * GAME.jumpVelocity) / (2 * GAME.gravity);
+  const _maxJumpHeightTiles = Math.max(1, Math.floor(_maxJumpHeightPx / Math.max(1, state.tileSize)));
+
   const addPlatformRail = ({ startX, y, length, segmentType, isSecret }) => {
     if (length < 2) return;
-    const railY = clamp(y, 2, Math.max(2, baseGroundY - 2));
+    let railY = clamp(y, 2, Math.max(2, baseGroundY - 2));
     const endX = startX + length - 1;
     if (startX < 1 || endX >= widthTiles - 1) return;
     if (intersectsRanges(startX, endX, reservedRanges)) return;
+
+    // Ensure the platform is reachable: find the nearest solid surface below
+    // (another platform or the ground) and clamp height to max jump distance.
+    const midX = startX + Math.floor(length / 2);
+    let nearestSolidBelow = getLocalGroundY(midX);
+    for (let scanY = railY + 1; scanY < nearestSolidBelow; scanY++) {
+      if (isSolidTile(tileGrid[scanY]?.[midX])) {
+        nearestSolidBelow = scanY;
+        break;
+      }
+    }
+    const minAllowedY = nearestSolidBelow - _maxJumpHeightTiles;
+    if (railY < minAllowedY) {
+      railY = minAllowedY;
+    }
+    railY = clamp(railY, 2, Math.max(2, baseGroundY - 2));
+
     const theme = pickMarioPlatformTheme({ biomeId, fallbackBiome: biome, xTile: startX, castleTileX, segmentType, rand });
     placePlatform(tileGrid, theme, startX, railY, length, rand);
     platformRails.push({ start: startX, end: endX, y: railY, themeId: theme.id || biomeId, isSecret: !!isSecret });
