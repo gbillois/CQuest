@@ -3555,25 +3555,28 @@ function getSolidTileCollisionRect(tile, tileX, tileY) {
   const tileSize = state.tileSize;
   const x = tileX * tileSize;
   const y = tileY * tileSize;
-  const insets = getTileVerticalCollisionInsets(tile);
+  const insets = getTileCollisionInsets(tile);
 
   if (!insets) {
     return { x, y, w: tileSize, h: tileSize };
   }
 
+  const leftInset = clamp((insets.left || 0) * tileSize, 0, tileSize / 2 - 1);
+  const rightInset = clamp((insets.right || 0) * tileSize, 0, tileSize / 2 - 1);
   const topInset = clamp(insets.top * tileSize, 0, tileSize - 2);
   // Keep full bottom depth so platforms remain solid from underneath.
   const usableHeight = Math.max(2, tileSize - topInset);
+  const usableWidth = Math.max(2, tileSize - leftInset - rightInset);
 
   return {
-    x,
+    x: x + leftInset,
     y: y + topInset,
-    w: tileSize,
+    w: usableWidth,
     h: usableHeight,
   };
 }
 
-function getTileVerticalCollisionInsets(tile) {
+function getTileCollisionInsets(tile) {
   if (!tile?.path) {
     return null;
   }
@@ -3589,14 +3592,17 @@ function getTileVerticalCollisionInsets(tile) {
   }
 
   const bounds = getSpriteOpaqueBounds(image);
+  const sourceW = image.naturalWidth || image.width;
   const sourceH = image.naturalHeight || image.height;
-  if (!bounds || !sourceH) {
+  if (!bounds || !sourceW || !sourceH) {
     const fallbackInset = getTileFallbackCollisionInsets(tile);
     tileVerticalCollisionInsetCache.set(tile.path, fallbackInset);
     return fallbackInset;
   }
 
   const inset = {
+    left: bounds.left / sourceW,
+    right: Math.max(0, sourceW - 1 - bounds.right) / sourceW,
     top: bounds.top / sourceH,
     bottom: Math.max(0, sourceH - 1 - bounds.bottom) / sourceH,
   };
@@ -3615,7 +3621,7 @@ function getTileFallbackCollisionInsets(tile) {
   if (isSimpleSurface || isWalkableSurface) {
     // Fallback when alpha bounds can't be read (often on file://):
     // keep the feet closer to the visible top of surface sprites.
-    return { top: 0.16, bottom: 0 };
+    return { left: 0, right: 0, top: 0.16, bottom: 0 };
   }
 
   return null;
@@ -4262,11 +4268,10 @@ function render(timeSeconds) {
 
   ctx.save();
   const zoom = getWorldZoom();
-  const halfW = VIRTUAL_WIDTH * 0.5;
-  const halfH = VIRTUAL_HEIGHT * 0.5;
-  ctx.translate(halfW, halfH);
+  // Anchor zoom on bottom-left so the ground stays in view when zoom changes.
+  ctx.translate(0, VIRTUAL_HEIGHT);
   ctx.scale(zoom, zoom);
-  ctx.translate(-halfW, -halfH);
+  ctx.translate(0, -VIRTUAL_HEIGHT);
   ctx.translate(-Math.floor(state.cameraX), Math.floor(getWorldRenderOffsetY(level)));
 
   try {
