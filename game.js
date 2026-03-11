@@ -172,6 +172,12 @@ const BOSS_FALLBACK_DRAGON_FRAME = "game_assets/enemies/boss-dragon/rotations/so
 const MAGE_FIREBALL_ICON = "game_assets/decoration/deco_cauldron_fire.png";
 const MAGE_FIREBALL_SPEED = 420;
 const MAGE_FIREBALL_RADIUS = 16;
+const NINJA_SHURIKEN_SPEED = 520;
+const NINJA_SHURIKEN_RADIUS = 12;
+const PIRATE_SABER_SPEED_X = 300;
+const PIRATE_SABER_SPEED_Y = -260;
+const PIRATE_SABER_GRAVITY = 720;
+const PIRATE_SABER_RADIUS = 14;
 const CHEAT_MENU_LONG_PRESS_MS = 650;
 
 
@@ -2125,7 +2131,7 @@ function populateSettingsPanel() {
   syncWorldZoomUi();
   renderHeroShop();
   renderErrorList();
-  syncMageActionButtonVisibility();
+  syncHeroActionButtonVisibility();
 }
 
 
@@ -2297,7 +2303,7 @@ function bindControls() {
       if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
         return;
       }
-      castMageFireball();
+      castHeroProjectile();
       fireButtons.forEach((fireButton) => fireButton.classList.add("active"));
       setTimeout(() => fireButtons.forEach((fireButton) => fireButton.classList.remove("active")), 90);
     }),
@@ -2336,7 +2342,7 @@ function bindControls() {
     state.selectedHeroIndex = requestedHeroIndex;
     saveSelectedHeroId(requestedHero.id);
     renderHeroShop();
-    syncMageActionButtonVisibility();
+    syncHeroActionButtonVisibility();
   });
 
   ui.heroShopList?.addEventListener("click", (event) => {
@@ -2371,7 +2377,7 @@ function bindControls() {
       saveSelectedHeroId(heroId);
       showMessage(`${state.heroes[heroIndex].name} débloquée`);
       populateSettingsPanel();
-      syncMageActionButtonVisibility();
+      syncHeroActionButtonVisibility();
       return;
     }
 
@@ -2379,7 +2385,7 @@ function bindControls() {
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
       populateSettingsPanel();
-      syncMageActionButtonVisibility();
+      syncHeroActionButtonVisibility();
     }
   });
 
@@ -2418,7 +2424,7 @@ function bindControls() {
     if (profileChanged) {
       generateLevelsFromConfig(state.config);
       populateSettingsPanel();
-      syncMageActionButtonVisibility();
+      syncHeroActionButtonVisibility();
     }
     state.pendingBossStart = wantsBoss;
     closeSettingsPanel();
@@ -2522,9 +2528,9 @@ function bindControls() {
         ui.jumpBtn.classList.add("active");
         setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
       }
-      if (event.code === "ArrowDown" && isMageSelected()) {
+      if (event.code === "ArrowDown") {
         event.preventDefault();
-        castMageFireball();
+        castHeroProjectile();
         ui.castFireBtn?.classList.add("active");
         setTimeout(() => ui.castFireBtn?.classList.remove("active"), 90);
       }
@@ -2812,7 +2818,7 @@ function loadLevel(levelIndex, resetScore) {
   ui.gameOverPanel?.classList.add("hidden");
 
   ensureSelectedHeroIsOwned();
-  syncMageActionButtonVisibility();
+  syncHeroActionButtonVisibility();
   const hero = state.heroes[state.selectedHeroIndex];
   const playerW = PLAYER_HITBOX_WIDTH;
   const playerH = PLAYER_HITBOX_HEIGHT;
@@ -3021,19 +3027,51 @@ function updatePlayer(delta) {
   }
 }
 
-function isMageSelected() {
+function getSelectedHeroId() {
   const hero = state.heroes[state.selectedHeroIndex];
-  return hero?.id === "mage";
+  return hero?.id || "";
 }
 
-function castMageFireball() {
-  if (!isMageSelected() || !state.currentLevel || !state.player || state.towerInterior.active || state.boss.active) {
+function castHeroProjectile() {
+  if (!state.currentLevel || !state.player || state.towerInterior.active || state.boss.active) {
     return false;
   }
+  const heroId = getSelectedHeroId();
+  if (heroId !== "mage" && heroId !== "ninja" && heroId !== "pirate") {
+    return false;
+  }
+
   const player = state.player;
   const forwardSign = player.facing === "south-west" ? -1 : 1;
   const originX = player.x + player.w * 0.5;
   const originY = player.y + player.h * 0.43;
+
+  if (heroId === "ninja") {
+    state.fireballs.push({
+      x: originX,
+      y: originY,
+      vx: forwardSign * NINJA_SHURIKEN_SPEED,
+      vy: 0,
+      gravity: 0,
+      life: 0.9,
+      radius: NINJA_SHURIKEN_RADIUS,
+    });
+    return true;
+  }
+
+  if (heroId === "pirate") {
+    state.fireballs.push({
+      x: originX,
+      y: originY,
+      vx: forwardSign * PIRATE_SABER_SPEED_X,
+      vy: PIRATE_SABER_SPEED_Y,
+      gravity: PIRATE_SABER_GRAVITY,
+      life: 1.35,
+      radius: PIRATE_SABER_RADIUS,
+    });
+    return true;
+  }
+
   const target = findClosestEnemyAhead(originX, forwardSign);
   if (!target) {
     return false;
@@ -3048,6 +3086,7 @@ function castMageFireball() {
     y: originY,
     vx: (dx / distance) * MAGE_FIREBALL_SPEED,
     vy: (dy / distance) * MAGE_FIREBALL_SPEED,
+    gravity: 0,
     life: Math.max(0.45, distance / MAGE_FIREBALL_SPEED + 0.15),
     radius: MAGE_FIREBALL_RADIUS,
   });
@@ -3086,6 +3125,7 @@ function updateFireballs(delta) {
   for (let i = state.fireballs.length - 1; i >= 0; i -= 1) {
     const fireball = state.fireballs[i];
     fireball.life -= delta;
+    fireball.vy += (fireball.gravity || 0) * delta;
     fireball.x += fireball.vx * delta;
     fireball.y += fireball.vy * delta;
     if (
@@ -5508,11 +5548,11 @@ function isHeroOwned(heroId) {
   return Boolean(state.heroUnlocks[heroId]);
 }
 
-function syncMageActionButtonVisibility() {
+function syncHeroActionButtonVisibility() {
   if (!ui.castFireBtn) {
     return;
   }
-  const shouldHide = !isMageSelected();
+  const shouldHide = !["mage", "ninja", "pirate"].includes(getSelectedHeroId());
   ui.castFireBtn.hidden = shouldHide;
   if (ui.castFireHitBtn) {
     ui.castFireHitBtn.hidden = shouldHide;
@@ -5541,7 +5581,7 @@ function initializeHeroProgress() {
   const selectedIndex = state.heroes.findIndex((hero) => hero.id === selectedHeroId);
   state.selectedHeroIndex = selectedIndex >= 0 ? selectedIndex : getPaladinIndex();
   ensureSelectedHeroIsOwned();
-  syncMageActionButtonVisibility();
+  syncHeroActionButtonVisibility();
   const selected = state.heroes[state.selectedHeroIndex];
   saveHeroUnlocks(state.heroUnlocks);
   if (selected) {
