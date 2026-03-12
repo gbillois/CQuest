@@ -278,8 +278,48 @@ export function generateBlockSequence({ levelIndex, segmentCount, rand, generati
 
   // Ensure all mandatory POIs are met by force-inserting if needed.
   ensureAllPOIs(blocks, mandatoryPOIs, rand);
+  enforcePlatformProgressionByLevel(blocks, levelIndex, rand);
 
   return blocks;
+}
+
+function enforcePlatformProgressionByLevel(blocks, levelIndex, rand) {
+  const crumblingBlocks = ["crumbling_bridge", "letter_bridge"];
+  const movingBlocks = ["pendulum_pass", "canyon_crossing"];
+
+  const addBlockFamily = (family, minCount) => {
+    if (minCount <= 0) return;
+    let familyCount = blocks.filter((id) => family.includes(id)).length;
+    while (familyCount < minCount) {
+      const replaceable = [];
+      for (let i = 2; i < blocks.length - 2; i += 1) {
+        if (family.includes(blocks[i])) continue;
+        replaceable.push(i);
+      }
+      if (!replaceable.length) break;
+      const idx = replaceable[randInt(rand, 0, replaceable.length - 1)];
+      blocks[idx] = family[randInt(rand, 0, family.length - 1)];
+      familyCount += 1;
+    }
+  };
+
+  if (levelIndex === 1) {
+    // Level 2: introduce more crumbling platforms early.
+    addBlockFamily(crumblingBlocks, 2);
+    return;
+  }
+
+  if (levelIndex === 2) {
+    // Level 3: introduce moving platforms.
+    addBlockFamily(movingBlocks, 2);
+    return;
+  }
+
+  if (levelIndex === 3 || levelIndex === 4) {
+    // Levels 4-5: combine both types and raise their frequency.
+    addBlockFamily(crumblingBlocks, 3);
+    addBlockFamily(movingBlocks, 3);
+  }
 }
 
 function getAllBlockIds() {
