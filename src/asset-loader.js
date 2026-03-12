@@ -6,7 +6,7 @@ import {
   MAGE_FIREBALL_ICON, BIOME_PARALLAX_BACKGROUNDS, BOSS_DRAGON_ATTACK_SW_FRAMES,
   BOSS_FALLBACK_DRAGON_FRAME, GROUND_THICKNESS_TILES,
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
-  GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_PREFIX_BY_STYLE,
+  GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_FILES_BY_STYLE,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
   getHeroShopConfig,
@@ -796,6 +796,13 @@ export function buildBiomeIndex(config) {
       collision: "solid",
     };
 
+    const hasGroundStyleTiles = Boolean(groundStyleTiles?.all?.length);
+    const styleAll = hasGroundStyleTiles ? groundStyleTiles.all : [];
+    const styleSurface = hasGroundStyleTiles ? (groundStyleTiles.surface?.length ? groundStyleTiles.surface : styleAll) : [];
+    const styleMiddle = hasGroundStyleTiles ? (groundStyleTiles.middle?.length ? groundStyleTiles.middle : styleAll) : [];
+    const styleDeep = hasGroundStyleTiles ? (groundStyleTiles.deep?.length ? groundStyleTiles.deep : styleAll) : [];
+    const styleMountain = hasGroundStyleTiles ? (groundStyleTiles.mountain?.length ? groundStyleTiles.mountain : styleAll) : [];
+
     biomes[biomeId] = {
       id: biomeId,
       tilesetDir: biomeData.tileset_dir,
@@ -812,12 +819,12 @@ export function buildBiomeIndex(config) {
       detailTiles: mapIds(biomeData.tile_catalog?.detail_overlay),
       terrainTiles: {
         styleId: groundStyleTiles?.styleId || null,
-        surface: groundStyleTiles?.surface?.length ? groundStyleTiles.surface : fallbackSurfaceGround,
-        middle: groundStyleTiles?.middle?.length ? groundStyleTiles.middle : fallbackMiddleGround,
-        deep: groundStyleTiles?.deep?.length ? groundStyleTiles.deep : fallbackDeepGround,
-        mountain: groundStyleTiles?.mountain?.length ? groundStyleTiles.mountain : fallbackMountain,
-        all: groundStyleTiles?.all?.length
-          ? groundStyleTiles.all
+        surface: hasGroundStyleTiles ? styleSurface : fallbackSurfaceGround,
+        middle: hasGroundStyleTiles ? styleMiddle : fallbackMiddleGround,
+        deep: hasGroundStyleTiles ? styleDeep : fallbackDeepGround,
+        mountain: hasGroundStyleTiles ? styleMountain : fallbackMountain,
+        all: hasGroundStyleTiles
+          ? styleAll
           : [...fallbackSurfaceGround, ...fallbackMiddleGround, ...fallbackDeepGround, ...fallbackMountain],
       },
       simplePlatformTiles: simpleByCode,
@@ -829,23 +836,26 @@ export function buildBiomeIndex(config) {
 
 function buildGroundStyleTiles(biomeId) {
   const styleId = GROUND_TILE_STYLE_BY_BIOME[biomeId] || null;
-  const prefix = styleId ? GROUND_TILE_PREFIX_BY_STYLE[styleId] : null;
-  if (!styleId || !prefix) {
+  const files = styleId ? GROUND_TILE_FILES_BY_STYLE[styleId] : null;
+  if (!styleId || !files?.length) {
     return null;
   }
 
   const byRow = { 1: [], 2: [], 3: [], 4: [] };
   const all = [];
-  let index = 1;
-  for (let row = 1; row <= 4; row += 1) {
-    for (let col = 1; col <= 4; col += 1) {
-      const tile = {
-        id: `${biomeId}_ground_r${pad2(row)}_c${pad2(col)}`,
-        path: `game_assets/ground/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}_${pad2(index)}.png`,
-      };
-      all.push(tile);
+  for (const file of files) {
+    const rowMatch = String(file).match(/_r(\d+)_/i);
+    const row = rowMatch ? Number(rowMatch[1]) : 0;
+    const familyMatch = String(file).match(/^([a-z0-9_-]+)_tile_/i);
+    const family = familyMatch ? familyMatch[1].toLowerCase() : "";
+    const tile = {
+      id: `${biomeId}_ground_${String(file).replace(/\.png$/i, "")}`,
+      path: `game_assets/ground/${styleId}/${file}`,
+      family,
+    };
+    all.push(tile);
+    if (row >= 1 && row <= 4) {
       byRow[row].push(tile);
-      index += 1;
     }
   }
 

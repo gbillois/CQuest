@@ -15,6 +15,10 @@ import { isImageRenderable } from "./asset-loader.js";
 import { getSolidTileCollisionRect, getSpriteOpaqueBounds, getEntitySpriteDrawRect } from "./physics.js";
 import { isEndCastleUnlocked, getCastleMetrics, getEndCastleBounds, getEndCastleDoorBounds, getTowerBounds, getTowerInteriorFloorY, getTowerInteriorChestBounds, getBossDragonFrame } from "./entities.js";
 
+const TILE_SIDE_TRANSITION_RATIO = 0.08;
+const TILE_SIDE_TRANSITION_MAX_PX = 4;
+const TILE_SIDE_TRANSITION_ALPHA = 0.28;
+
 /* ── late-bound hooks (set by main module) ── */
 let _syncWorldZoomUi = null;
 let _saveWorldZoom = null;
@@ -329,6 +333,81 @@ export function drawParallaxLayer(image, speed, alpha, scale, yOffset) {
   ctx.restore();
 }
 
+function getTileSeamFamily(tileLike) {
+  const path = String(tileLike?.path || tileLike || "").replace(/\\/g, "/");
+  if (!path) {
+    return "";
+  }
+  const grouped = path.match(/^game_assets\/(platforms|ground|tiles)\/([^/]+)/);
+  if (grouped) {
+    return `${grouped[1]}:${grouped[2]}`;
+  }
+  const rootTile = path.match(/^game_assets\/tiles\/([a-z0-9_-]+)-ground\.png$/i);
+  if (rootTile) {
+    return `tiles-ground:${rootTile[1]}`;
+  }
+  return "";
+}
+
+function canBlendTileSides(leftTile, rightTile) {
+  if (!leftTile?.path || !rightTile?.path) {
+    return false;
+  }
+  const leftFamily = getTileSeamFamily(leftTile);
+  const rightFamily = getTileSeamFamily(rightTile);
+  return Boolean(leftFamily && rightFamily && leftFamily === rightFamily);
+}
+
+function getTileSideTransitionWidth(tileSize) {
+  return clamp(Math.round(tileSize * TILE_SIDE_TRANSITION_RATIO), 1, TILE_SIDE_TRANSITION_MAX_PX);
+}
+
+function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, drawH = tileSize) {
+  if (!canBlendTileSides(leftTile, rightTile)) {
+    return;
+  }
+  const leftImage = imageCache.get(leftTile.path);
+  const rightImage = imageCache.get(rightTile.path);
+  if (!isImageRenderable(leftImage) || !isImageRenderable(rightImage)) {
+    return;
+  }
+
+  const blendWidth = getTileSideTransitionWidth(tileSize);
+  const leftSourceW = leftImage.naturalWidth || leftImage.width || tileSize;
+  const rightSourceW = rightImage.naturalWidth || rightImage.width || tileSize;
+  const leftSourceH = leftImage.naturalHeight || leftImage.height || tileSize;
+  const rightSourceH = rightImage.naturalHeight || rightImage.height || tileSize;
+  const leftSampleW = Math.max(1, Math.min(leftSourceW, blendWidth));
+  const rightSampleW = Math.max(1, Math.min(rightSourceW, blendWidth));
+
+  ctx.save();
+  ctx.globalAlpha = TILE_SIDE_TRANSITION_ALPHA;
+  // Cross-fade only around the shared seam; outer tile borders remain untouched.
+  ctx.drawImage(
+    leftImage,
+    Math.max(0, leftSourceW - leftSampleW),
+    0,
+    leftSampleW,
+    leftSourceH,
+    seamX,
+    drawY,
+    blendWidth,
+    drawH,
+  );
+  ctx.drawImage(
+    rightImage,
+    0,
+    0,
+    rightSampleW,
+    rightSourceH,
+    seamX - blendWidth,
+    drawY,
+    blendWidth,
+    drawH,
+  );
+  ctx.restore();
+}
+
 export function drawTiles(level) {
   const tileSize = state.tileSize;
   const zoom = getWorldZoom();
@@ -348,12 +427,13 @@ export function drawTiles(level) {
   const crumblingSkip = _buildCrumblingSkipSet(level);
 
   for (let y = startY; y <= endY; y += 1) {
+    if (y >= groundTopY && y <= groundBottomY) {
+      continue;
+    }
+
     for (let x = startX; x <= endX; x += 1) {
       const tile = level.tileGrid[y][x];
       if (!tile) {
-        continue;
-      }
-      if (y >= groundTopY && y <= groundBottomY) {
         continue;
       }
       // Skip tiles drawn by drawCrumblingPlatforms with shake offset.
@@ -371,6 +451,21 @@ export function drawTiles(level) {
         ctx.fillStyle = "#5a6679";
         ctx.fillRect(drawX, drawY, tileSize, tileSize);
       }
+    }
+
+    for (let x = startX; x < endX; x += 1) {
+      const leftTile = level.tileGrid[y]?.[x];
+      const rightTile = level.tileGrid[y]?.[x + 1];
+      if (!leftTile || !rightTile) {
+        continue;
+      }
+      if (
+        crumblingSkip &&
+        (crumblingSkip.has(y * level.widthTiles + x) || crumblingSkip.has(y * level.widthTiles + (x + 1)))
+      ) {
+        continue;
+      }
+      drawTileSideTransition(leftTile, rightTile, (x + 1) * tileSize, y * tileSize, tileSize);
     }
   }
 
@@ -782,6 +877,20 @@ function drawCrumblingPlatforms(level, timeSeconds) {
         ctx.fillRect(drawX, drawY, tileSize, tileSize);
       }
     }
+    for (let dx = 0; dx < plat.width - 1; dx += 1) {
+      const leftPath = tilePaths[dx] || level.tileGrid[plat.y]?.[plat.x + dx]?.path;
+      const rightPath = tilePaths[dx + 1] || level.tileGrid[plat.y]?.[plat.x + dx + 1]?.path;
+      if (!leftPath || !rightPath) {
+        continue;
+      }
+      drawTileSideTransition(
+        { path: leftPath },
+        { path: rightPath },
+        basePx + (dx + 1) * tileSize + shakeX,
+        basePy + shakeY,
+        tileSize,
+      );
+    }
 
     if (!plat.triggered) continue;
 
@@ -844,6 +953,14 @@ function drawMovingPlatforms(level, timeSeconds) {
         ctx.fillStyle = "#6a8caf";
         ctx.fillRect(px + dx * tileSize, py, tileSize, tileSize);
       }
+    }
+    for (let dx = 0; dx < plat.width - 1; dx += 1) {
+      const leftPath = tilePaths[dx];
+      const rightPath = tilePaths[dx + 1];
+      if (!leftPath || !rightPath) {
+        continue;
+      }
+      drawTileSideTransition({ path: leftPath }, { path: rightPath }, px + (dx + 1) * tileSize, py, tileSize);
     }
 
     // Subtle glow on edges to signal movement.

@@ -118,12 +118,56 @@ export const GROUND_TILE_STYLE_BY_BIOME = {
   mountain: "mountain",
   snow: "snow",
 };
-export const GROUND_TILE_PREFIX_BY_STYLE = {
-  desert: "desert_from_desert_png",
-  desolation: "desolation_from_desolation_png",
-  forest: "grassy_from_grassy_png",
-  mountain: "rocky_from_rocky_png",
-  snow: "snow_from_snow_png",
+export const GROUND_TILE_FILES_BY_STYLE = {
+  desert: [
+    "newsand_tile_r01_c01.png",
+    "newsand_tile_r02_c01.png",
+    "newsand_tile_r02_c03.png",
+    "newsand_tile_r03_c01.png",
+    "newsand_tile_r03_c03.png",
+    "newsand_tile_r03_c04.png",
+    "newsand_tile_r04_c01.png",
+  ],
+  desolation: [
+    "newdeso_tile_r01_c01.png",
+    "newdeso_tile_r02_c02.png",
+    "newdeso_tile_r03_c01.png",
+    "newdeso_tile_r03_c03.png",
+    "newdeso_tile_r03_c04.png",
+    "newdeso_tile_r04_c01.png",
+  ],
+  forest: [
+    "newgrass_tile_r01_c01.png",
+    "newgrass_tile_r01_c02.png",
+    "newgrass_tile_r01_c03.png",
+    "newgrass_tile_r01_c04.png",
+    "newgrass_tile_r02_c01.png",
+    "newgrass_tile_r02_c02.png",
+    "newground_tile_r01_c01.png",
+    "newground_tile_r02_c01.png",
+    "newground_tile_r03_c01.png",
+    "newground_tile_r03_c04.png",
+    "newground_tile_r04_c01.png",
+  ],
+  mountain: [
+    "newrock_tile_r02_c02.png",
+    "newrock_tile_r02_c03.png",
+    "newrock_tile_r02_c04.png",
+    "newrock_tile_r03_c01.png",
+    "newrock_tile_r03_c02.png",
+    "newrock_tile_r03_c03.png",
+    "newrock_tile_r03_c04.png",
+    "newrock_tile_r04_c01.png",
+    "newrock_tile_r04_c02.png",
+  ],
+  snow: [
+    "newsnow_tile_r01_c01.png",
+    "newsnow_tile_r02_c01.png",
+    "newsnow_tile_r02_c02.png",
+    "newsnow_tile_r03_c01.png",
+    "newsnow_tile_r03_c03.png",
+    "newsnow_tile_r04_c01.png",
+  ],
 };
 export const PLATFORM_STYLE_IDS = ["wood", "castlewall"];
 export const PLATFORM_TILE_PREFIX_BY_STYLE = {

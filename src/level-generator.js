@@ -193,6 +193,9 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   // Max jump height in tiles (used to ensure platforms are reachable).
   const _maxJumpHeightPx = (GAME.jumpVelocity * GAME.jumpVelocity) / (2 * GAME.gravity);
   const _maxJumpHeightTiles = Math.max(1, Math.floor(_maxJumpHeightPx / Math.max(1, state.tileSize)));
+  const PLATFORM_MIN_GROUND_CLEARANCE_TILES = 2;
+  const PLATFORM_STACK_MIN_VERTICAL_SEPARATION_TILES = 2;
+  const PLATFORM_STACK_MIN_OVERLAP_TILES = 2;
 
   const pickPlatformTheme = (forceStyleId = null) => {
     if (!platformStyles.length) {
@@ -210,9 +213,59 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     return platformStyles[randInt(rand, 0, platformStyles.length - 1)];
   };
 
+  const railOverlapLength = (aStart, aEnd, bStart, bEnd) => {
+    const from = Math.max(aStart, bStart);
+    const to = Math.min(aEnd, bEnd);
+    return Math.max(0, to - from + 1);
+  };
+
+  const hasEnoughGroundClearance = (startX, endX, railY) => {
+    for (let x = startX; x <= endX; x += 1) {
+      const localGroundY = getLocalGroundY(x);
+      if (localGroundY - railY < PLATFORM_MIN_GROUND_CLEARANCE_TILES) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const hasStackedRailConflict = (startX, endX, railY) => {
+    for (const rail of platformRails) {
+      const overlap = railOverlapLength(startX, endX, rail.start, rail.end);
+      if (overlap < PLATFORM_STACK_MIN_OVERLAP_TILES) {
+        continue;
+      }
+      if (Math.abs(rail.y - railY) <= PLATFORM_STACK_MIN_VERTICAL_SEPARATION_TILES) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const resolveRailYWithoutStacking = (preferredY, startX, endX, minY, maxY) => {
+    const offsets = [0, -1, 1, -2, 2, -3, 3];
+    const tested = new Set();
+    for (const offset of offsets) {
+      const candidateY = clamp(preferredY + offset, minY, maxY);
+      if (tested.has(candidateY)) {
+        continue;
+      }
+      tested.add(candidateY);
+      if (!hasEnoughGroundClearance(startX, endX, candidateY)) {
+        continue;
+      }
+      if (hasStackedRailConflict(startX, endX, candidateY)) {
+        continue;
+      }
+      return candidateY;
+    }
+    return null;
+  };
+
   const addPlatformRail = ({ startX, y, length, segmentType, isSecret, forceStyleId = null }) => {
     if (length < 2) return;
-    let railY = clamp(y, 2, Math.max(2, baseGroundY - 2));
+    const maxRailY = Math.max(2, baseGroundY - 2);
+    let railY = clamp(y, 2, maxRailY);
     const endX = startX + length - 1;
     if (startX < 1 || endX >= widthTiles - 1) return;
     if (intersectsRanges(startX, endX, reservedRanges)) return;
@@ -231,7 +284,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     if (railY < minAllowedY) {
       railY = minAllowedY;
     }
-    railY = clamp(railY, 2, Math.max(2, baseGroundY - 2));
+    const minRailY = clamp(minAllowedY, 2, maxRailY);
+    railY = clamp(railY, minRailY, maxRailY);
+
+    const resolvedY = resolveRailYWithoutStacking(railY, startX, endX, minRailY, maxRailY);
+    if (resolvedY == null) {
+      return;
+    }
+    railY = resolvedY;
 
     const theme = pickPlatformTheme(forceStyleId) || pickMarioPlatformTheme({ biomeId, fallbackBiome: biome, xTile: startX, castleTileX, segmentType, rand });
     placePlatform(tileGrid, theme, startX, railY, length, rand);
@@ -1036,6 +1096,9 @@ function asGroundSolidTile(tile) {
 
 function createGroundTileSource({ biome, rand, groundY }) {
   const terrain = biome?.terrainTiles || {};
+  const allPool = terrain.all?.length
+    ? terrain.all
+    : [biome?.groundLineTile, biome?.defaultSurface, biome?.groundTile, biome?.defaultFill].filter(Boolean);
   const surfacePool =
     terrain.surface?.length
       ? terrain.surface
@@ -1050,6 +1113,34 @@ function createGroundTileSource({ biome, rand, groundY }) {
     }
     return pool[randInt(rand, 0, pool.length - 1)] || fallback;
   };
+
+  if (biome?.id === "forest") {
+    const forestGrassPool = allPool.filter((tile) => String(tile?.path || "").includes("/ground/forest/newgrass"));
+    const forestGroundPool = allPool.filter((tile) => String(tile?.path || "").includes("/ground/forest/newground"));
+    const forestGrassFallback = forestGrassPool[0] || surfacePool[0] || allPool[0] || fallback;
+    const forestGroundFallback = forestGroundPool[0] || deepPool[0] || allPool[0] || fallback;
+    const pickForestGrass = () =>
+      forestGrassPool.length ? (forestGrassPool[randInt(rand, 0, forestGrassPool.length - 1)] || forestGrassFallback) : forestGrassFallback;
+    const pickForestGround = () =>
+      forestGroundPool.length ? (forestGroundPool[randInt(rand, 0, forestGroundPool.length - 1)] || forestGroundFallback) : forestGroundFallback;
+
+    return {
+      pick(_x, y) {
+        // Forest special rule:
+        // - Mountains (above surface): grass only.
+        // - Ground surface: grass only.
+        // - Ground below surface: newground tiles (bottom two rows guaranteed).
+        if (y < groundY) {
+          return pickForestGrass();
+        }
+        const depth = y - groundY;
+        if (depth <= 0) {
+          return pickForestGrass();
+        }
+        return pickForestGround();
+      },
+    };
+  }
 
   return {
     pick(_x, y) {
