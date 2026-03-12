@@ -194,7 +194,7 @@ export function drawBossScene(timeSeconds) {
   const dragonW = 280;
   const dragonH = 280;
   const dragonX = VIRTUAL_WIDTH * 0.5 - dragonW * 0.5 + Math.sin(timeSeconds * 1.2) * 4;
-  const dragonY = 110 + Math.cos(timeSeconds * 1.6) * 3;
+  const dragonY = 150 + Math.cos(timeSeconds * 1.6) * 3;
   if (dragon) {
     ctx.drawImage(dragon, dragonX, dragonY, dragonW, dragonH);
   } else {
