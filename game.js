@@ -798,6 +798,15 @@ function buildBiomeIndex(config) {
     const fallbackMiddleGround = [tileById[`${biomeId}_r02_c01`], tileById[`${biomeId}_r02_c02`], tileById[`${biomeId}_r02_c03`], tileById[`${biomeId}_r02_c04`]].filter(Boolean);
     const fallbackDeepGround = [tileById[`${biomeId}_r03_c01`], tileById[`${biomeId}_r03_c02`], tileById[`${biomeId}_r03_c03`], tileById[`${biomeId}_r03_c04`]].filter(Boolean);
     const fallbackMountain = [tileById[`${biomeId}_r04_c01`], tileById[`${biomeId}_r04_c02`], tileById[`${biomeId}_r04_c03`], tileById[`${biomeId}_r04_c04`]].filter(Boolean);
+    const canUseGroundStyleTiles =
+      Boolean(groundStyleTiles?.surface?.length) &&
+      Boolean(groundStyleTiles?.middle?.length) &&
+      Boolean(groundStyleTiles?.deep?.length) &&
+      Boolean(groundStyleTiles?.mountain?.length) &&
+      fallbackSurfaceGround.length === 0 &&
+      fallbackMiddleGround.length === 0 &&
+      fallbackDeepGround.length === 0 &&
+      fallbackMountain.length === 0;
 
     biomes[biomeId] = {
       id: biomeId,
@@ -822,12 +831,12 @@ function buildBiomeIndex(config) {
       subsurfaceTiles: mapIds(biomeData.tile_catalog?.subsurface),
       detailTiles: mapIds(biomeData.tile_catalog?.detail_overlay),
       terrainTiles: {
-        styleId: groundStyleTiles?.styleId || null,
-        surface: groundStyleTiles?.surface?.length ? groundStyleTiles.surface : fallbackSurfaceGround,
-        middle: groundStyleTiles?.middle?.length ? groundStyleTiles.middle : fallbackMiddleGround,
-        deep: groundStyleTiles?.deep?.length ? groundStyleTiles.deep : fallbackDeepGround,
-        mountain: groundStyleTiles?.mountain?.length ? groundStyleTiles.mountain : fallbackMountain,
-        all: groundStyleTiles?.all?.length
+        styleId: canUseGroundStyleTiles ? groundStyleTiles?.styleId || null : null,
+        surface: canUseGroundStyleTiles ? groundStyleTiles.surface : fallbackSurfaceGround,
+        middle: canUseGroundStyleTiles ? groundStyleTiles.middle : fallbackMiddleGround,
+        deep: canUseGroundStyleTiles ? groundStyleTiles.deep : fallbackDeepGround,
+        mountain: canUseGroundStyleTiles ? groundStyleTiles.mountain : fallbackMountain,
+        all: canUseGroundStyleTiles
           ? groundStyleTiles.all
           : [...fallbackSurfaceGround, ...fallbackMiddleGround, ...fallbackDeepGround, ...fallbackMountain],
       },
