@@ -8,6 +8,7 @@ import {
   ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W, ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H,
   PLAYER_HITBOX_HEIGHT, BONUS_MIN_SUPPORT_GAP_TILES, BONUS_MAX_SUPPORT_GAP_TILES,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
+  PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
   FIXED_LEVEL_BIOME_ORDER, GENERATION_PROFILES,
   getGenerationProfileSettings,
 } from "./constants.js";
@@ -952,17 +953,21 @@ function buildPlatformStyleTiles(styleId) {
   if (!prefix) {
     return null;
   }
+  const rows = PLATFORM_TILE_ROWS_BY_STYLE[styleId] || 4;
+  const cols = PLATFORM_TILE_COLS_BY_STYLE[styleId] || 4;
+  const includeIndex = PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE[styleId] !== false;
 
   const platformTiles = [];
   let index = 1;
-  for (let row = 1; row <= 4; row += 1) {
-    for (let col = 1; col <= 4; col += 1) {
+  for (let row = 1; row <= rows; row += 1) {
+    for (let col = 1; col <= cols; col += 1) {
       const rowId = String(row).padStart(2, "0");
       const colId = String(col).padStart(2, "0");
+      const basePath = `game_assets/platforms/${styleId}/${prefix}_tile_r${rowId}_c${colId}`;
       const indexId = String(index).padStart(2, "0");
       platformTiles.push({
         id: `platform_${styleId}_r${rowId}_c${colId}`,
-        path: `game_assets/platforms/${styleId}/${prefix}_tile_r${rowId}_c${colId}_${indexId}.png`,
+        path: includeIndex ? `${basePath}_${indexId}.png` : `${basePath}.png`,
       });
       index += 1;
     }

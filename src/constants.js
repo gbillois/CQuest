@@ -127,8 +127,20 @@ export const GROUND_TILE_PREFIX_BY_STYLE = {
 };
 export const PLATFORM_STYLE_IDS = ["wood", "castlewall"];
 export const PLATFORM_TILE_PREFIX_BY_STYLE = {
-  wood: "wood_from_wood_png",
-  castlewall: "castlewall_from_castlewall_png",
+  wood: "woodhalf",
+  castlewall: "rockhalf",
+};
+export const PLATFORM_TILE_ROWS_BY_STYLE = {
+  wood: 4,
+  castlewall: 5,
+};
+export const PLATFORM_TILE_COLS_BY_STYLE = {
+  wood: 4,
+  castlewall: 4,
+};
+export const PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE = {
+  wood: false,
+  castlewall: false,
 };
 
 // ─── Generation profiles ───

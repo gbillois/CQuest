@@ -8,6 +8,7 @@ import {
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
   GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_PREFIX_BY_STYLE,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
+  PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
   getHeroShopConfig,
 } from "./constants.js";
 
@@ -863,14 +864,18 @@ function buildPlatformStyleTiles(styleId) {
   if (!prefix) {
     return null;
   }
+  const rows = PLATFORM_TILE_ROWS_BY_STYLE[styleId] || 4;
+  const cols = PLATFORM_TILE_COLS_BY_STYLE[styleId] || 4;
+  const includeIndex = PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE[styleId] !== false;
 
   const tiles = [];
   let index = 1;
-  for (let row = 1; row <= 4; row += 1) {
-    for (let col = 1; col <= 4; col += 1) {
+  for (let row = 1; row <= rows; row += 1) {
+    for (let col = 1; col <= cols; col += 1) {
+      const basePath = `game_assets/platforms/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}`;
       tiles.push({
         id: `platform_${styleId}_r${pad2(row)}_c${pad2(col)}`,
-        path: `game_assets/platforms/${styleId}/${prefix}_tile_r${pad2(row)}_c${pad2(col)}_${pad2(index)}.png`,
+        path: includeIndex ? `${basePath}_${pad2(index)}.png` : `${basePath}.png`,
       });
       index += 1;
     }
