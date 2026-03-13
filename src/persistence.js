@@ -173,6 +173,7 @@ export function spendPersistentGold(cost) {
     return false;
   }
   state.persistentGold -= amount;
+  state.coins = state.persistentGold;
   savePersistentGold(state.persistentGold);
   if ((ui.settingsPanel && !ui.settingsPanel.hidden) || (ui.shopPanel && !ui.shopPanel.hidden)) {
     if (_renderHeroShop) _renderHeroShop();
@@ -185,8 +186,8 @@ export function grantGold(amount) {
   if (!value) {
     return;
   }
-  state.coins += value;
   state.persistentGold += value;
+  state.coins = state.persistentGold;
   savePersistentGold(state.persistentGold);
   if ((ui.settingsPanel && !ui.settingsPanel.hidden) || (ui.shopPanel && !ui.shopPanel.hidden)) {
     if (_renderHeroShop) _renderHeroShop();
