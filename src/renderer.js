@@ -265,8 +265,7 @@ export function drawTowerInteriorScene(timeSeconds) {
 
   const chest = getTowerInteriorChestBounds();
   if (state.towerInterior.chestState !== "destroyed" && chestImage?.complete) {
-    const bobY = Math.sin(timeSeconds * 2.2) * 2;
-    ctx.drawImage(chestImage, chest.x, chest.y + bobY, chest.w, chest.h);
+    ctx.drawImage(chestImage, chest.x, chest.y, chest.w, chest.h);
     if (state.towerInterior.chestState === "open") {
       ctx.fillStyle = "rgba(255, 215, 106, 0.9)";
       ctx.font = "bold 18px Nunito, sans-serif";

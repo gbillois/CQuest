@@ -883,6 +883,16 @@ export function getTowerInteriorChestBounds() {
   return { x: chestX, y: chestY, w: chestW, h: chestH };
 }
 
+export function getTowerInteriorChestTriggerBounds() {
+  const chest = getTowerInteriorChestBounds();
+  return {
+    x: chest.x - 10,
+    y: chest.y,
+    w: chest.w + 20,
+    h: chest.h + 120,
+  };
+}
+
 export function openTowerChestAttempt() {
   if (!state.duel || state.duel.QS.active || state.towerInterior.chestState !== "locked") {
     return;
@@ -894,6 +904,7 @@ export function openTowerChestAttempt() {
     vd: state.duel.randomVerbData(),
     uiMeta: {
       enemyEmoji: "\uD83D\uDCE6",
+      enemySprite: "game_assets/decoration/deco_chest.png",
       groupLabel: `Coffre de la tour ${streak}/${required}`,
     },
     onCorrect() {
@@ -1011,8 +1022,8 @@ export function updateTowerInterior(delta) {
     !state.duel?.QS.active &&
     performance.now() >= state.towerInterior.chestPromptUntil
   ) {
-    const chest = getTowerInteriorChestBounds();
-    if (aabb(player, chest)) {
+    const chestTrigger = getTowerInteriorChestTriggerBounds();
+    if (aabb(player, chestTrigger)) {
       player.vx = 0;
       openTowerChestAttempt();
     }
