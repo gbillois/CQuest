@@ -310,25 +310,23 @@ export function drawParallaxLayer(image, speed, alpha, scale, yOffset) {
   const drawH = Math.max(1, Math.round(image.height * baseScale));
   const y = Math.round(VIRTUAL_HEIGHT - drawH + yOffset);
   const scroll = ((state.cameraX * speed) % drawW + drawW) % drawW;
-  const firstX = -Math.round(scroll);
-  const baseIndex = Math.floor((firstX - drawW) / drawW);
+  const firstX = -scroll;
+  const loopStartX = firstX - drawW;
+  const startIndex = Math.floor(loopStartX / drawW);
 
   ctx.save();
   ctx.globalAlpha = alpha;
-  let tileIndex = 0;
-  for (let x = firstX - drawW; x < VIRTUAL_WIDTH + drawW; x += drawW) {
-    const absoluteIndex = baseIndex + tileIndex;
-    const mirrored = Math.abs(absoluteIndex) % 2 === 1;
+  for (let x = loopStartX, tileIndex = 0; x < VIRTUAL_WIDTH + drawW; x += drawW, tileIndex += 1) {
+    const mirrored = Math.abs(startIndex + tileIndex) % 2 === 1;
     if (mirrored) {
       ctx.save();
-      ctx.translate(x + drawW, y);
+      ctx.translate(Math.round(x + drawW), y);
       ctx.scale(-1, 1);
       ctx.drawImage(image, 0, 0, drawW, drawH);
       ctx.restore();
     } else {
-      ctx.drawImage(image, x, y, drawW, drawH);
+      ctx.drawImage(image, Math.round(x), y, drawW, drawH);
     }
-    tileIndex += 1;
   }
   ctx.restore();
 }
