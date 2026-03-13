@@ -559,7 +559,7 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
     if (bounds) {
       const sourceH = image.naturalHeight || image.height || tileSize;
       const contentH = bounds.bottom - bounds.top + 1;
-      if (contentH < sourceH * 0.5) {
+      if (!decor.allowShortSprite && contentH < sourceH * 0.5) {
         continue;
       }
     }

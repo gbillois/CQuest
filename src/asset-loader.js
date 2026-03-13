@@ -913,6 +913,7 @@ function buildGroundDecorStyleTiles(biomeId) {
     id: `${biomeId}_ground_decor_${index + 1}`,
     path: `game_assets/ground/${styleId}/${file}`,
     collision: "none",
+    allowShortSprite: true,
   }));
 }
 

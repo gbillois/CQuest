@@ -1599,6 +1599,7 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
         xTile,
         yTile: columnGroundY - 1,
         renderBehindPlayer: rand() < 0.5,
+        allowShortSprite: tile.allowShortSprite === true,
       });
     }
 
