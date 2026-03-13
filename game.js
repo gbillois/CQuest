@@ -5267,6 +5267,7 @@ function drawFireballs(level) {
 
 
 function drawEnemies(level) {
+  const desolationGlow = level?.biomeId === "desolation";
   for (const enemy of level.enemySpawns) {
     if (!enemy.alive) {
       continue;
@@ -5283,11 +5284,19 @@ function drawEnemies(level) {
       const rect = getEntitySpriteDrawRect(image, enemy, drawW, drawH);
       ctx.save();
       ctx.globalAlpha = alpha;
+      if (desolationGlow) {
+        ctx.shadowColor = "rgba(181, 108, 255, 0.95)";
+        ctx.shadowBlur = 16;
+      }
       ctx.drawImage(image, rect.x, rect.y + riseOffset, drawW, drawH);
       ctx.restore();
     } else {
       ctx.save();
       ctx.globalAlpha = alpha;
+      if (desolationGlow) {
+        ctx.shadowColor = "rgba(181, 108, 255, 0.95)";
+        ctx.shadowBlur = 16;
+      }
       ctx.fillStyle = "#cf4b4b";
       ctx.fillRect(enemy.x, enemy.y + riseOffset, enemy.w, enemy.h);
       ctx.restore();
