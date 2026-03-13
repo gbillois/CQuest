@@ -18,6 +18,8 @@ import { isEndCastleUnlocked, getCastleMetrics, getEndCastleBounds, getEndCastle
 const TILE_SIDE_TRANSITION_RATIO = 0.08;
 const TILE_SIDE_TRANSITION_MAX_PX = 4;
 const TILE_SIDE_TRANSITION_ALPHA = 0.28;
+const DESOLATION_GROUND_DARKEN_ALPHA = 0.5;
+const DESOLATION_MOUNTAIN_DARKEN_ALPHA = 0.42;
 
 /* ── late-bound hooks (set by main module) ── */
 let _syncWorldZoomUi = null;
@@ -471,6 +473,7 @@ export function drawTiles(level) {
   // Draw from bottom to top to keep the highest row in front.
   const verticalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_OVERLAP_PX;
   const horizontalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_HORIZONTAL_OVERLAP_PX;
+  const isDesolation = level.biomeId === "desolation";
   for (let y = groundBottomY; y >= groundTopY; y -= 1) {
     const overlapOffset = (y - groundTopY) * verticalOverlap;
     for (let x = startX; x <= endX; x += 1) {
@@ -490,6 +493,10 @@ export function drawTiles(level) {
 
       if (isImageRenderable(image)) {
         ctx.drawImage(image, drawX, drawY, drawW, tileSize);
+        if (isDesolation) {
+          ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_GROUND_DARKEN_ALPHA})`;
+          ctx.fillRect(drawX, drawY, drawW, tileSize);
+        }
       } else {
         ctx.fillStyle = "#5a6679";
         ctx.fillRect(drawX, drawY, drawW, tileSize);
@@ -535,6 +542,7 @@ export function drawDecorations(level) {
 
 export function drawGroundDecorations(level) {
   const tileSize = state.tileSize;
+  const isDesolation = level.biomeId === "desolation";
   for (const decor of level.groundDecorations || []) {
     const image = imageCache.get(decor.path);
     if (!isImageRenderable(image)) {
@@ -563,11 +571,19 @@ export function drawGroundDecorations(level) {
       // Anchor visible pixels to the actual ground surface (including top inset of ground tile).
       const drawY = Math.round(surfaceY - tileSize + bottomPad);
       ctx.drawImage(image, x, drawY, tileSize, tileSize);
+      if (isDesolation) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
+        ctx.fillRect(x, drawY, tileSize, tileSize);
+      }
     } else {
       // file:// fallback: pixel reads may be blocked, so apply a conservative bottom padding.
       const fallbackBottomPad = Math.round(tileSize * GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO);
       const drawY = Math.round(surfaceY - tileSize + fallbackBottomPad);
       ctx.drawImage(image, x, drawY, tileSize, tileSize);
+      if (isDesolation) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
+        ctx.fillRect(x, drawY, tileSize, tileSize);
+      }
     }
   }
 }
