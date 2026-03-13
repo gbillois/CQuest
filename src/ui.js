@@ -1095,6 +1095,33 @@ export function populatePedagogyPanel() {
 /* ── Question UI hooks ── */
 
 export function buildQuestionUiHooks() {
+  const setQuestionActorSprites = () => {
+    const hero = state.heroes[state.selectedHeroIndex];
+    const enemy = state.duel?.QS?.enemy;
+    const enemySprite = enemy?.def?.sprite?.idleW || enemy?.def?.sprite?.idleE || null;
+    const heroSprite = hero?.sprite?.idleSE || hero?.sprite?.idleSW || null;
+
+    if (ui.questionEnemySprite) {
+      if (enemySprite) {
+        ui.questionEnemySprite.src = enemySprite;
+        ui.questionEnemySprite.hidden = false;
+      } else {
+        ui.questionEnemySprite.removeAttribute("src");
+        ui.questionEnemySprite.hidden = true;
+      }
+    }
+
+    if (ui.questionHeroSprite) {
+      if (heroSprite) {
+        ui.questionHeroSprite.src = heroSprite;
+        ui.questionHeroSprite.hidden = false;
+      } else {
+        ui.questionHeroSprite.removeAttribute("src");
+        ui.questionHeroSprite.hidden = true;
+      }
+    }
+  };
+
   const formatQuestionTense = (tenseLabel) => {
     const label = String(tenseLabel || "").trim();
     if (!label) {
@@ -1120,6 +1147,10 @@ export function buildQuestionUiHooks() {
       const biomeId = state.currentLevel?.biomeId || "forest";
       if (ui.questionEnemy) {
         ui.questionEnemy.textContent = uiMeta?.enemyEmoji || (BIOME_EMOJI[biomeId] || "⚔️");
+      }
+      setQuestionActorSprites();
+      if (ui.questionEnemy) {
+        ui.questionEnemy.hidden = !!(ui.questionEnemySprite && !ui.questionEnemySprite.hidden);
       }
       if (ui.questionGroup) {
         ui.questionGroup.textContent = uiMeta?.groupLabel || groupLabel;
@@ -1152,6 +1183,17 @@ export function buildQuestionUiHooks() {
       ui.questionPanel.hidden = true;
       if (ui.questionCountdown) {
         ui.questionCountdown.hidden = true;
+      }
+      if (ui.questionEnemy) {
+        ui.questionEnemy.hidden = false;
+      }
+      if (ui.questionEnemySprite) {
+        ui.questionEnemySprite.removeAttribute("src");
+        ui.questionEnemySprite.hidden = true;
+      }
+      if (ui.questionHeroSprite) {
+        ui.questionHeroSprite.removeAttribute("src");
+        ui.questionHeroSprite.hidden = true;
       }
       ui.answerButtons.innerHTML = "";
     },

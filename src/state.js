@@ -52,6 +52,8 @@ export const ui = {
   worldZoomValue: document.getElementById("worldZoomValue"),
   questionPanel: document.getElementById("questionPanel"),
   questionEnemy: document.getElementById("questionEnemy"),
+  questionEnemySprite: document.getElementById("questionEnemySprite"),
+  questionHeroSprite: document.getElementById("questionHeroSprite"),
   questionGroup: document.getElementById("questionGroup"),
   questionTense: document.getElementById("questionTense"),
   questionCountdown: document.getElementById("questionCountdown"),
