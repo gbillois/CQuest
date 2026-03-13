@@ -1580,8 +1580,20 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
   const decorTiles = biome.groundDecorTiles || [];
   if (!decorTiles.length) return [];
   const items = [];
-  let xTile = 8 + randInt(rand, 0, 2);
+  let xTile = 8 + randInt(rand, 0, 1);
   const maxX = Math.max(xTile, widthTiles - 8);
+  let shuffledDecorTiles = [];
+
+  const takeNextDecorTile = () => {
+    if (!shuffledDecorTiles.length) {
+      shuffledDecorTiles = decorTiles.slice();
+      for (let i = shuffledDecorTiles.length - 1; i > 0; i -= 1) {
+        const j = randInt(rand, 0, i);
+        [shuffledDecorTiles[i], shuffledDecorTiles[j]] = [shuffledDecorTiles[j], shuffledDecorTiles[i]];
+      }
+    }
+    return shuffledDecorTiles.pop() || decorTiles[0];
+  };
 
   while (xTile <= maxX) {
     const columnGroundY = typeof getLocalGroundY === "function" ? getLocalGroundY(xTile) : groundY;
@@ -1590,10 +1602,10 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
       !hasGround ||
       isInHole(holes, xTile) ||
       intersectsRanges(xTile - 1, xTile + 1, reservedRanges) ||
-      items.some((item) => Math.abs(item.xTile - xTile) < 2);
+      items.some((item) => Math.abs(item.xTile - xTile) < 1);
 
     if (!blocked) {
-      const tile = decorTiles[randInt(rand, 0, decorTiles.length - 1)];
+      const tile = takeNextDecorTile();
       items.push({
         path: tile.path,
         xTile,
@@ -1603,7 +1615,7 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
       });
     }
 
-    xTile += randInt(rand, 2, 4);
+    xTile += 1;
   }
   return items;
 }
