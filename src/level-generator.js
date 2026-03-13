@@ -1114,6 +1114,34 @@ function createGroundTileSource({ biome, rand, groundY }) {
     return pool[randInt(rand, 0, pool.length - 1)] || fallback;
   };
 
+  const createVarietyPicker = (pool, { spilloverPool = null, spilloverChance = 0.2 } = {}) => {
+    let lastTile = null;
+    return () => {
+      if (!pool?.length) {
+        return fallback;
+      }
+
+      let sourcePool = pool;
+      if (spilloverPool?.length && rand() < spilloverChance) {
+        sourcePool = spilloverPool;
+      }
+
+      let nextTile = sourcePool[randInt(rand, 0, sourcePool.length - 1)] || fallback;
+      if (sourcePool.length > 1 && lastTile && nextTile === lastTile) {
+        for (let attempt = 0; attempt < 3 && nextTile === lastTile; attempt += 1) {
+          nextTile = sourcePool[randInt(rand, 0, sourcePool.length - 1)] || fallback;
+        }
+      }
+      lastTile = nextTile;
+      return nextTile;
+    };
+  };
+
+  const pickMountain = createVarietyPicker(mountainPool, { spilloverPool: allPool, spilloverChance: 0.28 });
+  const pickSurface = createVarietyPicker(surfacePool, { spilloverPool: allPool, spilloverChance: 0.22 });
+  const pickMiddle = createVarietyPicker(middlePool, { spilloverPool: deepPool, spilloverChance: 0.18 });
+  const pickDeep = createVarietyPicker(deepPool, { spilloverPool: middlePool, spilloverChance: 0.12 });
+
   if (biome?.id === "forest") {
     const forestGrassPool = allPool.filter((tile) => String(tile?.path || "").includes("/ground/forest/newgrass"));
     const forestGroundPool = allPool.filter((tile) => String(tile?.path || "").includes("/ground/forest/newground"));
@@ -1145,16 +1173,16 @@ function createGroundTileSource({ biome, rand, groundY }) {
   return {
     pick(_x, y, columnGroundY = groundY) {
       if (y < columnGroundY) {
-        return pick(mountainPool);
+        return pickMountain();
       }
       const depth = y - columnGroundY;
       if (depth <= 0) {
-        return pick(surfacePool);
+        return pickSurface();
       }
       if (depth === 1) {
-        return pick(middlePool);
+        return pickMiddle();
       }
-      return pick(deepPool);
+      return pickDeep();
     },
   };
 }
