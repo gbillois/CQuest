@@ -6,7 +6,7 @@ import {
   MAGE_FIREBALL_ICON, BIOME_PARALLAX_BACKGROUNDS, BOSS_DRAGON_ATTACK_SW_FRAMES,
   BOSS_FALLBACK_DRAGON_FRAME, GROUND_THICKNESS_TILES,
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
-  GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_FILES_BY_STYLE,
+  GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_FILES_BY_STYLE, GROUND_DECOR_FILES_BY_STYLE,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
   getHeroShopConfig, getHeroRosterOverride,
@@ -368,6 +368,11 @@ export async function preloadConfigAssetImages(config) {
         paths.add(tile.path);
       }
     }
+    for (const tile of buildGroundDecorStyleTiles(biomeId) || []) {
+      if (tile.path) {
+        paths.add(tile.path);
+      }
+    }
   }
   for (const styleId of PLATFORM_STYLE_IDS) {
     for (const tile of buildPlatformStyleTiles(styleId)?.platformTiles || []) {
@@ -412,6 +417,11 @@ export async function preloadLevelAssetImages(level) {
   for (const deco of level.decorations || []) {
     if (deco?.path) {
       paths.add(deco.path);
+    }
+  }
+  for (const decor of level.groundDecorations || []) {
+    if (decor?.path) {
+      paths.add(decor.path);
     }
   }
 
@@ -787,10 +797,14 @@ export function buildBiomeIndex(config) {
       14: allTiles.find((tile) => getTileCodeFromPath(tile?.path) === 14) || null,
       15: allTiles.find((tile) => getTileCodeFromPath(tile?.path) === 15) || null,
     };
-    const groundDecorTiles = [17, 18, 19, 20]
+    const configGroundDecorTiles = [17, 18, 19, 20]
       .map((code) => allTiles.find((tile) => getTileCodeFromPath(tile?.path) === code) || null)
       .filter(Boolean);
     const groundStyleTiles = buildGroundStyleTiles(biomeId);
+    const groundDecorTiles = [
+      ...configGroundDecorTiles,
+      ...buildGroundDecorStyleTiles(biomeId),
+    ];
     const fallbackSurfaceGround = allTiles.filter((tile) => {
       const code = getTileCodeFromPath(tile?.path);
       return code != null && code >= 1 && code <= 4;
@@ -886,6 +900,20 @@ function buildGroundStyleTiles(biomeId) {
     deep: byRow[3],
     mountain: byRow[4],
   };
+}
+
+function buildGroundDecorStyleTiles(biomeId) {
+  const styleId = GROUND_TILE_STYLE_BY_BIOME[biomeId] || null;
+  const files = styleId ? GROUND_DECOR_FILES_BY_STYLE[styleId] : null;
+  if (!styleId || !files?.length) {
+    return [];
+  }
+
+  return files.map((file, index) => ({
+    id: `${biomeId}_ground_decor_${index + 1}`,
+    path: `game_assets/ground/${styleId}/${file}`,
+    collision: "none",
+  }));
 }
 
 function buildPlatformStyleTiles(styleId) {

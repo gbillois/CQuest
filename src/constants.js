@@ -169,6 +169,38 @@ export const GROUND_TILE_FILES_BY_STYLE = {
     "newsnow_tile_r04_c01.png",
   ],
 };
+export const GROUND_DECOR_FILES_BY_STYLE = {
+  desert: [
+    "decosand1.png",
+    "decosand2.png",
+    "decosand3.png",
+    "decosand4.png",
+  ],
+  desolation: [
+    "desolationdeco1.png",
+    "desolationdeco2.png",
+    "desolationdeco3.png",
+    "desolationdeco4.png",
+  ],
+  forest: [
+    "grassdeco01.png",
+    "grassdeco02.png",
+    "grassdeco03.png",
+    "grassdeco04.png",
+  ],
+  mountain: [
+    "moutaindeco01.png",
+    "moutaindeco02.png",
+    "moutaindeco03.png",
+    "moutaindeco04.png",
+  ],
+  snow: [
+    "snowdeco01.png",
+    "snowdeco02.png",
+    "snowdeco03.png",
+    "snowdeco04.png",
+  ],
+};
 export const PLATFORM_STYLE_IDS = ["wood", "castlewall"];
 export const PLATFORM_TILE_PREFIX_BY_STYLE = {
   wood: "woodhalf",

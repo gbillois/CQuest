@@ -888,7 +888,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
   const decorations = [];
   const groundDecorations = buildGroundDecorScatter({
-    biome, rand, widthTiles, groundY: baseGroundY, holes, reservedRanges,
+    biome, rand, widthTiles, groundY: baseGroundY, getLocalGroundY, holes, reservedRanges,
   });
 
   const enemySpawns = buildEnemySpawns({
@@ -1576,19 +1576,33 @@ function getBonusMinPassUnderGapTiles() {
   return Math.max(BONUS_MIN_SUPPORT_GAP_TILES, playerHeightTiles + 1);
 }
 
-function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, holes, reservedRanges }) {
+function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGroundY, holes, reservedRanges }) {
   const decorTiles = biome.groundDecorTiles || [];
   if (!decorTiles.length) return [];
   const items = [];
-  const targetCount = clamp(Math.floor(widthTiles / 10), 10, 25);
-  let attempts = 0;
-  while (items.length < targetCount && attempts < 420) {
-    attempts += 1;
-    const xTile = randInt(rand, 8, widthTiles - 8);
-    if (isInHole(holes, xTile) || intersectsRanges(xTile - 1, xTile + 1, reservedRanges)) continue;
-    if (items.some((item) => Math.abs(item.xTile - xTile) < 2)) continue;
-    const tile = decorTiles[randInt(rand, 0, decorTiles.length - 1)];
-    items.push({ path: tile.path, xTile, yTile: groundY - 1 });
+  let xTile = 8 + randInt(rand, 0, 2);
+  const maxX = Math.max(xTile, widthTiles - 8);
+
+  while (xTile <= maxX) {
+    const columnGroundY = typeof getLocalGroundY === "function" ? getLocalGroundY(xTile) : groundY;
+    const hasGround = Number.isFinite(columnGroundY) && columnGroundY >= 1;
+    const blocked =
+      !hasGround ||
+      isInHole(holes, xTile) ||
+      intersectsRanges(xTile - 1, xTile + 1, reservedRanges) ||
+      items.some((item) => Math.abs(item.xTile - xTile) < 2);
+
+    if (!blocked) {
+      const tile = decorTiles[randInt(rand, 0, decorTiles.length - 1)];
+      items.push({
+        path: tile.path,
+        xTile,
+        yTile: columnGroundY - 1,
+        renderBehindPlayer: rand() < 0.5,
+      });
+    }
+
+    xTile += randInt(rand, 2, 4);
   }
   return items;
 }

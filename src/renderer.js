@@ -137,7 +137,7 @@ export function render(timeSeconds) {
     drawCrumblingPlatforms(level, timeSeconds);
     drawMovingPlatforms(level, timeSeconds);
     drawConjugationGates(level, timeSeconds);
-    drawGroundDecorations(level);
+    drawGroundDecorations(level, { foreground: false });
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
     drawEnemies(level);
@@ -145,6 +145,7 @@ export function render(timeSeconds) {
     drawEnemyDrops(level);
     drawGoal(level);
     drawPlayer(state.player);
+    drawGroundDecorations(level, { foreground: true });
   } catch (error) {
     console.error("Render error:", error);
     drawPlayerFallback(state.player);
@@ -539,10 +540,14 @@ export function drawDecorations(level) {
   }
 }
 
-export function drawGroundDecorations(level) {
+export function drawGroundDecorations(level, { foreground = false } = {}) {
   const tileSize = state.tileSize;
   const isDesolation = level.biomeId === "desolation";
   for (const decor of level.groundDecorations || []) {
+    const renderBehindPlayer = decor.renderBehindPlayer !== false;
+    if (foreground ? renderBehindPlayer : !renderBehindPlayer) {
+      continue;
+    }
     const image = imageCache.get(decor.path);
     if (!isImageRenderable(image)) {
       continue;
@@ -559,7 +564,7 @@ export function drawGroundDecorations(level) {
       }
     }
     const x = decor.xTile * tileSize;
-    const groundTileY = level.groundY;
+    const groundTileY = Number.isFinite(decor.yTile) ? decor.yTile + 1 : level.groundY;
     const groundTile = level.tileGrid[groundTileY]?.[decor.xTile] || null;
     const groundRect = groundTile ? getSolidTileCollisionRect(groundTile, decor.xTile, groundTileY) : null;
     const surfaceY = groundRect ? groundRect.y : groundTileY * tileSize;
