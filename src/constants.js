@@ -256,6 +256,17 @@ export function getHeroRosterOverride(heroId) {
   return HERO_ROSTER_OVERRIDES[heroId] || null;
 }
 
+export const HERO_HITBOX_OVERRIDES = {
+  barbarian: { w: 32, h: 66 },
+  catwarrior: { w: 28, h: 64 },
+  golem: { w: 34, h: 72 },
+  knight: { w: 30, h: 66 },
+};
+
+export function getHeroHitboxOverride(heroId) {
+  return HERO_HITBOX_OVERRIDES[heroId] || null;
+}
+
 // ─── Boss ───
 export const BOSS_LEVEL_VALUE = "boss";
 export const BOSS_TRIALS_REQUIRED = 5;

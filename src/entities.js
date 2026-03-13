@@ -895,12 +895,12 @@ export function defeatEnemy(enemy) {
   _showMessage?.(rewardMessage);
 }
 
-export function respawnPlayer() {
+export function respawnPlayer({ fromStart = false } = {}) {
   const player = state.player;
   const level = state.currentLevel;
   const start = level.start;
   const history = state.respawnTrail?.history || [];
-  const snapshot = history.length ? history[history.length - 1] : null;
+  const snapshot = fromStart ? null : (history.length ? history[history.length - 1] : null);
   const respawnX = snapshot ? snapshot.x : start.x;
   const respawnY = snapshot ? snapshot.y : (start.y - player.h);
 

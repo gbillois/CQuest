@@ -384,7 +384,8 @@ function updatePlayer(delta) {
   if (player.y > level.worldHeight + 80) {
     damagePlayer("Fell");
     if (!state.deathSequence.active) {
-      respawnPlayer();
+      respawnPlayer({ fromStart: true });
+      state.respawnTrail.history = [];
       state.respawnTrail.elapsedSinceSample = 0;
     }
     return;

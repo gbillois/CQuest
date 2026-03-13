@@ -1,7 +1,7 @@
 // ─── Level Playability & Design Quality Validator ───
 // Checks traversability + scores level design quality on 5 dimensions (0-100).
 
-import { GAME, PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE } from "./constants.js";
+import { GAME, PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE, getHeroHitboxOverride } from "./constants.js";
 import { state } from "./state.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
 
@@ -29,6 +29,10 @@ function isOneWayPlatformTile(tile) {
 function getPlayerDimensions() {
   const hero = state.heroes?.[state.selectedHeroIndex];
   if (hero) {
+    const hitboxOverride = getHeroHitboxOverride(hero.id);
+    if (hitboxOverride) {
+      return hitboxOverride;
+    }
     const mbox = getManifestHitbox(hero.sprite?.idleSE, HERO_SCALE);
     if (mbox) return mbox;
   }

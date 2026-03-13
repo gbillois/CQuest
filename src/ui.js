@@ -3,7 +3,7 @@ import {
   TENSE_KEYS, TENSE_LABEL, PRONOUN_LABEL,
   BIOME_EMOJI, BOSS_LEVEL_VALUE,
   CHEAT_MENU_LONG_PRESS_MS, MAX_HEARTS,
-  getHeroShopConfig, getStartingHearts,
+  getHeroShopConfig, getStartingHearts, getHeroHitboxOverride,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE,
   PLAYER_DEATH_DELAY_SECONDS,
   ERROR_DB_STORAGE_KEY,
@@ -961,10 +961,11 @@ export function loadLevel(levelIndex, resetScore) {
   ensureSelectedHeroIsOwned();
   syncHeroActionButtonVisibility();
   const hero = state.heroes[state.selectedHeroIndex];
-  // Derive hitbox from manifest content bounding box when available.
+  // Use hero-specific hitbox overrides when provided; otherwise fall back to manifest bounds.
   const manifestHitbox = hero ? getManifestHitbox(hero.sprite.idleSE, HERO_SCALE) : null;
-  const playerW = manifestHitbox?.w || PLAYER_HITBOX_WIDTH;
-  const playerH = manifestHitbox?.h || PLAYER_HITBOX_HEIGHT;
+  const hitboxOverride = hero ? getHeroHitboxOverride(hero.id) : null;
+  const playerW = hitboxOverride?.w || manifestHitbox?.w || PLAYER_HITBOX_WIDTH;
+  const playerH = hitboxOverride?.h || manifestHitbox?.h || PLAYER_HITBOX_HEIGHT;
   state.player = {
     x: state.currentLevel.start.x,
     y: state.currentLevel.start.y - playerH,

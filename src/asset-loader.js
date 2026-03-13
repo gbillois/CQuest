@@ -148,7 +148,7 @@ export async function collectFramePathsFromPrefixes(prefixes, maxFrames) {
 
 export async function buildHeroFromMetadata(dir, metadata) {
   const rotations = metadata.frames?.rotations || {};
-  const running = metadata.frames?.animations?.["running-6-frames"] || {};
+  const running = metadata.frames?.animations?.["running-6-frames"] || metadata.frames?.animations?.["running-4-frames"] || {};
   const jumping = metadata.frames?.animations?.["jumping-2"] || metadata.frames?.animations?.["jumping-1"] || {};
   const heroId = normalizeHeroId(dir);
   const override = getHeroRosterOverride(heroId);
@@ -188,8 +188,14 @@ export async function buildHeroFromConvention(dir) {
     return null;
   }
 
-  const runSE = await collectFramePaths(`game_assets/heroes/${dir}/animations/running-6-frames/south-east/frame_`, 6);
-  const runSW = await collectFramePaths(`game_assets/heroes/${dir}/animations/running-6-frames/south-west/frame_`, 6);
+  const runSE = await collectFramePathsFromPrefixes([
+    `game_assets/heroes/${dir}/animations/running-6-frames/south-east/frame_`,
+    `game_assets/heroes/${dir}/animations/running-4-frames/south-east/frame_`,
+  ], 6);
+  const runSW = await collectFramePathsFromPrefixes([
+    `game_assets/heroes/${dir}/animations/running-6-frames/south-west/frame_`,
+    `game_assets/heroes/${dir}/animations/running-4-frames/south-west/frame_`,
+  ], 6);
   const jumpSE = await collectFramePathsFromPrefixes([
     `game_assets/heroes/${dir}/animations/jumping-2/south-east/frame_`,
     `game_assets/heroes/${dir}/animations/jumping-1/south-east/frame_`,
