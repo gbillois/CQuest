@@ -668,6 +668,49 @@ export function drawFireballs(level) {
     return;
   }
   for (const fireball of state.fireballs) {
+    if (fireball.kind === "axe") {
+      const angle = (fireball.spin || 0) + performance.now() * 0.001 * (fireball.spinSpeed || 10);
+      const handle = fireball.radius * 1.5;
+      const blade = fireball.radius * 0.9;
+      ctx.save();
+      ctx.translate(fireball.x, fireball.y);
+      ctx.rotate(angle + (fireball.rotation || 0));
+      ctx.fillStyle = "#8e5a31";
+      ctx.fillRect(-handle * 0.5, -fireball.radius * 0.16, handle, fireball.radius * 0.32);
+      ctx.fillStyle = "#d7dee8";
+      ctx.beginPath();
+      ctx.moveTo(handle * 0.05, 0);
+      ctx.lineTo(handle * 0.45, -blade);
+      ctx.lineTo(handle * 0.45, blade);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-handle * 0.05, 0);
+      ctx.lineTo(-handle * 0.45, -blade * 0.72);
+      ctx.lineTo(-handle * 0.45, blade * 0.72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
+
+    if (fireball.kind === "rock") {
+      const angle = (fireball.spin || 0) + performance.now() * 0.001 * (fireball.spinSpeed || 4);
+      ctx.save();
+      ctx.translate(fireball.x, fireball.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = "#8a847d";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, fireball.radius, fireball.radius * 0.82, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#b7b0a8";
+      ctx.beginPath();
+      ctx.ellipse(-fireball.radius * 0.22, -fireball.radius * 0.18, fireball.radius * 0.28, fireball.radius * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
+
     if (fireball.kind === "shuriken") {
       const angle = (fireball.spin || 0) + performance.now() * 0.001 * (fireball.spinSpeed || 14);
       ctx.save();
@@ -721,9 +764,15 @@ export function drawFireballs(level) {
       fireball.y,
       fireball.radius,
     );
-    gradient.addColorStop(0, "#fff7c2");
-    gradient.addColorStop(0.55, "#ffb347");
-    gradient.addColorStop(1, "#ff6a2f");
+    if (fireball.kind === "golden-fireball") {
+      gradient.addColorStop(0, "#fff8bf");
+      gradient.addColorStop(0.55, "#ffd34d");
+      gradient.addColorStop(1, "#d98a00");
+    } else {
+      gradient.addColorStop(0, "#fff7c2");
+      gradient.addColorStop(0.55, "#ffb347");
+      gradient.addColorStop(1, "#ff6a2f");
+    }
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);

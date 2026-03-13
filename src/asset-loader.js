@@ -9,10 +9,10 @@ import {
   GROUND_TILE_STYLE_BY_BIOME, GROUND_TILE_FILES_BY_STYLE,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
-  getHeroShopConfig,
+  getHeroShopConfig, getHeroRosterOverride,
 } from "./constants.js";
 
-import { normalizeAssetPath, normalizeUniqueAssetPaths, toAssetPath, formatHeroName, pad2, pad3 } from "./utils.js";
+import { normalizeAssetPath, normalizeUniqueAssetPaths, toAssetPath, formatHeroName, normalizeHeroId, pad2, pad3 } from "./utils.js";
 import { state, ui, imageCache, imagePromiseCache } from "./state.js";
 
 // ─── Late-bound dependency ───
@@ -149,14 +149,16 @@ export async function collectFramePathsFromPrefixes(prefixes, maxFrames) {
 export async function buildHeroFromMetadata(dir, metadata) {
   const rotations = metadata.frames?.rotations || {};
   const running = metadata.frames?.animations?.["running-6-frames"] || {};
-  const jumping = metadata.frames?.animations?.["jumping-2"] || {};
+  const jumping = metadata.frames?.animations?.["jumping-2"] || metadata.frames?.animations?.["jumping-1"] || {};
+  const heroId = normalizeHeroId(dir);
+  const override = getHeroRosterOverride(heroId);
 
   const hero = {
-    id: dir,
-    name: formatHeroName(metadata.character?.name || dir),
+    id: heroId,
+    name: override?.name || formatHeroName(metadata.character?.name || dir),
     size: {
-      width: metadata.character?.size?.width || 56,
-      height: metadata.character?.size?.height || 56,
+      width: override?.size?.width || metadata.character?.size?.width || 56,
+      height: override?.size?.height || metadata.character?.size?.height || 56,
     },
     sprite: {
       idleSE: toAssetPath(`./game_assets/heroes/${dir}`, rotations["south-east"]),
@@ -188,13 +190,24 @@ export async function buildHeroFromConvention(dir) {
 
   const runSE = await collectFramePaths(`game_assets/heroes/${dir}/animations/running-6-frames/south-east/frame_`, 6);
   const runSW = await collectFramePaths(`game_assets/heroes/${dir}/animations/running-6-frames/south-west/frame_`, 6);
-  const jumpSE = await collectFramePaths(`game_assets/heroes/${dir}/animations/jumping-2/south-east/frame_`, 8);
-  const jumpSW = await collectFramePaths(`game_assets/heroes/${dir}/animations/jumping-2/south-west/frame_`, 8);
+  const jumpSE = await collectFramePathsFromPrefixes([
+    `game_assets/heroes/${dir}/animations/jumping-2/south-east/frame_`,
+    `game_assets/heroes/${dir}/animations/jumping-1/south-east/frame_`,
+  ], 9);
+  const jumpSW = await collectFramePathsFromPrefixes([
+    `game_assets/heroes/${dir}/animations/jumping-2/south-west/frame_`,
+    `game_assets/heroes/${dir}/animations/jumping-1/south-west/frame_`,
+  ], 9);
+  const heroId = normalizeHeroId(dir);
+  const override = getHeroRosterOverride(heroId);
 
   const hero = {
-    id: dir,
-    name: formatHeroName(dir),
-    size: { width: 56, height: 56 },
+    id: heroId,
+    name: override?.name || formatHeroName(dir),
+    size: {
+      width: override?.size?.width || 56,
+      height: override?.size?.height || 56,
+    },
     sprite: {
       idleSE: normalizeAssetPath(idleSE),
       idleSW: normalizeAssetPath(idleSW),

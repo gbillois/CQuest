@@ -109,8 +109,16 @@ export function weightedPickByKey(items, key, rand) {
 
 // ─── String formatting ───
 export function formatHeroName(value) {
-  const cleaned = String(value).replace(/^hero[-_]/i, "").replace(/[-_]+/g, " ").trim();
+  const cleaned = String(value)
+    .replace(/^hero[-_]/i, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .trim();
   return capitalize(cleaned || "Hero");
+}
+
+export function normalizeHeroId(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 export function capitalize(value) {

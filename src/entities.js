@@ -11,6 +11,9 @@ import {
   MAGE_FIREBALL_SPEED, MAGE_FIREBALL_RADIUS,
   NINJA_SHURIKEN_SPEED, NINJA_SHURIKEN_RADIUS,
   PIRATE_SABER_SPEED_X, PIRATE_SABER_SPEED_Y, PIRATE_SABER_GRAVITY, PIRATE_SABER_RADIUS,
+  BARBARIAN_AXE_SPEED, BARBARIAN_AXE_RADIUS,
+  GOLEM_ROCK_SPEED_X, GOLEM_ROCK_SPEED_Y, GOLEM_ROCK_GRAVITY, GOLEM_ROCK_RADIUS,
+  KNIGHT_FIREBALL_SPEED, KNIGHT_FIREBALL_RADIUS,
   BIOME_PARALLAX_BACKGROUNDS,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, PLAYER_HIT_BLINK_HZ,
   getStartingHearts,
@@ -130,7 +133,7 @@ export function castHeroProjectile() {
     return false;
   }
   const heroId = getSelectedHeroId();
-  if (heroId !== "mage" && heroId !== "ninja" && heroId !== "pirate") {
+  if (!["mage", "ninja", "pirate", "barbarian", "golem", "knight"].includes(heroId)) {
     return false;
   }
 
@@ -171,7 +174,59 @@ export function castHeroProjectile() {
     return true;
   }
 
+  if (heroId === "barbarian") {
+    state.fireballs.push({
+      x: originX,
+      y: centerOriginY,
+      vx: forwardSign * BARBARIAN_AXE_SPEED,
+      vy: -20,
+      gravity: 0,
+      life: 1.05,
+      radius: BARBARIAN_AXE_RADIUS,
+      kind: "axe",
+      spin: Math.random() * Math.PI * 2,
+      spinSpeed: 11,
+      rotation: forwardSign > 0 ? 0 : Math.PI,
+    });
+    return true;
+  }
+
+  if (heroId === "golem") {
+    state.fireballs.push({
+      x: originX,
+      y: castOriginY,
+      vx: forwardSign * GOLEM_ROCK_SPEED_X,
+      vy: GOLEM_ROCK_SPEED_Y,
+      gravity: GOLEM_ROCK_GRAVITY,
+      life: 1.45,
+      radius: GOLEM_ROCK_RADIUS,
+      kind: "rock",
+      spin: Math.random() * Math.PI * 2,
+      spinSpeed: 4.5,
+    });
+    return true;
+  }
+
   const target = findClosestEnemyAhead(originX, forwardSign);
+  if (heroId === "knight") {
+    const targetX = target ? target.x + target.w * 0.5 : originX + forwardSign * 180;
+    const targetY = target ? target.y + target.h * 0.5 : castOriginY;
+    const dx = targetX - originX;
+    const dy = targetY - castOriginY;
+    const distance = Math.hypot(dx, dy) || 1;
+    state.fireballs.push({
+      x: originX,
+      y: castOriginY,
+      vx: (dx / distance) * KNIGHT_FIREBALL_SPEED,
+      vy: (dy / distance) * KNIGHT_FIREBALL_SPEED,
+      gravity: 0,
+      life: Math.max(0.55, distance / KNIGHT_FIREBALL_SPEED + 0.2),
+      radius: KNIGHT_FIREBALL_RADIUS,
+      kind: "golden-fireball",
+    });
+    return true;
+  }
+
   if (!target) {
     return false;
   }

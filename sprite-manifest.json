@@ -4,6 +4,1426 @@
     "description": "Pixel-level sprite analysis for ConjugQuest. content_bbox = opaque pixel bounds within canvas."
   },
   "heroes": {
+    "Barbarian": {
+      "canvas_size": {
+        "w": 104,
+        "h": 104
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/heroes/Barbarian/rotations/east.png",
+          "content_bbox": {
+            "x": 39,
+            "y": 27,
+            "w": 30,
+            "h": 47
+          }
+        },
+        "north-east": {
+          "path": "game_assets/heroes/Barbarian/rotations/north-east.png",
+          "content_bbox": {
+            "x": 40,
+            "y": 27,
+            "w": 36,
+            "h": 46
+          }
+        },
+        "north-west": {
+          "path": "game_assets/heroes/Barbarian/rotations/north-west.png",
+          "content_bbox": {
+            "x": 28,
+            "y": 27,
+            "w": 36,
+            "h": 46
+          }
+        },
+        "north": {
+          "path": "game_assets/heroes/Barbarian/rotations/north.png",
+          "content_bbox": {
+            "x": 39,
+            "y": 28,
+            "w": 38,
+            "h": 46
+          }
+        },
+        "south-east": {
+          "path": "game_assets/heroes/Barbarian/rotations/south-east.png",
+          "content_bbox": {
+            "x": 39,
+            "y": 28,
+            "w": 38,
+            "h": 45
+          }
+        },
+        "south-west": {
+          "path": "game_assets/heroes/Barbarian/rotations/south-west.png",
+          "content_bbox": {
+            "x": 27,
+            "y": 28,
+            "w": 38,
+            "h": 45
+          }
+        },
+        "south": {
+          "path": "game_assets/heroes/Barbarian/rotations/south.png",
+          "content_bbox": {
+            "x": 38,
+            "y": 28,
+            "w": 41,
+            "h": 45
+          }
+        },
+        "west": {
+          "path": "game_assets/heroes/Barbarian/rotations/west.png",
+          "content_bbox": {
+            "x": 35,
+            "y": 27,
+            "w": 30,
+            "h": 47
+          }
+        }
+      },
+      "animations": {
+        "jumping-1": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 27,
+                "w": 36,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 28,
+                "w": 36,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 30,
+                "w": 36,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 37,
+                "y": 31,
+                "w": 32,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 33,
+                "w": 36,
+                "h": 42
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 32,
+                "y": 34,
+                "w": 39,
+                "h": 36
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_006.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 30,
+                "w": 41,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_007.png",
+              "content_bbox": {
+                "x": 38,
+                "y": 31,
+                "w": 38,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-east/frame_008.png",
+              "content_bbox": {
+                "x": 40,
+                "y": 31,
+                "w": 33,
+                "h": 41
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 27,
+                "w": 36,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 28,
+                "w": 36,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 30,
+                "w": 36,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 31,
+                "w": 32,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 33,
+                "w": 36,
+                "h": 42
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 34,
+                "w": 39,
+                "h": 36
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_006.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 30,
+                "w": 41,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_007.png",
+              "content_bbox": {
+                "x": 28,
+                "y": 31,
+                "w": 38,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/jumping-1/south-west/frame_008.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 31,
+                "w": 33,
+                "h": 41
+              }
+            }
+          ]
+        },
+        "running-6-frames": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 40,
+                "y": 28,
+                "w": 29,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 28,
+                "w": 32,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 40,
+                "y": 27,
+                "w": 29,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 28,
+                "w": 35,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 38,
+                "y": 28,
+                "w": 33,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 27,
+                "w": 30,
+                "h": 48
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 28,
+                "w": 29,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 28,
+                "w": 32,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 27,
+                "w": 29,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 30,
+                "y": 28,
+                "w": 35,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 28,
+                "w": 33,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/Barbarian/animations/running-6-frames/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 27,
+                "w": 30,
+                "h": 48
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CatWarrior": {
+      "canvas_size": {
+        "w": 92,
+        "h": 92
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/heroes/CatWarrior/rotations/east.png",
+          "content_bbox": {
+            "x": 30,
+            "y": 22,
+            "w": 26,
+            "h": 46
+          }
+        },
+        "north-east": {
+          "path": "game_assets/heroes/CatWarrior/rotations/north-east.png",
+          "content_bbox": {
+            "x": 30,
+            "y": 22,
+            "w": 35,
+            "h": 45
+          }
+        },
+        "north-west": {
+          "path": "game_assets/heroes/CatWarrior/rotations/north-west.png",
+          "content_bbox": {
+            "x": 27,
+            "y": 22,
+            "w": 35,
+            "h": 45
+          }
+        },
+        "north": {
+          "path": "game_assets/heroes/CatWarrior/rotations/north.png",
+          "content_bbox": {
+            "x": 33,
+            "y": 23,
+            "w": 26,
+            "h": 44
+          }
+        },
+        "south-east": {
+          "path": "game_assets/heroes/CatWarrior/rotations/south-east.png",
+          "content_bbox": {
+            "x": 28,
+            "y": 23,
+            "w": 30,
+            "h": 44
+          }
+        },
+        "south-west": {
+          "path": "game_assets/heroes/CatWarrior/rotations/south-west.png",
+          "content_bbox": {
+            "x": 34,
+            "y": 23,
+            "w": 30,
+            "h": 44
+          }
+        },
+        "south": {
+          "path": "game_assets/heroes/CatWarrior/rotations/south.png",
+          "content_bbox": {
+            "x": 33,
+            "y": 23,
+            "w": 32,
+            "h": 44
+          }
+        },
+        "west": {
+          "path": "game_assets/heroes/CatWarrior/rotations/west.png",
+          "content_bbox": {
+            "x": 37,
+            "y": 22,
+            "w": 26,
+            "h": 46
+          }
+        }
+      },
+      "animations": {
+        "jumping-1": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 22,
+                "w": 29,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 23,
+                "w": 30,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 25,
+                "w": 29,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 26,
+                "w": 34,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 26,
+                "y": 29,
+                "w": 37,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 26,
+                "y": 29,
+                "w": 38,
+                "h": 36
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_006.png",
+              "content_bbox": {
+                "x": 28,
+                "y": 25,
+                "w": 35,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_007.png",
+              "content_bbox": {
+                "x": 28,
+                "y": 24,
+                "w": 33,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-east/frame_008.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 25,
+                "w": 29,
+                "h": 41
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 22,
+                "w": 29,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 23,
+                "w": 30,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 25,
+                "w": 29,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 26,
+                "w": 34,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 29,
+                "w": 37,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 28,
+                "y": 29,
+                "w": 38,
+                "h": 36
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_006.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 25,
+                "w": 35,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_007.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 24,
+                "w": 33,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/jumping-1/south-west/frame_008.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 25,
+                "w": 29,
+                "h": 41
+              }
+            }
+          ]
+        },
+        "running-6-frames": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 22,
+                "w": 29,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 22,
+                "w": 30,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 22,
+                "w": 28,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 22,
+                "w": 28,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 23,
+                "w": 28,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 22,
+                "w": 28,
+                "h": 47
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 22,
+                "w": 29,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 22,
+                "w": 30,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 22,
+                "w": 28,
+                "h": 47
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 22,
+                "w": 28,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 23,
+                "w": 28,
+                "h": 46
+              }
+            },
+            {
+              "path": "game_assets/heroes/CatWarrior/animations/running-6-frames/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 22,
+                "w": 28,
+                "h": 47
+              }
+            }
+          ]
+        }
+      }
+    },
+    "Golem": {
+      "canvas_size": {
+        "w": 96,
+        "h": 96
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/heroes/Golem/rotations/east.png",
+          "content_bbox": {
+            "x": 39,
+            "y": 24,
+            "w": 18,
+            "h": 47
+          }
+        },
+        "north-east": {
+          "path": "game_assets/heroes/Golem/rotations/north-east.png",
+          "content_bbox": {
+            "x": 30,
+            "y": 24,
+            "w": 37,
+            "h": 48
+          }
+        },
+        "north-west": {
+          "path": "game_assets/heroes/Golem/rotations/north-west.png",
+          "content_bbox": {
+            "x": 30,
+            "y": 24,
+            "w": 37,
+            "h": 48
+          }
+        },
+        "north": {
+          "path": "game_assets/heroes/Golem/rotations/north.png",
+          "content_bbox": {
+            "x": 28,
+            "y": 24,
+            "w": 41,
+            "h": 48
+          }
+        },
+        "south-east": {
+          "path": "game_assets/heroes/Golem/rotations/south-east.png",
+          "content_bbox": {
+            "x": 28,
+            "y": 24,
+            "w": 37,
+            "h": 48
+          }
+        },
+        "south-west": {
+          "path": "game_assets/heroes/Golem/rotations/south-west.png",
+          "content_bbox": {
+            "x": 31,
+            "y": 24,
+            "w": 37,
+            "h": 48
+          }
+        },
+        "south": {
+          "path": "game_assets/heroes/Golem/rotations/south.png",
+          "content_bbox": {
+            "x": 27,
+            "y": 24,
+            "w": 43,
+            "h": 47
+          }
+        },
+        "west": {
+          "path": "game_assets/heroes/Golem/rotations/west.png",
+          "content_bbox": {
+            "x": 40,
+            "y": 24,
+            "w": 18,
+            "h": 47
+          }
+        }
+      },
+      "animations": {
+        "jumping-1": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 30,
+                "y": 24,
+                "w": 33,
+                "h": 53
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 25,
+                "w": 35,
+                "h": 51
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 32,
+                "y": 28,
+                "w": 29,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 25,
+                "y": 30,
+                "w": 47,
+                "h": 50
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 20,
+                "y": 32,
+                "w": 51,
+                "h": 42
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 30,
+                "w": 57,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_006.png",
+              "content_bbox": {
+                "x": 23,
+                "y": 25,
+                "w": 51,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_007.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 26,
+                "w": 43,
+                "h": 43
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-east/frame_008.png",
+              "content_bbox": {
+                "x": 30,
+                "y": 25,
+                "w": 36,
+                "h": 48
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 23,
+                "w": 20,
+                "h": 54
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 39,
+                "y": 25,
+                "w": 23,
+                "h": 51
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 26,
+                "w": 26,
+                "h": 45
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 29,
+                "w": 26,
+                "h": 51
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 31,
+                "w": 29,
+                "h": 45
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 30,
+                "w": 24,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_006.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 26,
+                "w": 22,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_007.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 26,
+                "w": 23,
+                "h": 44
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/jumping-1/south-west/frame_008.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 25,
+                "w": 28,
+                "h": 50
+              }
+            }
+          ]
+        },
+        "running-4-frames": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 25,
+                "w": 26,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 25,
+                "w": 32,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 28,
+                "y": 25,
+                "w": 37,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 24,
+                "w": 32,
+                "h": 55
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 25,
+                "w": 26,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 25,
+                "w": 32,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 25,
+                "w": 37,
+                "h": 52
+              }
+            },
+            {
+              "path": "game_assets/heroes/Golem/animations/running-4-frames/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 24,
+                "w": 32,
+                "h": 55
+              }
+            }
+          ]
+        }
+      }
+    },
+    "Knight": {
+      "canvas_size": {
+        "w": 88,
+        "h": 88
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/heroes/Knight/rotations/east.png",
+          "content_bbox": {
+            "x": 32,
+            "y": 21,
+            "w": 28,
+            "h": 42
+          }
+        },
+        "north-east": {
+          "path": "game_assets/heroes/Knight/rotations/north-east.png",
+          "content_bbox": {
+            "x": 31,
+            "y": 21,
+            "w": 34,
+            "h": 41
+          }
+        },
+        "north-west": {
+          "path": "game_assets/heroes/Knight/rotations/north-west.png",
+          "content_bbox": {
+            "x": 23,
+            "y": 21,
+            "w": 34,
+            "h": 41
+          }
+        },
+        "north": {
+          "path": "game_assets/heroes/Knight/rotations/north.png",
+          "content_bbox": {
+            "x": 32,
+            "y": 21,
+            "w": 28,
+            "h": 42
+          }
+        },
+        "south-east": {
+          "path": "game_assets/heroes/Knight/rotations/south-east.png",
+          "content_bbox": {
+            "x": 31,
+            "y": 21,
+            "w": 24,
+            "h": 43
+          }
+        },
+        "south-west": {
+          "path": "game_assets/heroes/Knight/rotations/south-west.png",
+          "content_bbox": {
+            "x": 22,
+            "y": 21,
+            "w": 35,
+            "h": 43
+          }
+        },
+        "south": {
+          "path": "game_assets/heroes/Knight/rotations/south.png",
+          "content_bbox": {
+            "x": 23,
+            "y": 21,
+            "w": 34,
+            "h": 42
+          }
+        },
+        "west": {
+          "path": "game_assets/heroes/Knight/rotations/west.png",
+          "content_bbox": {
+            "x": 28,
+            "y": 21,
+            "w": 28,
+            "h": 42
+          }
+        }
+      },
+      "animations": {
+        "jumping-1": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 22,
+                "w": 19,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 23,
+                "w": 20,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 23,
+                "w": 19,
+                "h": 37
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 30,
+                "y": 26,
+                "w": 28,
+                "h": 38
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 27,
+                "w": 32,
+                "h": 36
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 27,
+                "y": 27,
+                "w": 34,
+                "h": 37
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_006.png",
+              "content_bbox": {
+                "x": 29,
+                "y": 24,
+                "w": 31,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_007.png",
+              "content_bbox": {
+                "x": 32,
+                "y": 25,
+                "w": 26,
+                "h": 35
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-east/frame_008.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 23,
+                "w": 20,
+                "h": 38
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 23,
+                "y": 23,
+                "w": 32,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 24,
+                "y": 23,
+                "w": 32,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 22,
+                "y": 24,
+                "w": 33,
+                "h": 38
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 23,
+                "y": 23,
+                "w": 32,
+                "h": 43
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 22,
+                "y": 26,
+                "w": 37,
+                "h": 37
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 22,
+                "y": 26,
+                "w": 32,
+                "h": 37
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_006.png",
+              "content_bbox": {
+                "x": 22,
+                "y": 23,
+                "w": 32,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_007.png",
+              "content_bbox": {
+                "x": 21,
+                "y": 23,
+                "w": 33,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/jumping-1/south-west/frame_008.png",
+              "content_bbox": {
+                "x": 20,
+                "y": 23,
+                "w": 34,
+                "h": 40
+              }
+            }
+          ]
+        },
+        "running-6-frames": {
+          "south-east": [
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_000.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 23,
+                "w": 18,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_001.png",
+              "content_bbox": {
+                "x": 32,
+                "y": 23,
+                "w": 23,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_002.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 24,
+                "w": 17,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_003.png",
+              "content_bbox": {
+                "x": 31,
+                "y": 23,
+                "w": 23,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_004.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 24,
+                "w": 20,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-east/frame_005.png",
+              "content_bbox": {
+                "x": 32,
+                "y": 22,
+                "w": 18,
+                "h": 43
+              }
+            }
+          ],
+          "south-west": [
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_000.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 23,
+                "w": 18,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_001.png",
+              "content_bbox": {
+                "x": 33,
+                "y": 23,
+                "w": 23,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_002.png",
+              "content_bbox": {
+                "x": 36,
+                "y": 24,
+                "w": 17,
+                "h": 39
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_003.png",
+              "content_bbox": {
+                "x": 34,
+                "y": 23,
+                "w": 23,
+                "h": 40
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_004.png",
+              "content_bbox": {
+                "x": 35,
+                "y": 24,
+                "w": 20,
+                "h": 41
+              }
+            },
+            {
+              "path": "game_assets/heroes/Knight/animations/running-6-frames/south-west/frame_005.png",
+              "content_bbox": {
+                "x": 38,
+                "y": 22,
+                "w": 18,
+                "h": 43
+              }
+            }
+          ]
+        }
+      }
+    },
     "mage": {
       "canvas_size": {
         "w": 56,

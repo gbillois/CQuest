@@ -80,7 +80,7 @@ export const TENSE_KEYS = Object.keys(TENSE_LABEL);
 export const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
 
 // ─── Asset directories ───
-export const KNOWN_HERO_DIRS = ["mage", "ninja", "paladin", "pirate"];
+export const KNOWN_HERO_DIRS = ["mage", "ninja", "paladin", "pirate", "Barbarian", "CatWarrior", "Golem", "Knight"];
 export const KNOWN_ENEMY_DIRS = [
   "desert-mummy", "desert-scorpion", "desolation-skeleton", "desolation-wraith",
   "forest-goblin-green", "forest-sprite", "mountain-dwarf", "mountain-troll",
@@ -223,10 +223,37 @@ export const HERO_SHOP_CONFIG = {
   ninja: { price: 360, order: 1, defaultOwned: false },
   pirate: { price: 600, order: 2, defaultOwned: false },
   mage: { price: 1200, order: 3, defaultOwned: false },
+  barbarian: { price: 1800, order: 4, defaultOwned: false },
+  catwarrior: { price: 2600, order: 5, defaultOwned: false },
+  golem: { price: 3600, order: 6, defaultOwned: false },
+  knight: { price: 4800, order: 7, defaultOwned: false },
 };
 
 export function getHeroShopConfig(heroId) {
   return HERO_SHOP_CONFIG[heroId] || { price: 9999, order: 99, defaultOwned: false };
+}
+
+export const HERO_ROSTER_OVERRIDES = {
+  barbarian: {
+    name: "Barbarian",
+    size: { width: 68, height: 68 },
+  },
+  catwarrior: {
+    name: "Cat Warrior",
+    size: { width: 64, height: 64 },
+  },
+  golem: {
+    name: "Golem",
+    size: { width: 96, height: 96 },
+  },
+  knight: {
+    name: "Knight",
+    size: { width: 88, height: 88 },
+  },
+};
+
+export function getHeroRosterOverride(heroId) {
+  return HERO_ROSTER_OVERRIDES[heroId] || null;
 }
 
 // ─── Boss ───
@@ -252,6 +279,14 @@ export const PIRATE_SABER_SPEED_X = 300;
 export const PIRATE_SABER_SPEED_Y = -260;
 export const PIRATE_SABER_GRAVITY = 720;
 export const PIRATE_SABER_RADIUS = 14;
+export const BARBARIAN_AXE_SPEED = 430;
+export const BARBARIAN_AXE_RADIUS = 13;
+export const GOLEM_ROCK_SPEED_X = 290;
+export const GOLEM_ROCK_SPEED_Y = -205;
+export const GOLEM_ROCK_GRAVITY = 760;
+export const GOLEM_ROCK_RADIUS = 18;
+export const KNIGHT_FIREBALL_SPEED = 470;
+export const KNIGHT_FIREBALL_RADIUS = 17;
 
 // ─── UI / Misc ───
 export const CHEAT_MENU_LONG_PRESS_MS = 650;

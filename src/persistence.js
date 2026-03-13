@@ -130,7 +130,7 @@ export function syncHeroActionButtonVisibility() {
   if (!ui.castFireBtn) {
     return;
   }
-  const shouldHide = !["mage", "ninja", "pirate"].includes(getSelectedHeroId());
+  const shouldHide = !["mage", "ninja", "pirate", "barbarian", "golem", "knight"].includes(getSelectedHeroId());
   ui.castFireBtn.hidden = shouldHide;
   if (ui.castFireHitBtn) {
     ui.castFireHitBtn.hidden = shouldHide;
