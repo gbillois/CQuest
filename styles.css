@@ -460,7 +460,7 @@ body {
 .question-panel {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% - 50px);
   bottom: auto;
   transform: translate(-50%, -50%);
   width: min(94%, 430px);
