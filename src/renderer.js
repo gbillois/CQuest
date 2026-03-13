@@ -254,7 +254,7 @@ export function drawTowerInteriorScene(timeSeconds) {
     const drawW = interiorImage.width * scale;
     const drawH = interiorImage.height * scale;
     const drawX = (VIRTUAL_WIDTH - drawW) / 2;
-    const drawY = (VIRTUAL_HEIGHT - drawH) / 2;
+    const drawY = (VIRTUAL_HEIGHT - drawH) / 2 + 100;
     ctx.drawImage(interiorImage, drawX, drawY, drawW, drawH);
   } else {
     ctx.fillStyle = "#12151f";
@@ -744,11 +744,15 @@ export function drawPlayer(player) {
   const deathRotation = dying ? deathT * Math.PI * 1.35 : 0;
 
   if (isImageRenderable(frameImage)) {
-    const drawW = hero.size.width * HERO_SCALE;
-    const drawH = hero.size.height * HERO_SCALE;
+    const towerInteriorScale = state.towerInterior.active ? 2 : 1;
+    const drawW = hero.size.width * HERO_SCALE * towerInteriorScale;
+    const drawH = hero.size.height * HERO_SCALE * towerInteriorScale;
     const rect = getEntitySpriteDrawRect(frameImage, player, drawW, drawH);
     if (player.onGround) {
       rect.y += PLAYER_RENDER_GROUND_OFFSET_PX;
+    }
+    if (state.towerInterior.active) {
+      rect.y -= 100;
     }
     ctx.save();
     if (dying) {

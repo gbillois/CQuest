@@ -871,7 +871,7 @@ export function getTowerInteriorChestBounds() {
   const chestH = 84;
   const floorY = getTowerInteriorFloorY();
   const chestX = Math.round(VIRTUAL_WIDTH * 0.68 - chestW * 0.5);
-  const chestY = Math.round(floorY - chestH);
+  const chestY = Math.round(floorY - chestH - 100);
   return { x: chestX, y: chestY, w: chestW, h: chestH };
 }
 
