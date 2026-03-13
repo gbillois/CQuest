@@ -930,6 +930,8 @@ export function loadLevel(levelIndex, resetScore) {
   state.deathSequence.elapsed = 0;
   state.deathSequence.duration = PLAYER_DEATH_DELAY_SECONDS;
   state.gameOver = false;
+  state.respawnTrail.elapsedSinceSample = 0;
+  state.respawnTrail.history = [];
   state.screenMode = "game";
   state.towerInterior.active = false;
   _resetBossState();

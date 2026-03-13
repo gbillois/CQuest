@@ -162,6 +162,10 @@ export const state = {
     elapsed: 0,
     duration: PLAYER_DEATH_DELAY_SECONDS,
   },
+  respawnTrail: {
+    elapsedSinceSample: 0,
+    history: [],
+  },
   lastTimestamp: 0,
   towerInterior: {
     active: false,

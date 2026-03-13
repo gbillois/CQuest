@@ -60,6 +60,40 @@ setUiHooks({
 });
 setRenderHeroShop(renderHeroShop);
 
+const RESPAWN_SAMPLE_INTERVAL_SECONDS = 0.2;
+const RESPAWN_HISTORY_WINDOW_SECONDS = 3;
+
+function resetRespawnTrail() {
+  state.respawnTrail.elapsedSinceSample = 0;
+  state.respawnTrail.history = [];
+}
+
+function updateRespawnTrail(delta) {
+  const player = state.player;
+  const level = state.currentLevel;
+  if (!player || !level || state.deathSequence.active || state.towerInterior.active || state.duel?.QS.active) {
+    return;
+  }
+
+  const trail = state.respawnTrail;
+  trail.elapsedSinceSample += delta;
+  if (trail.elapsedSinceSample < RESPAWN_SAMPLE_INTERVAL_SECONDS) {
+    return;
+  }
+
+  trail.elapsedSinceSample = 0;
+  const maxSafeY = level.worldHeight - state.tileSize * 1.25;
+  if (player.y > maxSafeY) {
+    return;
+  }
+
+  trail.history.push({ x: player.x, y: player.y });
+  const maxEntries = Math.ceil(RESPAWN_HISTORY_WINDOW_SECONDS / RESPAWN_SAMPLE_INTERVAL_SECONDS);
+  if (trail.history.length > maxEntries) {
+    trail.history.splice(0, trail.history.length - maxEntries);
+  }
+}
+
 // ─── Init ───
 async function init() {
   const config = await loadConfig();
@@ -185,6 +219,7 @@ async function init() {
   applyMobileVisualDebugOffsets();
 
   loadLevel(0, true);
+  resetRespawnTrail();
   state.ready = true;
   showTitleScreen();
   scheduleBackgroundWarmup(config);
@@ -247,6 +282,7 @@ function update(delta) {
     return;
   }
 
+  updateRespawnTrail(delta);
   updatePlayer(delta);
   updateEnemies(delta);
   updateFireballs(delta);
@@ -349,6 +385,7 @@ function updatePlayer(delta) {
     damagePlayer("Fell");
     if (!state.deathSequence.active) {
       respawnPlayer();
+      state.respawnTrail.elapsedSinceSample = 0;
     }
     return;
   }
