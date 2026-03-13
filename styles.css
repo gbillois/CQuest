@@ -369,6 +369,13 @@ body {
   box-shadow: 0 3px 0 #9f381d;
 }
 
+.hero-shop-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: linear-gradient(180deg, #98a4be, #6c7892);
+  box-shadow: 0 3px 0 #495166;
+}
+
 .panel label {
   display: block;
   margin: 10px 0 6px;
