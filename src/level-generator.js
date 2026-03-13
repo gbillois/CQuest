@@ -1125,15 +1125,15 @@ function createGroundTileSource({ biome, rand, groundY }) {
       forestGroundPool.length ? (forestGroundPool[randInt(rand, 0, forestGroundPool.length - 1)] || forestGroundFallback) : forestGroundFallback;
 
     return {
-      pick(_x, y) {
+      pick(_x, y, columnGroundY = groundY) {
         // Forest special rule:
         // - Mountains (above surface): grass only.
         // - Ground surface: grass only.
         // - Ground below surface: newground tiles (bottom two rows guaranteed).
-        if (y < groundY) {
+        if (y < columnGroundY) {
           return pickForestGrass();
         }
-        const depth = y - groundY;
+        const depth = y - columnGroundY;
         if (depth <= 0) {
           return pickForestGrass();
         }
@@ -1143,11 +1143,11 @@ function createGroundTileSource({ biome, rand, groundY }) {
   }
 
   return {
-    pick(_x, y) {
-      if (y < groundY) {
+    pick(_x, y, columnGroundY = groundY) {
+      if (y < columnGroundY) {
         return pick(mountainPool);
       }
-      const depth = y - groundY;
+      const depth = y - columnGroundY;
       if (depth <= 0) {
         return pick(surfacePool);
       }
@@ -1159,9 +1159,9 @@ function createGroundTileSource({ biome, rand, groundY }) {
   };
 }
 
-function setGroundTileAt(tileGrid, x, y, groundTile) {
+function setGroundTileAt(tileGrid, x, y, groundTile, columnGroundY = y) {
   if (!tileGrid[y] || x < 0 || x >= tileGrid[0].length) return;
-  const sourceTile = typeof groundTile?.pick === "function" ? groundTile.pick(x, y) : groundTile;
+  const sourceTile = typeof groundTile?.pick === "function" ? groundTile.pick(x, y, columnGroundY) : groundTile;
   setTile(tileGrid, x, y, asGroundSolidTile(sourceTile));
 }
 
@@ -1169,7 +1169,7 @@ function setGroundColumn(tileGrid, x, groundY, heightTiles, groundTile) {
   for (let dy = 0; dy < GROUND_THICKNESS_TILES; dy += 1) {
     const y = groundY + dy;
     if (y >= 0 && y < heightTiles) {
-      setGroundTileAt(tileGrid, x, y, groundTile);
+      setGroundTileAt(tileGrid, x, y, groundTile, groundY);
     }
   }
 }
