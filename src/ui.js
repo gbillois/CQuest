@@ -904,6 +904,7 @@ export function loadLevel(levelIndex, resetScore) {
   state.currentLevelIndex = levelIndex;
   state.pendingBossStart = false;
   state.currentLevel = cloneLevel(state.levels[levelIndex]);
+  _preloadLevelAssetImages?.(state.levels[levelIndex]).catch(() => null);
   state.cameraX = 0;
   state.endCastleLockHintUntil = 0;
   state.playerHitInvuln = 0;

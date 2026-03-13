@@ -11,7 +11,7 @@ import {
 } from "./constants.js";
 import { clamp } from "./utils.js";
 import { state, ctx, ui, imageCache } from "./state.js";
-import { isImageRenderable } from "./asset-loader.js";
+import { isImageRenderable, loadImage } from "./asset-loader.js";
 import { getSolidTileCollisionRect, getSpriteOpaqueBounds, getEntitySpriteDrawRect } from "./physics.js";
 import { isEndCastleUnlocked, getCastleMetrics, getEndCastleBounds, getEndCastleDoorBounds, getTowerBounds, getTowerInteriorFloorY, getTowerInteriorChestBounds, getBossDragonFrame } from "./entities.js";
 
@@ -550,6 +550,9 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
     }
     const image = imageCache.get(decor.path);
     if (!isImageRenderable(image)) {
+      if (decor.path) {
+        loadImage(decor.path).catch(() => null);
+      }
       continue;
     }
     // Skip decoration sprites whose visible content fills less than half the

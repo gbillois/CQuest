@@ -801,10 +801,8 @@ export function buildBiomeIndex(config) {
       .map((code) => allTiles.find((tile) => getTileCodeFromPath(tile?.path) === code) || null)
       .filter(Boolean);
     const groundStyleTiles = buildGroundStyleTiles(biomeId);
-    const groundDecorTiles = [
-      ...configGroundDecorTiles,
-      ...buildGroundDecorStyleTiles(biomeId),
-    ];
+    const styleGroundDecorTiles = buildGroundDecorStyleTiles(biomeId);
+    const groundDecorTiles = styleGroundDecorTiles.length ? styleGroundDecorTiles : configGroundDecorTiles;
     const fallbackSurfaceGround = allTiles.filter((tile) => {
       const code = getTileCodeFromPath(tile?.path);
       return code != null && code >= 1 && code <= 4;
