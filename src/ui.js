@@ -307,6 +307,27 @@ export function endVisualDebugLongPress() {
   cancelVisualDebugLongPress();
 }
 
+function attachLongPressListeners(element, startHandler, endHandler) {
+  if (!element) {
+    return;
+  }
+
+  // Pointer events cover touch + mouse on most modern browsers.
+  element.addEventListener("pointerdown", startHandler);
+  element.addEventListener("pointerup", endHandler);
+  element.addEventListener("pointerleave", endHandler);
+  element.addEventListener("pointercancel", endHandler);
+
+  // Mouse/touch fallbacks keep long-press behavior working on desktop browsers
+  // that may not route pointer events consistently for non-button HUD text.
+  element.addEventListener("mousedown", startHandler);
+  element.addEventListener("mouseup", endHandler);
+  element.addEventListener("mouseleave", endHandler);
+  element.addEventListener("touchstart", startHandler, { passive: true });
+  element.addEventListener("touchend", endHandler);
+  element.addEventListener("touchcancel", endHandler);
+}
+
 /* ── Cheat apply ── */
 
 export function applyCheatSelections() {
@@ -405,15 +426,8 @@ export function bindControls() {
     openShopPanel();
   });
 
-  ui.hudLives?.addEventListener("pointerdown", beginCheatMenuLongPress);
-  ui.hudLives?.addEventListener("pointerup", endCheatMenuLongPress);
-  ui.hudLives?.addEventListener("pointerleave", endCheatMenuLongPress);
-  ui.hudLives?.addEventListener("pointercancel", endCheatMenuLongPress);
-
-  ui.hudScoreValue?.addEventListener("pointerdown", beginVisualDebugLongPress);
-  ui.hudScoreValue?.addEventListener("pointerup", endVisualDebugLongPress);
-  ui.hudScoreValue?.addEventListener("pointerleave", endVisualDebugLongPress);
-  ui.hudScoreValue?.addEventListener("pointercancel", endVisualDebugLongPress);
+  attachLongPressListeners(ui.hudLives, beginCheatMenuLongPress, endCheatMenuLongPress);
+  attachLongPressListeners(ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
 
   ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
     state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 180);
