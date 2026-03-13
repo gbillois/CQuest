@@ -374,13 +374,16 @@ export function bindControls() {
     event.key.toLowerCase() === "d";
   const isJumpKey = (event) =>
     event.code === "ArrowUp" ||
-    event.code === "Space" ||
     event.code === "KeyW" ||
     event.code === "KeyZ" ||
     event.key === "ArrowUp" ||
-    event.key === " " ||
     event.key.toLowerCase() === "w" ||
     event.key.toLowerCase() === "z";
+  const isFireKey = (event) =>
+    event.code === "Space" ||
+    event.code === "ArrowDown" ||
+    event.key === " " ||
+    event.key === "ArrowDown";
 
   const leftButtons = [ui.moveLeftBtn, ui.moveLeftHitBtn].filter(Boolean);
   const rightButtons = [ui.moveRightBtn, ui.moveRightHitBtn].filter(Boolean);
@@ -670,7 +673,7 @@ export function bindControls() {
         ui.jumpBtn.classList.add("active");
         setTimeout(() => ui.jumpBtn.classList.remove("active"), 90);
       }
-      if (event.code === "ArrowDown") {
+      if (isFireKey(event)) {
         event.preventDefault();
         _castHeroProjectile();
         ui.castFireBtn?.classList.add("active");
