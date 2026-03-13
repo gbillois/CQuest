@@ -33,6 +33,7 @@ import {
   initializeHeroProgress, setRenderHeroShop, loadTileStyleMode,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
+import { registerPwa } from "./pwa.js";
 
 // ─── Wire late-binding hooks ───
 setUpdateHudInfo(updateHudInfo);
@@ -217,6 +218,7 @@ async function init() {
   renderErrorList();
   bindControls();
   applyMobileVisualDebugOffsets();
+  registerPwa();
 
   loadLevel(0, true);
   resetRespawnTrail();

@@ -670,6 +670,18 @@ body {
   box-shadow: 0 4px 0 #1b2f65;
 }
 
+
+.pwa-update-btn {
+  display: block;
+  width: 100%;
+  background: linear-gradient(180deg, #68d391, #2f855a);
+  box-shadow: 0 4px 0 #1f5f40;
+}
+
+#pwaUpdateBtn {
+  grid-column: 1 / -1;
+}
+
 .menu-modal {
   position: absolute;
   inset: 0;
