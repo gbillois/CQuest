@@ -108,6 +108,7 @@ async function init() {
   await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
+  state.coins = state.persistentGold;
   state.tileStyleMode = loadTileStyleMode();
   state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
   syncWorldZoomUi();
