@@ -1111,10 +1111,11 @@ export function populatePedagogyPanel() {
 /* ── Question UI hooks ── */
 
 export function buildQuestionUiHooks() {
-  const setQuestionActorSprites = () => {
+  const setQuestionActorSprites = (uiMeta = null) => {
     const hero = state.heroes[state.selectedHeroIndex];
     const enemy = state.duel?.QS?.enemy;
-    const enemySprite = enemy?.def?.sprite?.idleW || enemy?.def?.sprite?.idleE || null;
+    const enemySprite =
+      uiMeta?.enemySprite || enemy?.def?.sprite?.idleW || enemy?.def?.sprite?.idleE || null;
     const heroSprite = hero?.sprite?.idleSE || hero?.sprite?.idleSW || null;
 
     if (ui.questionEnemySprite) {
@@ -1164,7 +1165,7 @@ export function buildQuestionUiHooks() {
       if (ui.questionEnemy) {
         ui.questionEnemy.textContent = uiMeta?.enemyEmoji || (BIOME_EMOJI[biomeId] || "⚔️");
       }
-      setQuestionActorSprites();
+      setQuestionActorSprites(uiMeta);
       if (ui.questionEnemy) {
         ui.questionEnemy.hidden = !!(ui.questionEnemySprite && !ui.questionEnemySprite.hidden);
       }
