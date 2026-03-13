@@ -1,7 +1,7 @@
 import {
   VIRTUAL_WIDTH, VIRTUAL_HEIGHT,
   TENSE_KEYS, TENSE_LABEL, PRONOUN_LABEL,
-  BIOME_EMOJI, BOSS_LEVEL_VALUE,
+  BIOME_EMOJI,
   CHEAT_MENU_LONG_PRESS_MS, MAX_HEARTS,
   getHeroShopConfig, getStartingHearts, getHeroHitboxOverride,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE,
@@ -130,27 +130,8 @@ export function populateSettingsPanel() {
     ui.heroSelect.appendChild(option);
   });
 
-  ui.levelSelect.innerHTML = "";
-  state.levels.forEach((level, index) => {
-    const option = document.createElement("option");
-    option.value = String(index);
-    option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
-    ui.levelSelect.appendChild(option);
-  });
-  const bossOption = document.createElement("option");
-  bossOption.value = BOSS_LEVEL_VALUE;
-  bossOption.textContent = "Boss - Dragon";
-  ui.levelSelect.appendChild(bossOption);
-
   ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
-  ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
-  if (ui.difficultySelect) {
-    ui.difficultySelect.value = state.generationProfile;
-  }
-  if (ui.tileStyleSelect) {
-    ui.tileStyleSelect.value = normalizeTileStyleMode(state.tileStyleMode);
-  }
   syncWorldZoomUi();
   renderHeroShop();
   renderErrorList();
@@ -181,6 +162,12 @@ export function populateCheatModalOptions() {
 
   ui.cheatLevelSelect.value = String(state.currentLevelIndex);
   ui.cheatHeroSelect.value = String(state.selectedHeroIndex);
+  if (ui.cheatDifficultySelect) {
+    ui.cheatDifficultySelect.value = state.generationProfile;
+  }
+  if (ui.cheatTileStyleSelect) {
+    ui.cheatTileStyleSelect.value = normalizeTileStyleMode(state.tileStyleMode);
+  }
   applyWorldZoom(state.worldZoom);
 }
 
@@ -333,6 +320,8 @@ function attachLongPressListeners(element, startHandler, endHandler) {
 export function applyCheatSelections() {
   const nextLevel = clamp(Number(ui.cheatLevelSelect?.value || state.currentLevelIndex), 0, state.levels.length - 1);
   const heroIndex = clamp(Number(ui.cheatHeroSelect?.value || state.selectedHeroIndex), 0, state.heroes.length - 1);
+  const requestedProfile = ui.cheatDifficultySelect ? ui.cheatDifficultySelect.value : state.generationProfile;
+  const requestedTileStyleMode = ui.cheatTileStyleSelect ? normalizeTileStyleMode(ui.cheatTileStyleSelect.value) : normalizeTileStyleMode(state.tileStyleMode);
   const hero = state.heroes[heroIndex];
   if (hero) {
     state.heroUnlocks[hero.id] = true;
@@ -340,6 +329,18 @@ export function applyCheatSelections() {
     saveHeroUnlocks(state.heroUnlocks);
     saveSelectedHeroId(hero.id);
   }
+
+  const profileChanged = requestedProfile !== state.generationProfile;
+  const tileStyleChanged = requestedTileStyleMode !== normalizeTileStyleMode(state.tileStyleMode);
+  state.generationProfile = requestedProfile;
+  state.tileStyleMode = requestedTileStyleMode;
+  saveTileStyleMode(state.tileStyleMode);
+
+  if (profileChanged || tileStyleChanged) {
+    state.levelSeedBase = createRunSeed();
+    _generateLevelsFromConfig(state.config);
+  }
+
   closeCheatModal();
   if (state.started) {
     loadLevel(nextLevel, true);
@@ -557,39 +558,7 @@ export function bindControls() {
   });
 
   ui.applySettingsBtn.addEventListener("click", () => {
-    const wasStarted = state.started;
-    const requestedProfile = ui.difficultySelect ? ui.difficultySelect.value : state.generationProfile;
-    const requestedTileStyleMode = ui.tileStyleSelect ? normalizeTileStyleMode(ui.tileStyleSelect.value) : normalizeTileStyleMode(state.tileStyleMode);
-    const requestedLevelValue = String(ui.levelSelect.value || "0");
-    const wantsBoss = requestedLevelValue === BOSS_LEVEL_VALUE;
-    const levelIndex = clamp(Number(requestedLevelValue) || 0, 0, state.levels.length - 1);
-    state.generationProfile = requestedProfile;
-    state.tileStyleMode = requestedTileStyleMode;
-    saveTileStyleMode(state.tileStyleMode);
-    state.levelSeedBase = createRunSeed();
-    _generateLevelsFromConfig(state.config);
-    populateSettingsPanel();
-    syncHeroActionButtonVisibility();
-    state.pendingBossStart = wantsBoss;
     closeSettingsPanel();
-    if (wantsBoss) {
-      if (wasStarted) {
-        closePauseMenu();
-        state.paused = false;
-        _startBossMode({ sourceLevelIndex: _getBossPrepLevelIndex() });
-        return;
-      }
-      showTitleScreen();
-      return;
-    }
-    if (wasStarted) {
-      closePauseMenu();
-      state.paused = false;
-      loadLevel(levelIndex, true);
-      return;
-    }
-    loadLevel(levelIndex, true);
-    showTitleScreen();
   });
 
   ui.startBtn?.addEventListener("click", startGameFromMenu);
@@ -782,10 +751,6 @@ export function closeShopPanel() {
 export function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
     return;
-  }
-  ui.levelSelect.value = state.pendingBossStart ? BOSS_LEVEL_VALUE : String(state.currentLevelIndex);
-  if (ui.difficultySelect) {
-    ui.difficultySelect.value = state.generationProfile;
   }
   syncWorldZoomUi();
   ui.shopPanel.hidden = true;

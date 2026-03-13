@@ -257,10 +257,12 @@ export function getHeroRosterOverride(heroId) {
 }
 
 export const HERO_HITBOX_OVERRIDES = {
-  barbarian: { w: 32, h: 66 },
-  catwarrior: { w: 28, h: 64 },
-  golem: { w: 34, h: 72 },
-  knight: { w: 30, h: 66 },
+  // Align explicit overrides with sprite-manifest content boxes (scaled by HERO_SCALE)
+  // so collision remains tight for the latest hero roster.
+  barbarian: { w: 57, h: 68 },
+  catwarrior: { w: 45, h: 66 },
+  golem: { w: 56, h: 72 },
+  knight: { w: 36, h: 65 },
 };
 
 export function getHeroHitboxOverride(heroId) {

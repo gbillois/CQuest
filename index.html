@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2d2a68" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="icon" href="./assets/pwa/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/pwa/icon.svg" />
     <title>ConjugQuest</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -86,22 +89,6 @@
         <aside class="panel" id="settingsPanel" hidden>
           <h1>Settings</h1>
 
-          <label for="levelSelect">Level</label>
-          <select id="levelSelect"></select>
-
-          <label for="difficultySelect">Generation Profile</label>
-          <select id="difficultySelect">
-            <option value="easy">Easy</option>
-            <option value="normal">Normal</option>
-            <option value="chaotic">Chaotic</option>
-          </select>
-
-          <label for="tileStyleSelect">Tile style</label>
-          <select id="tileStyleSelect">
-            <option value="new">New</option>
-            <option value="basic">Basic</option>
-          </select>
-
           <label for="worldZoomSlider">World zoom</label>
           <div class="zoom-control">
             <input id="worldZoomSlider" type="range" min="0.1" max="3" step="0.1" value="1.0" />
@@ -173,6 +160,19 @@
             <h2>Tips &amp; Tricks</h2>
             <label for="cheatLevelSelect">Select level</label>
             <select id="cheatLevelSelect"></select>
+
+            <label for="cheatDifficultySelect">Generation Profile</label>
+            <select id="cheatDifficultySelect">
+              <option value="easy">Easy</option>
+              <option value="normal">Normal</option>
+              <option value="chaotic">Chaotic</option>
+            </select>
+
+            <label for="cheatTileStyleSelect">Tile style</label>
+            <select id="cheatTileStyleSelect">
+              <option value="new">New</option>
+              <option value="basic">Basic</option>
+            </select>
 
             <label for="cheatHeroSelect">Select hero</label>
             <select id="cheatHeroSelect"></select>
