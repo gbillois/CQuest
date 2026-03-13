@@ -477,7 +477,7 @@ body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: end;
-  gap: 10px;
+  gap: 4px;
   margin: 0 0 8px;
 }
 
@@ -485,6 +485,14 @@ body {
   display: grid;
   place-items: center;
   min-width: 62px;
+}
+
+.question-actor-hero {
+  justify-self: end;
+}
+
+.question-actor-enemy {
+  justify-self: start;
 }
 
 .question-actor-sprite {
@@ -499,11 +507,11 @@ body {
   font-size: 1.2rem;
   color: #ffe17e;
   line-height: 1;
-  transform: translateY(-8px);
+  transform: translateY(-4px);
 }
 
 .question-actor-enemy .question-actor-sprite {
-  transform: scaleX(-1);
+  transform: none;
 }
 
 .question-enemy {
