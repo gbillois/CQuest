@@ -94,6 +94,26 @@ function updateRespawnTrail(delta) {
   }
 }
 
+function handlePlayerFallOutOfWorld() {
+  const player = state.player;
+  const level = state.currentLevel;
+  if (!player || !level || state.deathSequence.active) {
+    return false;
+  }
+
+  if (player.y <= level.worldHeight + 80) {
+    return false;
+  }
+
+  damagePlayer("Fell");
+  if (!state.deathSequence.active) {
+    state.towerInterior.active = false;
+    respawnPlayer();
+    state.respawnTrail.elapsedSinceSample = 0;
+  }
+  return true;
+}
+
 // ─── Init ───
 async function init() {
   const config = await loadConfig();
@@ -253,6 +273,7 @@ function update(delta) {
   if (state.boss.active) {
     updateBossMode();
     updateBossQuestionCountdown();
+    handlePlayerFallOutOfWorld();
     if (state.message && performance.now() > state.messageUntil) {
       state.message = "";
     }
@@ -269,6 +290,7 @@ function update(delta) {
 
   if (state.towerInterior.active) {
     updateTowerInterior(delta);
+    handlePlayerFallOutOfWorld();
     if (state.message && performance.now() > state.messageUntil) {
       state.message = "";
     }
@@ -276,6 +298,7 @@ function update(delta) {
   }
 
   if (state.duel?.QS.active) {
+    handlePlayerFallOutOfWorld();
     if (state.message && performance.now() > state.messageUntil) {
       state.message = "";
     }
@@ -293,6 +316,7 @@ function update(delta) {
   updateConjugationGates();
   updateCamera(delta);
   updateParticles(delta);
+  handlePlayerFallOutOfWorld();
 
   if (state.message && performance.now() > state.messageUntil) {
     state.message = "";
@@ -381,14 +405,6 @@ function updatePlayer(delta) {
   collideWithEnemies();
   checkGoal();
 
-  if (player.y > level.worldHeight + 80) {
-    damagePlayer("Fell");
-    if (!state.deathSequence.active) {
-      respawnPlayer();
-      state.respawnTrail.elapsedSinceSample = 0;
-    }
-    return;
-  }
 }
 
 // ─── Bootstrap ───
