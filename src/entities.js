@@ -842,12 +842,20 @@ export function defeatEnemy(enemy) {
 
 export function respawnPlayer() {
   const player = state.player;
-  const start = state.currentLevel.start;
-  player.x = start.x;
-  player.y = start.y - player.h;
+  const level = state.currentLevel;
+  const start = level.start;
+  const history = state.respawnTrail?.history || [];
+  const snapshot = history.length ? history[history.length - 1] : null;
+  const respawnX = snapshot ? snapshot.x : start.x;
+  const respawnY = snapshot ? snapshot.y : (start.y - player.h);
+
+  player.x = clamp(respawnX, 0, Math.max(0, level.worldWidth - player.w));
+  player.y = clamp(respawnY, -player.h * 2, level.worldHeight - player.h);
   player.prevY = player.y;
   player.vx = 0;
   player.vy = 0;
+  player.onGround = false;
+  player.coyoteTime = 0;
 }
 
 /* ═══════════════════════════════════════════════════════════
