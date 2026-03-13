@@ -3226,9 +3226,10 @@ function loadLevel(levelIndex, resetScore) {
   const hero = state.heroes[state.selectedHeroIndex];
   const playerW = PLAYER_HITBOX_WIDTH;
   const playerH = PLAYER_HITBOX_HEIGHT;
+  const safeStart = getSafeRespawnStart(state.currentLevel);
   state.player = {
-    x: state.currentLevel.start.x,
-    y: state.currentLevel.start.y - playerH,
+    x: safeStart.x,
+    y: safeStart.y - playerH,
     vx: 0,
     vy: 0,
     w: playerW,
@@ -3237,7 +3238,7 @@ function loadLevel(levelIndex, resetScore) {
     facing: "south-east",
     animTime: 0,
     coyoteTime: 0,
-    prevY: state.currentLevel.start.y - playerH,
+    prevY: safeStart.y - playerH,
   };
 
   if (resetScore) {
@@ -4503,9 +4504,40 @@ function updateEnemyDrops(delta) {
   level.enemyDrops = level.enemyDrops.filter((drop) => !drop.collected);
 }
 
+function getSafeRespawnStart(level) {
+  if (!level?.tileGrid?.length) {
+    return level?.start || { x: 0, y: 0 };
+  }
+
+  const tileSize = state.tileSize;
+  const preferredTileX = clamp(Math.floor((level.start?.x || 0) / tileSize), 0, level.widthTiles - 1);
+  const groundY = clamp(Math.floor(level.groundY || 0), 0, level.heightTiles - 1);
+  const tileGrid = level.tileGrid;
+
+  for (let offset = 0; offset < level.widthTiles; offset += 1) {
+    const candidates = offset === 0 ? [preferredTileX] : [preferredTileX - offset, preferredTileX + offset];
+    for (const tileX of candidates) {
+      if (tileX < 0 || tileX >= level.widthTiles) {
+        continue;
+      }
+      const supportTile = tileGrid[groundY]?.[tileX];
+      const blockedAbove = groundY > 0 && isSolidTile(tileGrid[groundY - 1]?.[tileX]);
+      if (!isSolidTile(supportTile) || blockedAbove) {
+        continue;
+      }
+      return {
+        x: tileX * tileSize,
+        y: getTileSurfaceTopY(tileGrid, tileX, groundY),
+      };
+    }
+  }
+
+  return level.start || { x: 0, y: 0 };
+}
+
 function respawnPlayer() {
   const player = state.player;
-  const start = state.currentLevel.start;
+  const start = getSafeRespawnStart(state.currentLevel);
   player.x = start.x;
   player.y = start.y - player.h;
   player.prevY = player.y;
