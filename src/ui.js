@@ -10,6 +10,7 @@ import {
 } from "./constants.js";
 import { clamp, capitalize, createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
+import { getLocale, t } from "./i18n.js";
 import {
   isHeroOwned, ensureSelectedHeroIsOwned, getPaladinIndex,
   saveHeroUnlocks, saveSelectedHeroId, spendPersistentGold,
@@ -69,8 +70,8 @@ function applyWorldZoom(value) {
 
 function askParentalCode({ isFirstSetup = false } = {}) {
   const title = isFirstSetup
-    ? "Créez un code parental pour accéder aux réglages.\n\nSi vous perdez ce code, il faut effacer le cache du navigateur ou supprimer l'icône si l'application est installée en PWA."
-    : "Entrez le code parental pour accéder aux réglages.";
+    ? t("parentalPromptSetup")
+    : t("parentalPromptEnter");
   const answer = window.prompt(title, "");
   if (answer === null) {
     return null;
@@ -88,14 +89,14 @@ function ensureParentalCodeConfigured() {
     return null;
   }
   if (!createdCode) {
-    window.alert("Le code parental ne peut pas être vide.");
+    window.alert(t("parentalCodeEmpty"));
     return null;
   }
   if (!saveParentalCode(createdCode)) {
-    window.alert("Impossible d'enregistrer le code parental.");
+    window.alert(t("parentalCodeSaveError"));
     return null;
   }
-  window.alert("Code parental enregistré.");
+  window.alert(t("parentalCodeSaved"));
   return createdCode;
 }
 
@@ -109,7 +110,7 @@ function requireParentalCodeAccess() {
     return false;
   }
   if (entered !== currentCode) {
-    window.alert("Code parental incorrect.");
+    window.alert(t("wrongParentalCode"));
     return false;
   }
   return true;
@@ -123,39 +124,125 @@ function changeParentalCode() {
       return;
     }
   } else {
-    const entered = window.prompt("Entrez le code parental actuel pour le modifier.", "");
+    const entered = window.prompt(t("parentalEnterCurrent"), "");
     if (entered === null) {
       return;
     }
     if (String(entered).trim() !== currentCode) {
-      window.alert("Code parental incorrect.");
+      window.alert(t("wrongParentalCode"));
       return;
     }
   }
 
-  const newCode = window.prompt(
-    "Nouveau code parental :\n\nSi vous perdez ce code, il faut effacer le cache du navigateur ou supprimer l'icône si l'application est installée en PWA.",
-    "",
-  );
+  const newCode = window.prompt(t("parentalPromptNew"), "");
   if (newCode === null) {
     return;
   }
   if (!String(newCode).trim()) {
-    window.alert("Le code parental ne peut pas être vide.");
+    window.alert(t("parentalCodeEmpty"));
     return;
   }
   if (!saveParentalCode(newCode)) {
-    window.alert("Impossible d'enregistrer le nouveau code.");
+    window.alert(t("parentalCodeNewSaveError"));
     return;
   }
-  window.alert("Code parental mis à jour.");
+  window.alert(t("parentalCodeUpdated"));
+}
+
+
+function applyLocaleToStaticUi() {
+  document.documentElement.lang = getLocale();
+  const setText = (selector, key) => {
+    const element = document.querySelector(selector);
+    if (element) element.textContent = t(key);
+  };
+  setText("#shopPanel h1", "shop");
+  const hudLabels = document.querySelectorAll(".hud-label");
+  if (hudLabels.length >= 3) {
+    hudLabels[0].textContent = t("hudScore");
+    hudLabels[1].textContent = t("hudHeart");
+    hudLabels[2].textContent = t("hudGold");
+  }
+  const walletLabel = document.querySelector(".shop-wallet");
+  if (walletLabel?.firstChild) {
+    walletLabel.firstChild.textContent = `${t("yourGold")} `;
+  }
+  setText('label[for="heroSelect"]', "equippedHero");
+  setText("#heroShopPanel h2", "heroicMounts");
+  setText("#closeShopBtn", "close");
+  setText("#settingsPanel h1", "settings");
+  setText("#pedagogyPanel h2", "conjugationTraining");
+  setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
+  setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
+  setText("#resetErrorsBtn", "resetErrors");
+  setText("#parentalCodePanel h2", "parentalCode");
+  setText("#parentalCodePanel p", "parentalCodeHint");
+  setText("#changeParentalCodeBtn", "changeCode");
+  setText("#applySettingsBtn", "apply");
+  setText("#closeSettingsBtn", "close");
+  setText("#forcePwaUpdateBtn", "update");
+  setText(".title-kicker", "titleKicker");
+  setText(".title-card > p:nth-of-type(2)", "titleSubtitle");
+  setText("#startBtn", "startGame");
+  setText("#openSettingsFromTitleBtn", "settings");
+  setText("#pauseModal h2", "pause");
+  setText("#pauseModal p", "gamePaused");
+  setText("#resumeBtn", "resume");
+  setText("#openSettingsFromPauseBtn", "settings");
+  setText("#backToTitleBtn", "titleScreen");
+  setText("#cheatModal h2", "tipsTricks");
+  setText('label[for="cheatLevelSelect"]', "selectLevel");
+  setText('label[for="cheatDifficultySelect"]', "generationProfile");
+  setText('label[for="cheatTileStyleSelect"]', "tileStyle");
+  setText('label[for="cheatHeroSelect"]', "selectHero");
+  setText('label[for="cheatWorldZoomSlider"]', "worldZoom");
+  setText("#cheatGivePiecesBtn", "givePieces");
+  setText("#cheatApplyBtn", "apply");
+  setText("#cheatCloseBtn", "close");
+  setText("#visualDebugPanel h2", "visualDebug");
+  setText("#visualDebugPanel p", "mobileAdjustments");
+  setText('label[for="debugButtonsOffsetSlider"]', "buttonsVerticalOffset");
+  setText('label[for="debugGameOffsetSlider"]', "gameVerticalOffset");
+  setText('label[for="debugScaleSlider"]', "worldScale");
+  setText("#validateLevelsBtn", "validateLevels");
+  setText("#closeVisualDebugBtn", "close");
+  setText("#restartBtn", "restartLevel");
+  setText("#backToTitleFromGameOverBtn", "titleScreen");
+  setText("#bossDefeatPanel h2", "dragonWon");
+  setText("#bossDefeatText", "trialFailed");
+  setText("#bossDefeatRetryText", "returningWave");
+  setText("#finalVictoryPanel h2", "champion");
+  setText("#finalVictoryPanel p:nth-of-type(1)", "dragonDefeated");
+  setText("#finalVictoryPanel p:nth-of-type(2)", "championStatus");
+  setText("#backToTitleFromVictoryBtn", "titleScreen");
+}
+
+async function forcePwaUpdate() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        await reg.update();
+      }
+    }
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map((name) => caches.delete(name)));
+    }
+    showMessage(t("pwaUpdateDone"));
+    const url = new URL(window.location.href);
+    url.searchParams.set("update", String(Date.now()));
+    window.location.replace(url.toString());
+  } catch (_error) {
+    showMessage(t("pwaUpdateFailed"));
+  }
 }
 
 /* ── Hero shop ── */
 
 export function renderHeroShop() {
   if (ui.shopGoldValue) {
-    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)} pièces`;
+    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)} ${t("pieces")}`;
   }
   if (!ui.heroShopList) {
     return;
@@ -169,7 +256,7 @@ export function renderHeroShop() {
     const owned = isHeroOwned(hero.id);
     const equipped = owned && hero.id === selectedHeroId;
     const canBuy = !owned && state.persistentGold >= cfg.price;
-    const actionLabel = equipped ? "Équipé" : owned ? "Équiper" : "Acheter";
+    const actionLabel = equipped ? t("heroEquipped") : owned ? t("equip") : t("buy");
 
     const item = document.createElement("div");
     item.className = `hero-shop-item ${owned ? "owned" : "locked"}`;
@@ -199,12 +286,12 @@ export function renderHeroShop() {
     const priceDiv = document.createElement("div");
     priceDiv.className = "hero-shop-price";
     if (owned) {
-      priceDiv.textContent = "Déjà débloquée";
+      priceDiv.textContent = t("alreadyUnlocked");
     } else {
-      priceDiv.textContent = "Prix : ";
+      priceDiv.textContent = `${t("price")} `;
       const amount = document.createElement("span");
       amount.className = "amount";
-      amount.textContent = `${cfg.price} pièces`;
+      amount.textContent = `${cfg.price} ${t("pieces")}`;
       priceDiv.appendChild(amount);
     }
     meta.appendChild(priceDiv);
@@ -268,7 +355,7 @@ export function populateCheatModalOptions() {
   state.levels.forEach((level, index) => {
     const option = document.createElement("option");
     option.value = String(index);
-    option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
+    option.textContent = t("levelLabel", { level: level.id || index + 1, biome: capitalize(level.biomeId) });
     ui.cheatLevelSelect.appendChild(option);
   });
 
@@ -480,6 +567,7 @@ export function applyCheatSelections() {
 /* ── Controls binding ── */
 
 export function bindControls() {
+  applyLocaleToStaticUi();
   const setHeldState = (buttons, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
       return;
@@ -637,7 +725,7 @@ export function bindControls() {
         return;
       }
       if (!spendPersistentGold(cfg.price)) {
-        showMessage("Pas assez de pièces");
+        showMessage(t("notEnoughPieces"));
         renderHeroShop();
         return;
       }
@@ -645,7 +733,7 @@ export function bindControls() {
       saveHeroUnlocks(state.heroUnlocks);
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
-      showMessage(`${state.heroes[heroIndex].name} débloquée`);
+      showMessage(t("heroUnlocked", { hero: state.heroes[heroIndex].name }));
       populateSettingsPanel();
       syncHeroActionButtonVisibility();
       return;
@@ -685,6 +773,7 @@ export function bindControls() {
   });
 
   ui.changeParentalCodeBtn?.addEventListener("click", changeParentalCode);
+  ui.forcePwaUpdateBtn?.addEventListener("click", forcePwaUpdate);
 
   ui.startBtn?.addEventListener("click", startGameFromMenu);
   ui.openSettingsFromTitleBtn?.addEventListener("click", openSettingsPanel);
@@ -1005,16 +1094,16 @@ export function showGameOverScreen() {
   ui.pauseModal?.classList.add("hidden");
   ui.titleScreen?.classList.add("hidden");
   if (ui.gameOverTitle) {
-    ui.gameOverTitle.textContent = "Game Over";
+    ui.gameOverTitle.textContent = t("gameOver");
   }
   if (ui.gameOverText) {
-    ui.gameOverText.textContent = "You lost all hearts.";
+    ui.gameOverText.textContent = t("lostHearts");
   }
   if (ui.finalScoreText) {
-    ui.finalScoreText.textContent = `Final score: ${state.score}`;
+    ui.finalScoreText.textContent = t("finalScore", { value: state.score });
   }
   if (ui.finalCoinsText) {
-    ui.finalCoinsText.textContent = `Coins: ${state.coins}`;
+    ui.finalCoinsText.textContent = t("coins", { value: state.coins });
   }
   ui.gameOverPanel?.classList.remove("hidden");
 }
@@ -1201,7 +1290,7 @@ export function populatePedagogyPanel() {
       const list = document.createElement("p");
       list.className = "group-verb-items";
       const verbsInGroup = Object.values(group?.list || {}).map((v) => v?.inf).filter(Boolean);
-      list.textContent = verbsInGroup.length ? verbsInGroup.join(", ") : "Aucun verbe";
+      list.textContent = verbsInGroup.length ? verbsInGroup.join(", ") : t("noVerb");
       box.appendChild(title);
       box.appendChild(list);
       ui.groupVerbLists.appendChild(box);
