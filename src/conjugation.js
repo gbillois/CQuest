@@ -36,15 +36,19 @@ export function getVerbSource() {
         aimer: {
           inf: "aimer",
           pr: ["aime", "aimes", "aime", "aimons", "aimez", "aiment"],
+          pc: ["ai aimé", "as aimé", "a aimé", "avons aimé", "avez aimé", "ont aimé"],
           im: ["aimais", "aimais", "aimait", "aimions", "aimiez", "aimaient"],
           fu: ["aimerai", "aimeras", "aimera", "aimerons", "aimerez", "aimeront"],
+          co: ["aimerais", "aimerais", "aimerait", "aimerions", "aimeriez", "aimeraient"],
           pp: "aimé",
         },
         jouer: {
           inf: "jouer",
           pr: ["joue", "joues", "joue", "jouons", "jouez", "jouent"],
+          pc: ["ai joué", "as joué", "a joué", "avons joué", "avez joué", "ont joué"],
           im: ["jouais", "jouais", "jouait", "jouions", "jouiez", "jouaient"],
           fu: ["jouerai", "joueras", "jouera", "jouerons", "jouerez", "joueront"],
+          co: ["jouerais", "jouerais", "jouerait", "jouerions", "joueriez", "joueraient"],
           pp: "joué",
         },
       },
@@ -55,8 +59,10 @@ export function getVerbSource() {
         finir: {
           inf: "finir",
           pr: ["finis", "finis", "finit", "finissons", "finissez", "finissent"],
+          pc: ["ai fini", "as fini", "a fini", "avons fini", "avez fini", "ont fini"],
           im: ["finissais", "finissais", "finissait", "finissions", "finissiez", "finissaient"],
           fu: ["finirai", "finiras", "finira", "finirons", "finirez", "finiront"],
+          co: ["finirais", "finirais", "finirait", "finirions", "finiriez", "finiraient"],
           pp: "fini",
         },
       },
@@ -67,42 +73,111 @@ export function getVerbSource() {
         prendre: {
           inf: "prendre",
           pr: ["prends", "prends", "prend", "prenons", "prenez", "prennent"],
+          pc: ["ai pris", "as pris", "a pris", "avons pris", "avez pris", "ont pris"],
           im: ["prenais", "prenais", "prenait", "prenions", "preniez", "prenaient"],
           fu: ["prendrai", "prendras", "prendra", "prendrons", "prendrez", "prendront"],
+          co: ["prendrais", "prendrais", "prendrait", "prendrions", "prendriez", "prendraient"],
           pp: "pris",
         },
       },
     },
-    irr: {
-      label: "Verbes irréguliers usuels",
+    irr1: {
+      label: "Verbes irréguliers — Groupe 1",
       list: {
         etre: {
           inf: "être",
           pr: ["suis", "es", "est", "sommes", "êtes", "sont"],
+          pc: ["ai été", "as été", "a été", "avons été", "avez été", "ont été"],
           im: ["étais", "étais", "était", "étions", "étiez", "étaient"],
           fu: ["serai", "seras", "sera", "serons", "serez", "seront"],
+          co: ["serais", "serais", "serait", "serions", "seriez", "seraient"],
           pp: "été",
         },
         avoir: {
           inf: "avoir",
           pr: ["ai", "as", "a", "avons", "avez", "ont"],
+          pc: ["ai eu", "as eu", "a eu", "avons eu", "avez eu", "ont eu"],
           im: ["avais", "avais", "avait", "avions", "aviez", "avaient"],
           fu: ["aurai", "auras", "aura", "aurons", "aurez", "auront"],
+          co: ["aurais", "aurais", "aurait", "aurions", "auriez", "auraient"],
           pp: "eu",
         },
         aller: {
           inf: "aller",
           pr: ["vais", "vas", "va", "allons", "allez", "vont"],
+          pc: ["suis allé", "es allé", "est allé", "sommes allés", "êtes allés", "sont allés"],
           im: ["allais", "allais", "allait", "allions", "alliez", "allaient"],
           fu: ["irai", "iras", "ira", "irons", "irez", "iront"],
+          co: ["irais", "irais", "irait", "irions", "iriez", "iraient"],
           pp: "allé",
         },
         faire: {
           inf: "faire",
           pr: ["fais", "fais", "fait", "faisons", "faites", "font"],
+          pc: ["ai fait", "as fait", "a fait", "avons fait", "avez fait", "ont fait"],
           im: ["faisais", "faisais", "faisait", "faisions", "faisiez", "faisaient"],
           fu: ["ferai", "feras", "fera", "ferons", "ferez", "feront"],
+          co: ["ferais", "ferais", "ferait", "ferions", "feriez", "feraient"],
           pp: "fait",
+        },
+      },
+    },
+    irr2: {
+      label: "Verbes irréguliers — Groupe 2",
+      list: {
+        pouvoir: {
+          inf: "pouvoir",
+          pr: ["peux", "peux", "peut", "pouvons", "pouvez", "peuvent"],
+          pc: ["ai pu", "as pu", "a pu", "avons pu", "avez pu", "ont pu"],
+          im: ["pouvais", "pouvais", "pouvait", "pouvions", "pouviez", "pouvaient"],
+          fu: ["pourrai", "pourras", "pourra", "pourrons", "pourrez", "pourront"],
+          co: ["pourrais", "pourrais", "pourrait", "pourrions", "pourriez", "pourraient"],
+          pp: "pu",
+        },
+        vouloir: {
+          inf: "vouloir",
+          pr: ["veux", "veux", "veut", "voulons", "voulez", "veulent"],
+          pc: ["ai voulu", "as voulu", "a voulu", "avons voulu", "avez voulu", "ont voulu"],
+          im: ["voulais", "voulais", "voulait", "voulions", "vouliez", "voulaient"],
+          fu: ["voudrai", "voudras", "voudra", "voudrons", "voudrez", "voudront"],
+          co: ["voudrais", "voudrais", "voudrait", "voudrions", "voudriez", "voudraient"],
+          pp: "voulu",
+        },
+        venir: {
+          inf: "venir",
+          pr: ["viens", "viens", "vient", "venons", "venez", "viennent"],
+          pc: ["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"],
+          im: ["venais", "venais", "venait", "venions", "veniez", "venaient"],
+          fu: ["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"],
+          co: ["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"],
+          pp: "venu",
+        },
+        dire: {
+          inf: "dire",
+          pr: ["dis", "dis", "dit", "disons", "dites", "disent"],
+          pc: ["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"],
+          im: ["disais", "disais", "disait", "disions", "disiez", "disaient"],
+          fu: ["dirai", "diras", "dira", "dirons", "direz", "diront"],
+          co: ["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"],
+          pp: "dit",
+        },
+        prendre: {
+          inf: "prendre",
+          pr: ["prends", "prends", "prend", "prenons", "prenez", "prennent"],
+          pc: ["ai pris", "as pris", "a pris", "avons pris", "avez pris", "ont pris"],
+          im: ["prenais", "prenais", "prenait", "prenions", "preniez", "prenaient"],
+          fu: ["prendrai", "prendras", "prendra", "prendrons", "prendrez", "prendront"],
+          co: ["prendrais", "prendrais", "prendrait", "prendrions", "prendriez", "prendraient"],
+          pp: "pris",
+        },
+        savoir: {
+          inf: "savoir",
+          pr: ["sais", "sais", "sait", "savons", "savez", "savent"],
+          pc: ["ai su", "as su", "a su", "avons su", "avez su", "ont su"],
+          im: ["savais", "savais", "savait", "savions", "saviez", "savaient"],
+          fu: ["saurai", "sauras", "saura", "saurons", "saurez", "sauront"],
+          co: ["saurais", "saurais", "saurait", "saurions", "sauriez", "sauraient"],
+          pp: "su",
         },
       },
     },
@@ -157,7 +232,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
     const seen = new Set([correct.toLowerCase()]);
     const allForms = [];
 
-    for (const t of ["pr", "im", "fu"]) {
+    for (const t of TENSE_KEYS) {
       const arr = verbDef[t];
       if (!Array.isArray(arr)) {
         continue;

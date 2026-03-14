@@ -60,6 +60,7 @@ export const ui = {
   answerButtons: document.getElementById("answerButtons"),
   groupFilters: document.getElementById("groupFilters"),
   tenseFilters: document.getElementById("tenseFilters"),
+  groupVerbLists: document.getElementById("groupVerbLists"),
   resetErrorsBtn: document.getElementById("resetErrorsBtn"),
   errorList: document.getElementById("errorList"),
   changeParentalCodeBtn: document.getElementById("changeParentalCodeBtn"),

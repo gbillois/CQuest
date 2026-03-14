@@ -1185,6 +1185,7 @@ export function populatePedagogyPanel() {
   }
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
+  ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
     const label = document.createElement("label");
@@ -1197,7 +1198,25 @@ export function populatePedagogyPanel() {
     ui.groupFilters.appendChild(label);
   });
 
-  ui.tenseFilters.textContent = "";
+  if (ui.groupVerbLists) {
+    ui.groupVerbLists.textContent = "";
+    groupKeys.forEach((g) => {
+      const group = verbs[g];
+      const box = document.createElement("div");
+      box.className = "group-verb-list";
+      const title = document.createElement("p");
+      title.className = "group-verb-title";
+      title.textContent = group?.label || g;
+      const list = document.createElement("p");
+      list.className = "group-verb-items";
+      const verbsInGroup = Object.values(group?.list || {}).map((v) => v?.inf).filter(Boolean);
+      list.textContent = verbsInGroup.length ? verbsInGroup.join(", ") : "Aucun verbe";
+      box.appendChild(title);
+      box.appendChild(list);
+      ui.groupVerbLists.appendChild(box);
+    });
+  }
+
   TENSE_KEYS.forEach((t) => {
     const label = document.createElement("label");
     const input = document.createElement("input");

@@ -75,7 +75,13 @@ export const GROUND_SURFACE_VARIATION_MAX_UP = 1;
 export const GROUND_SURFACE_VARIATION_MAX_DOWN = 1;
 
 // ─── Conjugation labels ───
-export const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
+export const TENSE_LABEL = {
+  pr: "Présent indicatif",
+  pc: "Passé composé",
+  im: "Imparfait",
+  fu: "Futur simple",
+  co: "Conditionnel présent",
+};
 export const TENSE_KEYS = Object.keys(TENSE_LABEL);
 export const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
 
