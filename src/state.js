@@ -62,6 +62,7 @@ export const ui = {
   tenseFilters: document.getElementById("tenseFilters"),
   resetErrorsBtn: document.getElementById("resetErrorsBtn"),
   errorList: document.getElementById("errorList"),
+  changeParentalCodeBtn: document.getElementById("changeParentalCodeBtn"),
   applySettingsBtn: document.getElementById("applySettingsBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),
   closeShopBtn: document.getElementById("closeShopBtn"),

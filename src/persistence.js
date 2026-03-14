@@ -4,6 +4,7 @@ import {
   HERO_SELECTED_STORAGE_KEY,
   WORLD_ZOOM_STORAGE_KEY,
   TILE_STYLE_MODE_STORAGE_KEY,
+  PARENTAL_CODE_STORAGE_KEY,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -124,6 +125,31 @@ export function saveTileStyleMode(value) {
   }
 }
 
+
+export function loadParentalCode() {
+  try {
+    const raw = String(localStorage.getItem(PARENTAL_CODE_STORAGE_KEY) || "").trim();
+    if (!raw || raw.length > 64) {
+      return "";
+    }
+    return raw;
+  } catch {
+    return "";
+  }
+}
+
+export function saveParentalCode(value) {
+  try {
+    const code = String(value || "").trim();
+    if (!code || code.length > 64) {
+      return false;
+    }
+    localStorage.setItem(PARENTAL_CODE_STORAGE_KEY, code);
+    return true;
+  } catch {
+    return false;
+  }
+}
 export function getSelectedHeroId() {
   const hero = state.heroes[state.selectedHeroIndex];
   return hero?.id || "";
