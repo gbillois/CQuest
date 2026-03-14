@@ -256,8 +256,6 @@ const ui = {
   shopGoldValue: document.getElementById("shopGoldValue"),
   levelSelect: document.getElementById("levelSelect"),
   difficultySelect: document.getElementById("difficultySelect"),
-  worldZoomSlider: document.getElementById("worldZoomSlider"),
-  worldZoomValue: document.getElementById("worldZoomValue"),
   questionPanel: document.getElementById("questionPanel"),
   questionEnemy: document.getElementById("questionEnemy"),
   questionGroup: document.getElementById("questionGroup"),
@@ -408,7 +406,7 @@ async function init() {
   buildBiomeIndex(config);
   buildPlatformStyleIndex();
   state.persistentGold = loadPersistentGold();
-  state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
+  state.worldZoom = normalizeWorldZoom(loadWorldZoom());
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
@@ -2408,12 +2406,6 @@ function setWorldZoom(nextZoom, { syncUi = true } = {}) {
 }
 
 function syncWorldZoomUi() {
-  if (ui.worldZoomSlider) {
-    ui.worldZoomSlider.value = String(state.worldZoom);
-  }
-  if (ui.worldZoomValue) {
-    ui.worldZoomValue.textContent = formatZoomLabel(state.worldZoom);
-  }
   if (ui.cheatWorldZoomSlider) {
     ui.cheatWorldZoomSlider.value = String(state.worldZoom);
   }
@@ -2813,9 +2805,6 @@ function bindControls() {
   ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
-  ui.worldZoomSlider?.addEventListener("input", () => {
-    setWorldZoom(ui.worldZoomSlider.value);
-  });
   ui.cheatWorldZoomSlider?.addEventListener("input", () => {
     setWorldZoom(ui.cheatWorldZoomSlider.value);
   });

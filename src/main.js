@@ -109,7 +109,7 @@ async function init() {
   state.persistentGold = loadPersistentGold();
   state.coins = state.persistentGold;
   state.tileStyleMode = loadTileStyleMode();
-  state.worldZoom = normalizeWorldZoom(ui.worldZoomSlider?.value || loadWorldZoom());
+  state.worldZoom = normalizeWorldZoom(loadWorldZoom());
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({

@@ -253,25 +253,6 @@ body {
 }
 
 
-.zoom-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-#worldZoomSlider {
-  width: 100%;
-}
-
-#worldZoomValue {
-  min-width: 44px;
-  text-align: right;
-  font-weight: 800;
-  color: #ffe17e;
-}
-
 .hero-shop {
   margin-top: 10px;
   padding-top: 10px;
