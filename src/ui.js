@@ -175,8 +175,6 @@ function applyLocaleToStaticUi() {
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
   setText("#resetErrorsBtn", "resetErrors");
-  setText("#parentalCodePanel h2", "parentalCode");
-  setText("#parentalCodePanel p", "parentalCodeHint");
   setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
   setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
   setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
@@ -783,7 +781,7 @@ export function bindControls() {
     openPauseMenu();
   });
 
-  ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
+  ui.closeSettingsBtn?.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
   ui.cheatWorldZoomSlider?.addEventListener("input", () => {
@@ -1289,20 +1287,6 @@ export function populatePedagogyPanel() {
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
 
-  const isIrregularGroup = (groupKey, label) =>
-    /^irr/i.test(groupKey) || /irrégulier/i.test(String(label || ""));
-
-  const getIrregularHint = (groupKey) => {
-    const group = verbs[groupKey];
-    if (!isIrregularGroup(groupKey, group?.label)) {
-      return "";
-    }
-    const verbsInGroup = Object.values(group?.list || {})
-      .map((verb) => verb?.inf)
-      .filter(Boolean);
-    return verbsInGroup.length ? ` (${verbsInGroup.join(", ")})` : "";
-  };
-
   ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
@@ -1312,31 +1296,9 @@ export function populatePedagogyPanel() {
     input.dataset.group = g;
     input.checked = state.pedagogy.activeGroups.includes(g);
     label.appendChild(input);
-    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}${getIrregularHint(g)}`));
+    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}`));
     ui.groupFilters.appendChild(label);
   });
-
-  if (ui.groupVerbLists) {
-    ui.groupVerbLists.textContent = "";
-    groupKeys.forEach((g) => {
-      const group = verbs[g];
-      if (!isIrregularGroup(g, group?.label)) {
-        return;
-      }
-      const box = document.createElement("div");
-      box.className = "group-verb-list";
-      const title = document.createElement("p");
-      title.className = "group-verb-title";
-      title.textContent = group?.label || g;
-      const list = document.createElement("p");
-      list.className = "group-verb-items";
-      const verbsInGroup = Object.values(group?.list || {}).map((v) => v?.inf).filter(Boolean);
-      list.textContent = verbsInGroup.length ? verbsInGroup.join(", ") : t("noVerb");
-      box.appendChild(title);
-      box.appendChild(list);
-      ui.groupVerbLists.appendChild(box);
-    });
-  }
 
   TENSE_KEYS.forEach((t) => {
     const label = document.createElement("label");

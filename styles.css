@@ -413,6 +413,22 @@ body {
   opacity: 0.9;
 }
 
+
+.settings-apply-row {
+  margin-top: 14px;
+}
+
+.settings-apply-row button {
+  width: 100%;
+}
+
+.settings-secondary-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .panel-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
