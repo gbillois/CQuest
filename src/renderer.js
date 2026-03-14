@@ -1318,19 +1318,30 @@ function drawDebugOverlay() {
 /* ── UI rendering ── */
 
 export function drawFloatingMessage(text) {
+  const messageHeight = 36;
+  let boxTop = 92;
+
+  const hudRect = ui.hud?.getBoundingClientRect?.();
+  const canvasRect = ctx.canvas?.getBoundingClientRect?.();
+  if (hudRect && canvasRect && canvasRect.height > 0) {
+    const hudBottomOnCanvasPx = Math.max(0, hudRect.bottom - canvasRect.top);
+    const canvasToVirtualY = VIRTUAL_HEIGHT / canvasRect.height;
+    boxTop = Math.round((hudBottomOnCanvasPx + 10) * canvasToVirtualY);
+  }
+
   ctx.save();
   ctx.fillStyle = "rgba(7, 10, 16, 0.76)";
   const boxW = Math.min(VIRTUAL_WIDTH - 20, Math.max(190, text.length * 8));
   const x = (VIRTUAL_WIDTH - boxW) / 2;
-  ctx.fillRect(x, 92, boxW, 36);
+  ctx.fillRect(x, boxTop, boxW, messageHeight);
 
   ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.strokeRect(x, 92, boxW, 36);
+  ctx.strokeRect(x, boxTop, boxW, messageHeight);
 
   ctx.fillStyle = "#f2f8ff";
   ctx.font = "bold 14px Trebuchet MS";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, VIRTUAL_WIDTH / 2, 110);
+  ctx.fillText(text, VIRTUAL_WIDTH / 2, boxTop + messageHeight / 2);
   ctx.restore();
 }

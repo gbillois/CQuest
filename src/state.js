@@ -15,6 +15,7 @@ canvas.height = VIRTUAL_HEIGHT;
 
 // ─── DOM element refs ───
 export const ui = {
+  hud: document.querySelector(".hud"),
   hudScoreValue: document.getElementById("hudScoreValue"),
   cheatModal: document.getElementById("cheatModal"),
   cheatLevelSelect: document.getElementById("cheatLevelSelect"),
