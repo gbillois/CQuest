@@ -4668,8 +4668,7 @@ function checkGoal() {
   if (!isEndCastleUnlocked(level)) {
     const now = performance.now();
     if (now >= state.endCastleLockHintUntil) {
-      const pct = Math.floor(getEnemyDefeatRatio(level) * 100);
-      showMessage(`Porte fermee: ${pct}% ennemis battus`);
+      showMessage(getEndCastleLockedMessage());
       state.endCastleLockHintUntil = now + 900;
     }
     player.vx = 0;
@@ -5483,6 +5482,24 @@ function drawFloatingMessage(text) {
 function showMessage(text) {
   state.message = text;
   state.messageUntil = performance.now() + 1700;
+}
+
+function isFrenchUiLanguage() {
+  const htmlLang = String(document?.documentElement?.lang || "").toLowerCase();
+  if (htmlLang.startsWith("fr")) {
+    return true;
+  }
+
+  const preferredLang = Array.isArray(navigator?.languages) && navigator.languages.length
+    ? navigator.languages[0]
+    : navigator?.language;
+  return String(preferredLang || "").toLowerCase().startsWith("fr");
+}
+
+function getEndCastleLockedMessage() {
+  return isFrenchUiLanguage()
+    ? "Pas assez d’ennemis battus, continue !"
+    : "Not enough enemies defeated, keep going!";
 }
 
 function attachHoldButton(element, callback) {
