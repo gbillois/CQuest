@@ -63,6 +63,7 @@ export const ui = {
   errorList: document.getElementById("errorList"),
   changeParentalCodeBtn: document.getElementById("changeParentalCodeBtn"),
   applySettingsBtn: document.getElementById("applySettingsBtn"),
+  forcePwaUpdateBtn: document.getElementById("forcePwaUpdateBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),
   closeShopBtn: document.getElementById("closeShopBtn"),
   moveLeftBtn: document.getElementById("moveLeftBtn"),
