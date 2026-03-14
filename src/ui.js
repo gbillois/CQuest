@@ -1265,6 +1265,21 @@ export function populatePedagogyPanel() {
   }
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
+
+  const isIrregularGroup = (groupKey, label) =>
+    /^irr/i.test(groupKey) || /irrégulier/i.test(String(label || ""));
+
+  const getIrregularHint = (groupKey) => {
+    const group = verbs[groupKey];
+    if (!isIrregularGroup(groupKey, group?.label)) {
+      return "";
+    }
+    const verbsInGroup = Object.values(group?.list || {})
+      .map((verb) => verb?.inf)
+      .filter(Boolean);
+    return verbsInGroup.length ? ` (${verbsInGroup.join(", ")})` : "";
+  };
+
   ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
@@ -1274,7 +1289,7 @@ export function populatePedagogyPanel() {
     input.dataset.group = g;
     input.checked = state.pedagogy.activeGroups.includes(g);
     label.appendChild(input);
-    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}`));
+    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}${getIrregularHint(g)}`));
     ui.groupFilters.appendChild(label);
   });
 
@@ -1282,6 +1297,9 @@ export function populatePedagogyPanel() {
     ui.groupVerbLists.textContent = "";
     groupKeys.forEach((g) => {
       const group = verbs[g];
+      if (!isIrregularGroup(g, group?.label)) {
+        return;
+      }
       const box = document.createElement("div");
       box.className = "group-verb-list";
       const title = document.createElement("p");
