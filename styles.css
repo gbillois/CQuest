@@ -856,7 +856,7 @@ body {
 
 @media (max-width: 480px) {
   body {
-    --mobile-controls-lift: clamp(92px, 16vh, 140px);
+    --mobile-controls-lift: 0px;
   }
 
   .question-panel {
