@@ -175,8 +175,13 @@ function applyLocaleToStaticUi() {
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
   setText("#resetErrorsBtn", "resetErrors");
-  setText("#parentalCodePanel h2", "parentalCode");
-  setText("#parentalCodePanel p", "parentalCodeHint");
+  setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
+  setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
+  setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
+  setText("#mobileButtonsOffsetHigher", "sliderHigher");
+  setText("#mobileButtonsOffsetLower", "sliderLower");
+  setText("#mobileGameOffsetHigher", "sliderHigher");
+  setText("#mobileGameOffsetLower", "sliderLower");
   setText("#changeParentalCodeBtn", "changeCode");
   setText("#applySettingsBtn", "apply");
   setText("#closeSettingsBtn", "close");
@@ -340,6 +345,7 @@ export function populateSettingsPanel() {
   ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   renderHeroShop();
   renderErrorList();
   syncHeroActionButtonVisibility();
@@ -434,8 +440,8 @@ export function isMobileViewport() {
 }
 
 export function applyMobileVisualDebugOffsets() {
-  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
-  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
+  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 150);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 0);
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
@@ -453,6 +459,12 @@ export function applyMobileVisualDebugOffsets() {
   }
   if (ui.debugGameOffsetValue) {
     ui.debugGameOffsetValue.textContent = `${gameOffset}px`;
+  }
+  if (ui.settingsButtonsOffsetSlider) {
+    ui.settingsButtonsOffsetSlider.value = String(buttonsOffset);
+  }
+  if (ui.settingsGameOffsetSlider) {
+    ui.settingsGameOffsetSlider.value = String(gameOffset);
   }
 }
 
@@ -648,11 +660,19 @@ export function bindControls() {
   attachLongPressListeners(ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
 
   ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
-    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 180);
+    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 150);
     applyMobileVisualDebugOffsets();
   });
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 200);
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 0);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsButtonsOffsetSlider?.addEventListener("input", () => {
+    state.mobileButtonsOffsetY = clamp(Number(ui.settingsButtonsOffsetSlider.value) || 0, 0, 150);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsGameOffsetSlider?.addEventListener("input", () => {
+    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, -200, 0);
     applyMobileVisualDebugOffsets();
   });
   ui.debugScaleSlider?.addEventListener("input", () => {
@@ -761,7 +781,7 @@ export function bindControls() {
     openPauseMenu();
   });
 
-  ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
+  ui.closeSettingsBtn?.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
   ui.cheatWorldZoomSlider?.addEventListener("input", () => {
@@ -977,6 +997,7 @@ export function openSettingsPanel() {
     return;
   }
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
@@ -1266,20 +1287,6 @@ export function populatePedagogyPanel() {
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
 
-  const isIrregularGroup = (groupKey, label) =>
-    /^irr/i.test(groupKey) || /irrégulier/i.test(String(label || ""));
-
-  const getIrregularHint = (groupKey) => {
-    const group = verbs[groupKey];
-    if (!isIrregularGroup(groupKey, group?.label)) {
-      return "";
-    }
-    const verbsInGroup = Object.values(group?.list || {})
-      .map((verb) => verb?.inf)
-      .filter(Boolean);
-    return verbsInGroup.length ? ` (${verbsInGroup.join(", ")})` : "";
-  };
-
   ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
@@ -1289,31 +1296,9 @@ export function populatePedagogyPanel() {
     input.dataset.group = g;
     input.checked = state.pedagogy.activeGroups.includes(g);
     label.appendChild(input);
-    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}${getIrregularHint(g)}`));
+    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}`));
     ui.groupFilters.appendChild(label);
   });
-
-  if (ui.groupVerbLists) {
-    ui.groupVerbLists.textContent = "";
-    groupKeys.forEach((g) => {
-      const group = verbs[g];
-      if (!isIrregularGroup(g, group?.label)) {
-        return;
-      }
-      const box = document.createElement("div");
-      box.className = "group-verb-list";
-      const title = document.createElement("p");
-      title.className = "group-verb-title";
-      title.textContent = group?.label || g;
-      const list = document.createElement("p");
-      list.className = "group-verb-items";
-      const verbsInGroup = Object.values(group?.list || {}).map((v) => v?.inf).filter(Boolean);
-      list.textContent = verbsInGroup.length ? verbsInGroup.join(", ") : t("noVerb");
-      box.appendChild(title);
-      box.appendChild(list);
-      ui.groupVerbLists.appendChild(box);
-    });
-  }
 
   TENSE_KEYS.forEach((t) => {
     const label = document.createElement("label");

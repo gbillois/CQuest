@@ -399,6 +399,36 @@ body {
   box-shadow: 0 4px 0 #1b2f65;
 }
 
+
+.panel input[type="range"] {
+  width: 100%;
+  margin: 2px 0 0;
+}
+
+.slider-hint-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.76rem;
+  opacity: 0.9;
+}
+
+
+.settings-apply-row {
+  margin-top: 14px;
+}
+
+.settings-apply-row button {
+  width: 100%;
+}
+
+.settings-secondary-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .panel-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

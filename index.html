@@ -103,28 +103,43 @@
             <div class="pedagogy-block">
               <h3>Groupes de verbes</h3>
               <div id="groupFilters" class="check-grid"></div>
-              <div id="groupVerbLists" class="group-verb-lists"></div>
             </div>
+            <div id="errorList" class="error-list"></div>
             <div class="error-tools">
               <button id="resetErrorsBtn" class="secondary">Reset Errors</button>
             </div>
-            <div id="errorList" class="error-list"></div>
           </section>
 
-          <section class="pedagogy" id="parentalCodePanel">
-            <h2>Code parental</h2>
-            <p>Le code protège l'accès aux réglages.</p>
-            <div class="error-tools">
-              <button id="changeParentalCodeBtn" class="secondary">Changer le code</button>
+          <section class="pedagogy" id="mobileLayoutPanel">
+            <h2>Réglages mobile</h2>
+
+            <div class="pedagogy-block">
+              <label for="settingsButtonsOffsetSlider">Position verticale des boutons</label>
+              <input id="settingsButtonsOffsetSlider" type="range" min="0" max="150" step="1" value="130" />
+              <div class="slider-hint-row" aria-hidden="true">
+                <span id="mobileButtonsOffsetHigher">Plus haut</span>
+                <span id="mobileButtonsOffsetLower">Plus bas</span>
+              </div>
+            </div>
+
+            <div class="pedagogy-block">
+              <label for="settingsGameOffsetSlider">Position verticale de la zone de jeu</label>
+              <input id="settingsGameOffsetSlider" type="range" min="-200" max="0" step="1" value="-110" />
+              <div class="slider-hint-row" aria-hidden="true">
+                <span id="mobileGameOffsetHigher">Plus haut</span>
+                <span id="mobileGameOffsetLower">Plus bas</span>
+              </div>
             </div>
           </section>
 
-          <div class="panel-actions">
+          <div class="settings-apply-row">
             <button id="applySettingsBtn">Apply</button>
-            <button id="forcePwaUpdateBtn" class="secondary">Mise à jour</button>
-            <button id="closeSettingsBtn" class="secondary">Close</button>
           </div>
-        </aside>
+          <div class="settings-secondary-row">
+            <button id="forcePwaUpdateBtn" class="secondary">Mise à jour</button>
+            <button id="changeParentalCodeBtn" class="secondary">Changer le code</button>
+          </div>
+</aside>
 
         <aside class="panel question-panel" id="questionPanel" hidden>
           <div class="question-actors">
@@ -210,13 +225,13 @@
 
           <label for="debugButtonsOffsetSlider">Offset vertical boutons</label>
           <div class="debug-slider-row">
-            <input id="debugButtonsOffsetSlider" type="range" min="0" max="180" step="1" value="0" />
+            <input id="debugButtonsOffsetSlider" type="range" min="0" max="150" step="1" value="0" />
             <strong id="debugButtonsOffsetValue">0px</strong>
           </div>
 
           <label for="debugGameOffsetSlider">Offset vertical zone de jeu</label>
           <div class="debug-slider-row">
-            <input id="debugGameOffsetSlider" type="range" min="-200" max="200" step="1" value="0" />
+            <input id="debugGameOffsetSlider" type="range" min="-200" max="0" step="1" value="0" />
             <strong id="debugGameOffsetValue">0px</strong>
           </div>
 
