@@ -1045,10 +1045,25 @@ export function populatePedagogyPanel() {
   }
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
+
+  const isIrregularGroup = (groupKey, label) =>
+    /^irr/i.test(groupKey) || /irrégulier/i.test(String(label || ""));
+
+  const getIrregularHint = (groupKey) => {
+    const group = verbs[groupKey];
+    if (!isIrregularGroup(groupKey, group?.label)) {
+      return "";
+    }
+    const verbsInGroup = Object.values(group?.list || {})
+      .map((verb) => verb?.inf)
+      .filter(Boolean);
+    return verbsInGroup.length ? ` (${verbsInGroup.join(", ")})` : "";
+  };
+
   ui.groupFilters.innerHTML = groupKeys
     .map((g) => {
       const checked = state.pedagogy.activeGroups.includes(g) ? "checked" : "";
-      const label = verbs[g]?.label || g;
+      const label = `${verbs[g]?.label || g}${getIrregularHint(g)}`;
       return `<label><input type="checkbox" data-group="${g}" ${checked}/> ${label}</label>`;
     })
     .join("");
