@@ -292,7 +292,9 @@ export const HERO_HITBOX_OVERRIDES = {
   // Align explicit overrides with sprite-manifest content boxes (scaled by HERO_SCALE)
   // so collision remains tight for the latest hero roster.
   barbarian: { w: 57, h: 68 },
-  catwarrior: { w: 45, h: 66 },
+  // Cat Warrior: shrink the top of the hitbox so the sprite can pass through
+  // tight spaces under bonus blocks while still keeping feet collision stable.
+  catwarrior: { w: 42, h: 60 },
   golem: { w: 56, h: 72 },
   knight: { w: 36, h: 65 },
 };
