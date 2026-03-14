@@ -85,10 +85,10 @@ const _isDevMode = window.location.hostname === "localhost" ||
 ```
 APIs are only exposed when running locally. The F11 debug overlay is similarly gated.
 
-#### L2 — Cheat menu with currency grant accessible via long-press — FIXED
+#### L2 — Cheat menu with currency grant accessible via long-press — ACCEPTED
 **File:** `src/ui.js`
 
-`openCheatModal()` now checks `_isDevMode` before activating. The cheat menu is inaccessible in production deployments.
+The cheat menu remains accessible in all environments by design (single-player educational game). Risk is accepted.
 
 #### L3 — No `X-Frame-Options` or `frame-ancestors` CSP directive — FIXED
 **File:** `index.html`
@@ -139,7 +139,7 @@ The `BundleSchemeHandler` correctly implements:
 | 4 | M3 — Storage trust | **FIXED** | Added type/range/structure validation on all localStorage reads |
 | 5 | M4 — window.VERBS | **FIXED** | Added structural validation before accepting override |
 | 6 | L1 — Debug APIs | **FIXED** | Gated behind dev-mode hostname check |
-| 7 | L2 — Cheat menu | **FIXED** | Gated behind dev-mode check |
+| 7 | L2 — Cheat menu | **ACCEPTED** | Kept accessible by design (single-player game) |
 | 8 | L3 — No frame protection | **FIXED** | CSP `frame-ancestors 'self'` directive |
 | 9 | L4 — PWA start_url | **FIXED** | Changed to explicit `./index.html` |
 | 10 | I3 — .DS_Store | **FIXED** | Added `.gitignore` |

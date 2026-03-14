@@ -212,7 +212,7 @@ export function populateCheatModalOptions() {
 }
 
 export function openCheatModal() {
-  if (!_isDevMode || !state.ready || !ui.cheatModal) {
+  if (!state.ready || !ui.cheatModal) {
     return;
   }
   populateCheatModalOptions();
