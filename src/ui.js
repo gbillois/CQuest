@@ -21,6 +21,12 @@ import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
 import { validateAllLevels } from "./level-validator.js";
 
+/* ── Dev mode detection ── */
+const _isDevMode = typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+   window.location.hostname === "127.0.0.1" ||
+   window.location.protocol === "file:");
+
 /* ── late-binding for cross-module calls ── */
 
 let _generateLevelsFromConfig = null;
@@ -71,32 +77,66 @@ export function renderHeroShop() {
 
   const selectedHero = state.heroes[state.selectedHeroIndex];
   const selectedHeroId = selectedHero?.id || "";
-  ui.heroShopList.innerHTML = state.heroes
-    .map((hero) => {
-      const cfg = getHeroShopConfig(hero.id);
-      const owned = isHeroOwned(hero.id);
-      const equipped = owned && hero.id === selectedHeroId;
-      const canBuy = !owned && state.persistentGold >= cfg.price;
-      const actionLabel = equipped ? "Équipé" : owned ? "Équiper" : "Acheter";
-      const actionClass = owned ? "hero-shop-btn" : "hero-shop-btn buy";
-      const disabled = !owned && !canBuy ? "disabled" : "";
-      const lockStateClass = owned ? "owned" : "locked";
-      const priceLabel = owned
-        ? "Déjà débloquée"
-        : `Prix : <span class="amount">${cfg.price} pièces</span>`;
-      return `<div class="hero-shop-item ${lockStateClass}">
-        <div class="hero-shop-preview">
-          <img src="${hero.sprite.idleSE}" alt="${hero.name}" loading="lazy" />
-          ${owned ? "" : '<span class="hero-shop-lock" aria-hidden="true">🔒</span>'}
-        </div>
-        <div class="hero-shop-meta">
-          <div class="hero-shop-name">${hero.name}</div>
-          <div class="hero-shop-price">${priceLabel}</div>
-        </div>
-        <button type="button" class="${actionClass}" data-hero-id="${hero.id}" data-action="${owned ? "equip" : "buy"}" ${disabled}>${actionLabel}</button>
-      </div>`;
-    })
-    .join("");
+  ui.heroShopList.textContent = "";
+  state.heroes.forEach((hero) => {
+    const cfg = getHeroShopConfig(hero.id);
+    const owned = isHeroOwned(hero.id);
+    const equipped = owned && hero.id === selectedHeroId;
+    const canBuy = !owned && state.persistentGold >= cfg.price;
+    const actionLabel = equipped ? "Équipé" : owned ? "Équiper" : "Acheter";
+
+    const item = document.createElement("div");
+    item.className = `hero-shop-item ${owned ? "owned" : "locked"}`;
+
+    const preview = document.createElement("div");
+    preview.className = "hero-shop-preview";
+    const img = document.createElement("img");
+    img.src = hero.sprite.idleSE;
+    img.alt = hero.name;
+    img.loading = "lazy";
+    preview.appendChild(img);
+    if (!owned) {
+      const lock = document.createElement("span");
+      lock.className = "hero-shop-lock";
+      lock.setAttribute("aria-hidden", "true");
+      lock.textContent = "\uD83D\uDD12";
+      preview.appendChild(lock);
+    }
+    item.appendChild(preview);
+
+    const meta = document.createElement("div");
+    meta.className = "hero-shop-meta";
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "hero-shop-name";
+    nameDiv.textContent = hero.name;
+    meta.appendChild(nameDiv);
+    const priceDiv = document.createElement("div");
+    priceDiv.className = "hero-shop-price";
+    if (owned) {
+      priceDiv.textContent = "Déjà débloquée";
+    } else {
+      priceDiv.textContent = "Prix : ";
+      const amount = document.createElement("span");
+      amount.className = "amount";
+      amount.textContent = `${cfg.price} pièces`;
+      priceDiv.appendChild(amount);
+    }
+    meta.appendChild(priceDiv);
+    item.appendChild(meta);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = owned ? "hero-shop-btn" : "hero-shop-btn buy";
+    btn.dataset.heroId = hero.id;
+    btn.dataset.action = owned ? "equip" : "buy";
+    if (!owned && !canBuy) {
+      btn.disabled = true;
+    }
+    btn.textContent = actionLabel;
+    item.appendChild(btn);
+
+    ui.heroShopList.appendChild(item);
+  });
 }
 
 /* ── Zoom UI ── */
@@ -172,7 +212,7 @@ export function populateCheatModalOptions() {
 }
 
 export function openCheatModal() {
-  if (!state.ready || !ui.cheatModal) {
+  if (!_isDevMode || !state.ready || !ui.cheatModal) {
     return;
   }
   populateCheatModalOptions();
@@ -1054,20 +1094,29 @@ export function populatePedagogyPanel() {
   }
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
-  ui.groupFilters.innerHTML = groupKeys
-    .map((g) => {
-      const checked = state.pedagogy.activeGroups.includes(g) ? "checked" : "";
-      const label = verbs[g]?.label || g;
-      return `<label><input type="checkbox" data-group="${g}" ${checked}/> ${label}</label>`;
-    })
-    .join("");
+  ui.groupFilters.textContent = "";
+  groupKeys.forEach((g) => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.group = g;
+    input.checked = state.pedagogy.activeGroups.includes(g);
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}`));
+    ui.groupFilters.appendChild(label);
+  });
 
-  ui.tenseFilters.innerHTML = TENSE_KEYS
-    .map((t) => {
-      const checked = state.pedagogy.activeTenses.includes(t) ? "checked" : "";
-      return `<label><input type="checkbox" data-tense="${t}" ${checked}/> ${TENSE_LABEL[t]}</label>`;
-    })
-    .join("");
+  ui.tenseFilters.textContent = "";
+  TENSE_KEYS.forEach((t) => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.tense = t;
+    input.checked = state.pedagogy.activeTenses.includes(t);
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(` ${TENSE_LABEL[t]}`));
+    ui.tenseFilters.appendChild(label);
+  });
 
   ui.groupFilters.querySelectorAll("input[data-group]").forEach((input) => {
     input.addEventListener("change", () => {
@@ -1161,7 +1210,23 @@ export function buildQuestionUiHooks() {
       if (ui.questionCountdown) {
         ui.questionCountdown.hidden = !state.boss.active;
       }
-      ui.questionPrompt.innerHTML = `Conjugue <span class="verb">${inf}</span> ${tenseText}<br/><span class="pronoun">${pronoun}</span> <span class="blank">???</span>`;
+      ui.questionPrompt.textContent = "";
+      ui.questionPrompt.appendChild(document.createTextNode("Conjugue "));
+      const verbSpan = document.createElement("span");
+      verbSpan.className = "verb";
+      verbSpan.textContent = inf;
+      ui.questionPrompt.appendChild(verbSpan);
+      ui.questionPrompt.appendChild(document.createTextNode(` ${tenseText}`));
+      ui.questionPrompt.appendChild(document.createElement("br"));
+      const pronounSpan = document.createElement("span");
+      pronounSpan.className = "pronoun";
+      pronounSpan.textContent = pronoun;
+      ui.questionPrompt.appendChild(pronounSpan);
+      const blankSpan = document.createElement("span");
+      blankSpan.className = "blank";
+      blankSpan.textContent = "???";
+      ui.questionPrompt.appendChild(document.createTextNode(" "));
+      ui.questionPrompt.appendChild(blankSpan);
       ui.answerButtons.innerHTML = "";
       question.options.forEach((option) => {
         const btn = document.createElement("button");
@@ -1245,6 +1310,7 @@ export function renderErrorList() {
 /* ── Conjugation API ── */
 
 export function exposeConjugationApi() {
+  if (!_isDevMode) return;
   window.openQuestion = openQuestion;
   window.makeQuestion = makeQuestion;
   window.answerClick = answerClick;

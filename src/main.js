@@ -153,22 +153,30 @@ async function init() {
       },
     },
   });
-  exposeConjugationApi();
-  // Expose debug APIs on window for console access.
-  window.validateLevels = validateAllLevels;
-  window.scoreLevelQuality = scoreLevelQuality;
-  window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  // Only expose debug/conjugation APIs in development (localhost or file://).
+  const _isDevMode = typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+     window.location.hostname === "127.0.0.1" ||
+     window.location.protocol === "file:");
 
-  // F11: toggle level design debug overlay.
+  if (_isDevMode) {
+    exposeConjugationApi();
+    // Expose debug APIs on window for console access.
+    window.validateLevels = validateAllLevels;
+    window.scoreLevelQuality = scoreLevelQuality;
+    window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  }
+
+  // F11: toggle level design debug overlay (dev mode only).
   document.addEventListener("keydown", (e) => {
-    if (e.key === "F11") {
+    if (e.key === "F11" && _isDevMode) {
       e.preventDefault();
       toggleDebugOverlay();
     }
   });
 
-  // A/B testing: generate 5 levels with same difficulty, log comparison.
-  window.compareGenerations = (difficultyProfile) => {
+  // A/B testing: generate 5 levels with same difficulty, log comparison (dev only).
+  if (_isDevMode) window.compareGenerations = (difficultyProfile) => {
     const profile = difficultyProfile || state.generationProfile;
     const savedProfile = state.generationProfile;
     state.generationProfile = profile;
