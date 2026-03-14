@@ -102,12 +102,6 @@ export function renderHeroShop() {
 /* ── Zoom UI ── */
 
 export function syncWorldZoomUi() {
-  if (ui.worldZoomSlider) {
-    ui.worldZoomSlider.value = String(state.worldZoom);
-  }
-  if (ui.worldZoomValue) {
-    ui.worldZoomValue.textContent = formatZoomLabel(state.worldZoom);
-  }
   if (ui.cheatWorldZoomSlider) {
     ui.cheatWorldZoomSlider.value = String(state.worldZoom);
   }
@@ -556,9 +550,6 @@ export function bindControls() {
   ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
-  ui.worldZoomSlider?.addEventListener("input", () => {
-    _setWorldZoom(ui.worldZoomSlider.value);
-  });
   ui.cheatWorldZoomSlider?.addEventListener("input", () => {
     _setWorldZoom(ui.cheatWorldZoomSlider.value);
   });

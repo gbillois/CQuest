@@ -47,8 +47,6 @@ export const ui = {
   shopGoldValue: document.getElementById("shopGoldValue"),
   cheatDifficultySelect: document.getElementById("cheatDifficultySelect"),
   cheatTileStyleSelect: document.getElementById("cheatTileStyleSelect"),
-  worldZoomSlider: document.getElementById("worldZoomSlider"),
-  worldZoomValue: document.getElementById("worldZoomValue"),
   questionPanel: document.getElementById("questionPanel"),
   questionEnemy: document.getElementById("questionEnemy"),
   questionEnemySprite: document.getElementById("questionEnemySprite"),
