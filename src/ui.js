@@ -177,6 +177,13 @@ function applyLocaleToStaticUi() {
   setText("#resetErrorsBtn", "resetErrors");
   setText("#parentalCodePanel h2", "parentalCode");
   setText("#parentalCodePanel p", "parentalCodeHint");
+  setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
+  setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
+  setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
+  setText("#mobileButtonsOffsetHigher", "sliderHigher");
+  setText("#mobileButtonsOffsetLower", "sliderLower");
+  setText("#mobileGameOffsetHigher", "sliderHigher");
+  setText("#mobileGameOffsetLower", "sliderLower");
   setText("#changeParentalCodeBtn", "changeCode");
   setText("#applySettingsBtn", "apply");
   setText("#closeSettingsBtn", "close");
@@ -340,6 +347,7 @@ export function populateSettingsPanel() {
   ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   renderHeroShop();
   renderErrorList();
   syncHeroActionButtonVisibility();
@@ -434,8 +442,8 @@ export function isMobileViewport() {
 }
 
 export function applyMobileVisualDebugOffsets() {
-  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
-  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
+  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 150);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 0);
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
@@ -453,6 +461,12 @@ export function applyMobileVisualDebugOffsets() {
   }
   if (ui.debugGameOffsetValue) {
     ui.debugGameOffsetValue.textContent = `${gameOffset}px`;
+  }
+  if (ui.settingsButtonsOffsetSlider) {
+    ui.settingsButtonsOffsetSlider.value = String(buttonsOffset);
+  }
+  if (ui.settingsGameOffsetSlider) {
+    ui.settingsGameOffsetSlider.value = String(gameOffset);
   }
 }
 
@@ -648,11 +662,19 @@ export function bindControls() {
   attachLongPressListeners(ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
 
   ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
-    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 180);
+    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 150);
     applyMobileVisualDebugOffsets();
   });
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 200);
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 0);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsButtonsOffsetSlider?.addEventListener("input", () => {
+    state.mobileButtonsOffsetY = clamp(Number(ui.settingsButtonsOffsetSlider.value) || 0, 0, 150);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsGameOffsetSlider?.addEventListener("input", () => {
+    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, -200, 0);
     applyMobileVisualDebugOffsets();
   });
   ui.debugScaleSlider?.addEventListener("input", () => {
@@ -977,6 +999,7 @@ export function openSettingsPanel() {
     return;
   }
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
