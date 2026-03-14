@@ -5,6 +5,7 @@ import {
   WORLD_ZOOM_STORAGE_KEY,
   TILE_STYLE_MODE_STORAGE_KEY,
   PARENTAL_CODE_STORAGE_KEY,
+  ERROR_DB_STORAGE_KEY,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -150,6 +151,20 @@ export function saveParentalCode(value) {
     return false;
   }
 }
+
+export function resetStoredGameProgress() {
+  try {
+    localStorage.removeItem(PERSISTENT_CURRENCY_KEY);
+    localStorage.removeItem(HERO_UNLOCK_STORAGE_KEY);
+    localStorage.removeItem(HERO_SELECTED_STORAGE_KEY);
+    localStorage.removeItem(PARENTAL_CODE_STORAGE_KEY);
+    localStorage.removeItem(WORLD_ZOOM_STORAGE_KEY);
+    localStorage.removeItem(ERROR_DB_STORAGE_KEY);
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
 export function getSelectedHeroId() {
   const hero = state.heroes[state.selectedHeroIndex];
   return hero?.id || "";

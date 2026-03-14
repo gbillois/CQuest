@@ -6,7 +6,6 @@ import {
   getHeroShopConfig, getStartingHearts, getHeroHitboxOverride,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE,
   PLAYER_DEATH_DELAY_SECONDS,
-  ERROR_DB_STORAGE_KEY,
 } from "./constants.js";
 import { clamp, capitalize, createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
@@ -17,7 +16,7 @@ import {
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
-  loadParentalCode, saveParentalCode,
+  loadParentalCode, saveParentalCode, resetStoredGameProgress,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -175,6 +174,8 @@ function applyLocaleToStaticUi() {
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
   setText("#resetErrorsBtn", "resetErrors");
+  setText("#resetGameBtn", "resetGame");
+  setText("#errorListLabel", "errorsMade");
   setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
   setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
   setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
@@ -1099,6 +1100,27 @@ export function returnToTitleScreen() {
   showTitleScreen();
 }
 
+export function resetGameProgress() {
+  if (!window.confirm(t("resetGameConfirm"))) {
+    return;
+  }
+
+  resetStoredGameProgress();
+  resetErrors();
+
+  state.persistentGold = 0;
+  state.coins = 0;
+  state.score = 0;
+  state.currentLevelIndex = 0;
+
+  initializeHeroProgress();
+  populateSettingsPanel();
+  renderErrorList();
+  updateHudInfo();
+
+  showTitleScreen();
+}
+
 export function showGameOverScreen() {
   state.started = false;
   state.paused = true;
@@ -1329,6 +1351,11 @@ export function populatePedagogyPanel() {
     ui.resetErrorsBtn.onclick = () => {
       resetErrors();
       renderErrorList();
+    };
+  }
+  if (ui.resetGameBtn) {
+    ui.resetGameBtn.onclick = () => {
+      resetGameProgress();
     };
   }
 }
