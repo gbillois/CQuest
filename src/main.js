@@ -153,11 +153,16 @@ async function init() {
       },
     },
   });
-  exposeConjugationApi();
-  // Expose debug APIs on window for console access.
-  window.validateLevels = validateAllLevels;
-  window.scoreLevelQuality = scoreLevelQuality;
-  window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  const isDev = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  if (isDev) {
+    exposeConjugationApi();
+  }
+  // Expose debug APIs on window for console access (dev mode only).
+  if (isDev) {
+    window.validateLevels = validateAllLevels;
+    window.scoreLevelQuality = scoreLevelQuality;
+    window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  }
 
   // F11: toggle level design debug overlay.
   document.addEventListener("keydown", (e) => {
@@ -167,8 +172,8 @@ async function init() {
     }
   });
 
-  // A/B testing: generate 5 levels with same difficulty, log comparison.
-  window.compareGenerations = (difficultyProfile) => {
+  // A/B testing: generate 5 levels with same difficulty, log comparison (dev mode only).
+  if (isDev) window.compareGenerations = (difficultyProfile) => {
     const profile = difficultyProfile || state.generationProfile;
     const savedProfile = state.generationProfile;
     state.generationProfile = profile;

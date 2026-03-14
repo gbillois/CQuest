@@ -21,7 +21,8 @@ export function setRenderHeroShop(fn) {
 
 export function loadPersistentGold() {
   try {
-    return Number(localStorage.getItem(PERSISTENT_CURRENCY_KEY) || 0) || 0;
+    const value = Number(localStorage.getItem(PERSISTENT_CURRENCY_KEY) || 0) || 0;
+    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
   } catch {
     return 0;
   }
@@ -39,7 +40,14 @@ export function loadHeroUnlocks() {
   try {
     const raw = localStorage.getItem(HERO_UNLOCK_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const validated = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof key === "string" && typeof value === "boolean") {
+        validated[key] = value;
+      }
+    }
+    return validated;
   } catch {
     return {};
   }

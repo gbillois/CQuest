@@ -2,9 +2,6 @@ import { TENSE_KEYS, TENSE_LABEL } from "./constants.js";
 import { delay, shuffle } from "./utils.js";
 
 export function getVerbSource() {
-  if (window.VERBS && typeof window.VERBS === "object") {
-    return window.VERBS;
-  }
   return {
     g1: {
       label: "1er groupe",
@@ -240,7 +237,14 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
       const raw = localStorage.getItem(key);
       if (!raw) return {};
       const parsed = JSON.parse(raw);
-      return parsed && typeof parsed === "object" ? parsed : {};
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+      const validated = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof k === "string" && typeof v === "number" && Number.isFinite(v) && v > 0) {
+          validated[k] = Math.floor(v);
+        }
+      }
+      return validated;
     } catch {
       return {};
     }
@@ -309,17 +313,27 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
     if (!container) {
       return;
     }
+    container.textContent = "";
     const top = getTopErrors(n);
     if (!top.length) {
-      container.innerHTML = "<div class=\"error-row\">Aucune erreur enregistrée.</div>";
+      const row = document.createElement("div");
+      row.className = "error-row";
+      row.textContent = "Aucune erreur enregistrée.";
+      container.appendChild(row);
       return;
     }
-    container.innerHTML = top
-      .map(
-        (entry) =>
-          `<div class="error-row"><strong>${pronouns[entry.pronIdx]} + ${entry.infinitive}</strong><br/>${TENSE_LABEL[entry.tense] || entry.tense}: <em>${entry.expected}</em> — ${entry.count}x</div>`,
-      )
-      .join("");
+    for (const entry of top) {
+      const row = document.createElement("div");
+      row.className = "error-row";
+      const strong = document.createElement("strong");
+      strong.textContent = `${pronouns[entry.pronIdx]} + ${entry.infinitive}`;
+      row.appendChild(strong);
+      row.appendChild(document.createElement("br"));
+      const em = document.createElement("em");
+      em.textContent = entry.expected;
+      row.append(`${TENSE_LABEL[entry.tense] || entry.tense}: `, em, ` — ${entry.count}x`);
+      container.appendChild(row);
+    }
   }
 
   function buildCandidatePool() {
