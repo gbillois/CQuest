@@ -2,7 +2,7 @@
   "name": "ConjugQuest",
   "short_name": "CQuest",
   "description": "A fantasy platformer for practicing French conjugation.",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1542",
   "theme_color": "#2d2a68",
