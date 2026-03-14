@@ -16,6 +16,7 @@ import {
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
+  loadParentalCode, saveParentalCode,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -63,6 +64,91 @@ function formatZoomLabel(zoom) {
 
 function applyWorldZoom(value) {
   _setWorldZoom(value);
+}
+
+
+function askParentalCode({ isFirstSetup = false } = {}) {
+  const title = isFirstSetup
+    ? "Créez un code parental pour accéder aux réglages.\n\nSi vous perdez ce code, il faut effacer le cache du navigateur ou supprimer l'icône si l'application est installée en PWA."
+    : "Entrez le code parental pour accéder aux réglages.";
+  const answer = window.prompt(title, "");
+  if (answer === null) {
+    return null;
+  }
+  return String(answer).trim();
+}
+
+function ensureParentalCodeConfigured() {
+  const existing = loadParentalCode();
+  if (existing) {
+    return existing;
+  }
+  const createdCode = askParentalCode({ isFirstSetup: true });
+  if (createdCode === null) {
+    return null;
+  }
+  if (!createdCode) {
+    window.alert("Le code parental ne peut pas être vide.");
+    return null;
+  }
+  if (!saveParentalCode(createdCode)) {
+    window.alert("Impossible d'enregistrer le code parental.");
+    return null;
+  }
+  window.alert("Code parental enregistré.");
+  return createdCode;
+}
+
+function requireParentalCodeAccess() {
+  const currentCode = ensureParentalCodeConfigured();
+  if (!currentCode) {
+    return false;
+  }
+  const entered = askParentalCode();
+  if (entered === null) {
+    return false;
+  }
+  if (entered !== currentCode) {
+    window.alert("Code parental incorrect.");
+    return false;
+  }
+  return true;
+}
+
+function changeParentalCode() {
+  const currentCode = loadParentalCode();
+  if (!currentCode) {
+    const configured = ensureParentalCodeConfigured();
+    if (!configured) {
+      return;
+    }
+  } else {
+    const entered = window.prompt("Entrez le code parental actuel pour le modifier.", "");
+    if (entered === null) {
+      return;
+    }
+    if (String(entered).trim() !== currentCode) {
+      window.alert("Code parental incorrect.");
+      return;
+    }
+  }
+
+  const newCode = window.prompt(
+    "Nouveau code parental :\n\nSi vous perdez ce code, il faut effacer le cache du navigateur ou supprimer l'icône si l'application est installée en PWA.",
+    "",
+  );
+  if (newCode === null) {
+    return;
+  }
+  if (!String(newCode).trim()) {
+    window.alert("Le code parental ne peut pas être vide.");
+    return;
+  }
+  if (!saveParentalCode(newCode)) {
+    window.alert("Impossible d'enregistrer le nouveau code.");
+    return;
+  }
+  window.alert("Code parental mis à jour.");
 }
 
 /* ── Hero shop ── */
@@ -607,6 +693,8 @@ export function bindControls() {
     closeSettingsPanel();
   });
 
+  ui.changeParentalCodeBtn?.addEventListener("click", changeParentalCode);
+
   ui.startBtn?.addEventListener("click", startGameFromMenu);
   ui.openSettingsFromTitleBtn?.addEventListener("click", openSettingsPanel);
   ui.resumeBtn?.addEventListener("click", closePauseMenu);
@@ -803,6 +891,9 @@ export function closeShopPanel() {
 
 export function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
+    return;
+  }
+  if (!requireParentalCodeAccess()) {
     return;
   }
   syncWorldZoomUi();
