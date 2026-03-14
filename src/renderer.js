@@ -1324,7 +1324,16 @@ export function drawFloatingMessage(text) {
   const hudRect = ui.hud?.getBoundingClientRect?.();
   const canvasRect = ctx.canvas?.getBoundingClientRect?.();
   if (hudRect && canvasRect && canvasRect.height > 0) {
-    const hudBottomOnCanvasPx = Math.max(0, hudRect.bottom - canvasRect.top);
+    const hudItems = ui.hud?.querySelectorAll?.(".hud-item, .icon-button") || [];
+    let hudBottomPx = hudRect.bottom;
+    for (const item of hudItems) {
+      const itemRect = item?.getBoundingClientRect?.();
+      if (itemRect) {
+        hudBottomPx = Math.max(hudBottomPx, itemRect.bottom);
+      }
+    }
+
+    const hudBottomOnCanvasPx = Math.max(0, hudBottomPx - canvasRect.top);
     const canvasToVirtualY = VIRTUAL_HEIGHT / canvasRect.height;
     boxTop = Math.round((hudBottomOnCanvasPx + 10) * canvasToVirtualY);
   }
