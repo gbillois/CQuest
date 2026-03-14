@@ -61,6 +61,8 @@ export const ui = {
   tenseFilters: document.getElementById("tenseFilters"),
   groupVerbLists: document.getElementById("groupVerbLists"),
   resetErrorsBtn: document.getElementById("resetErrorsBtn"),
+  resetGameBtn: document.getElementById("resetGameBtn"),
+  errorListLabel: document.getElementById("errorListLabel"),
   errorList: document.getElementById("errorList"),
   changeParentalCodeBtn: document.getElementById("changeParentalCodeBtn"),
   applySettingsBtn: document.getElementById("applySettingsBtn"),
