@@ -445,6 +445,38 @@ body {
   font-size: 0.82rem;
 }
 
+
+.pedagogy-block {
+  margin-top: 10px;
+}
+
+.group-verb-lists {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.group-verb-list {
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 10, 24, 0.5);
+}
+
+.group-verb-title {
+  margin: 0 0 2px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #ffe17e;
+}
+
+.group-verb-items {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  opacity: 0.95;
+}
+
 .error-tools {
   margin-top: 8px;
 }
