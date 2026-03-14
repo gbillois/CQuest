@@ -864,9 +864,12 @@ body {
     max-height: calc(100% - 300px);
   }
 
-  .icon-button,
   .touch-btn {
     opacity: 0.7;
+  }
+
+  .icon-button {
+    opacity: 1;
   }
 
   .icon-button {
