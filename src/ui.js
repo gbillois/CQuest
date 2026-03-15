@@ -1309,6 +1309,7 @@ export function loadLevel(levelIndex, resetScore) {
   state.towerInterior.chestExplodeUntil = 0;
   state.towerInterior.chestPromptUntil = 0;
   state.fireballs = [];
+  state.floatingRewards = [];
   ui.gameOverPanel?.classList.add("hidden");
 
   ensureSelectedHeroIsOwned();
@@ -1339,7 +1340,10 @@ export function loadLevel(levelIndex, resetScore) {
   }
   updateHudInfo();
 
-  showMessage(`Level ${levelIndex + 1}: ${capitalize(state.currentLevel.biomeId)}`);
+  showMessage(t("levelLabel", {
+    level: levelIndex + 1,
+    biome: t(`biome.${state.currentLevel.biomeId}`),
+  }));
 }
 
 export function cloneLevel(level) {

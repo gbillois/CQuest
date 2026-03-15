@@ -162,6 +162,7 @@ export function render(timeSeconds) {
   if (state.message) {
     drawFloatingMessage(state.message);
   }
+  drawFloatingRewards(level);
 
   if (!state.ready) {
     drawFloatingMessage("Loading...");
@@ -1316,6 +1317,47 @@ function drawDebugOverlay() {
 }
 
 /* ── UI rendering ── */
+
+export function updateFloatingRewards(delta) {
+  if (!state.floatingRewards?.length) {
+    return;
+  }
+  for (const reward of state.floatingRewards) {
+    reward.life = Math.max(0, reward.life - delta);
+    reward.rise = Math.min(44, (reward.rise || 0) + delta * 42);
+  }
+  state.floatingRewards = state.floatingRewards.filter((reward) => reward.life > 0);
+}
+
+export function drawFloatingRewards(level) {
+  if (!level || !state.floatingRewards?.length) {
+    return;
+  }
+
+  const zoom = getWorldZoom();
+  const worldOffsetY = getWorldRenderOffsetY(level);
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const reward of state.floatingRewards) {
+    const alpha = clamp((reward.life || 0) / (reward.ttl || 1), 0, 1);
+    const screenX = (reward.worldX - state.cameraX) * zoom;
+    const screenY = (reward.worldY + worldOffsetY - (reward.rise || 0)) * zoom;
+    if (screenX < -80 || screenX > VIRTUAL_WIDTH + 80 || screenY < -80 || screenY > VIRTUAL_HEIGHT + 80) {
+      continue;
+    }
+
+    ctx.globalAlpha = alpha;
+    ctx.font = "700 13px Trebuchet MS";
+    ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
+    ctx.strokeStyle = "rgba(6, 8, 14, 0.9)";
+    ctx.lineWidth = 3;
+    ctx.strokeText(reward.text, screenX, screenY);
+    ctx.fillText(reward.text, screenX, screenY);
+  }
+  ctx.restore();
+}
 
 export function drawFloatingMessage(text) {
   const messageHeight = 36;

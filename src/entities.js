@@ -20,6 +20,7 @@ import {
 } from "./constants.js";
 import { clamp, aabb, circleIntersectsRect } from "./utils.js";
 import { state, ui, imageCache } from "./state.js";
+import { t } from "./i18n.js";
 import { resolveHorizontalCollisions, resolveVerticalCollisions, isSolidAtPoint, getNearbySolidRects, resolveBonusPopupVerticalCollision } from "./physics.js";
 import { isImageRenderable } from "./asset-loader.js";
 import { grantGold } from "./persistence.js";
@@ -38,6 +39,35 @@ export function setEntityHooks({ openQuestion, showMessage, loadLevel, showGameO
   _loadLevel = loadLevel;
   _showGameOverScreen = showGameOverScreen;
   _requestLeaderboardEntry = requestLeaderboardEntry;
+}
+
+export function getLevelDisplayName(level = state.currentLevel) {
+  const biomeId = level?.biomeId || "forest";
+  return t("levelLabel", {
+    level: (state.currentLevelIndex || 0) + 1,
+    biome: t(`biome.${biomeId}`),
+  });
+}
+
+export function showLevelFloatingMessage(messageKey, vars = {}) {
+  const levelName = getLevelDisplayName();
+  const detail = t(messageKey, vars);
+  _showMessage?.(`${levelName} · ${detail}`);
+}
+
+export function pushFloatingReward(text, worldX, worldY, style = "gold") {
+  if (!Number.isFinite(worldX) || !Number.isFinite(worldY)) {
+    return;
+  }
+  state.floatingRewards.push({
+    text,
+    worldX,
+    worldY,
+    rise: 0,
+    life: 1.05,
+    ttl: 1.05,
+    style,
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -384,7 +414,7 @@ export function updateBonusBlocks(delta) {
     }
 
     if (block.popup.collectible && aabb(state.player, block.popup)) {
-      applyBonusReward(block.rewardType);
+      applyBonusReward(block.rewardType, block.popup);
       block.popup.collected = true;
     }
   }
@@ -417,34 +447,47 @@ export function triggerBonusBlock(block) {
   };
 }
 
-export function applyBonusReward(rewardType) {
+export function applyBonusReward(rewardType, sourceEntity = null) {
+  const popupX = sourceEntity ? sourceEntity.x + sourceEntity.w * 0.5 : null;
+  const popupY = sourceEntity ? sourceEntity.y : null;
+  const showGoldGain = (value) => {
+    if (value > 0 && popupX != null && popupY != null) {
+      pushFloatingReward(`+${value} ${t("pieces")}`, popupX, popupY, "gold");
+    }
+  };
+
   if (rewardType.includes("deco_double_axe")) {
     grantGold(50);
     state.score += 200;
+    showGoldGain(50);
     return;
   }
 
   if (rewardType.includes("deco_helmet")) {
     grantGold(30);
     state.score += 120;
+    showGoldGain(30);
     return;
   }
 
   if (rewardType.includes("deco_flail")) {
     grantGold(40);
     state.score += 160;
+    showGoldGain(40);
     return;
   }
 
   if (rewardType.includes("deco_royal_shield")) {
     grantGold(100);
     state.score += 400;
+    showGoldGain(100);
     return;
   }
 
   if (rewardType.includes("jewel")) {
     grantGold(12);
     state.score += 60;
+    showGoldGain(12);
     return;
   }
 
@@ -457,6 +500,7 @@ export function applyBonusReward(rewardType) {
   if (rewardType.includes("coin")) {
     grantGold(4);
     state.score += 10;
+    showGoldGain(4);
     return;
   }
 
@@ -690,12 +734,12 @@ export function updateConjugationGates() {
             if (ty - 1 >= 0) level.tileGrid[ty - 1][tx] = null;
           }
         }
-        _showMessage?.("Porte ouverte !");
+        showLevelFloatingMessage("gateOpened");
         state.score += 50;
       },
       onWrong: () => {
         gate._cooldownUntil = performance.now() + 2000;
-        _showMessage?.("Mauvaise reponse - reessayez !");
+        showLevelFloatingMessage("gateRetry");
       },
     });
 
@@ -792,10 +836,11 @@ export function updateEnemyDrops(delta) {
 
     if (drop.settled && drop.pickupDelay <= 0 && aabb(state.player, drop)) {
       if (drop.rewardType && drop.rewardType !== "enemy_coin_drop") {
-        applyBonusReward(drop.rewardType);
+        applyBonusReward(drop.rewardType, drop);
       }
       if (drop.value > 0 && drop.rewardType === "enemy_coin_drop") {
         grantGold(drop.value);
+        pushFloatingReward(`+${drop.value} ${t("pieces")}`, drop.x + drop.w * 0.5, drop.y, "gold");
       }
       if (drop.score > 0) {
         state.score += drop.score;
@@ -861,7 +906,7 @@ export function damagePlayer(reason, sourceX = null) {
     player.vx = 0;
     player.vy = PLAYER_DEATH_LAUNCH_Y;
     player.onGround = false;
-    _showMessage?.("You died");
+    showLevelFloatingMessage("youDied");
   }
 }
 
@@ -869,7 +914,7 @@ export function hitPlayer() {
   if (state.playerHitInvuln > 0 || state.deathSequence.active) {
     return;
   }
-  damagePlayer("Wrong conjugation");
+  damagePlayer(t("wrongConjugation"));
 }
 
 export function defeatEnemy(enemy) {
@@ -883,18 +928,20 @@ export function defeatEnemy(enemy) {
   enemy.vy = 0;
   state.currentLevel.defeatedEnemyCount = (state.currentLevel.defeatedEnemyCount || 0) + 1;
   state.score += 100;
-  spawnEnemyDrop(enemy, { rewardType: "enemy_coin_drop", value: 6, score: 0 });
+  const coinReward = 6;
+  spawnEnemyDrop(enemy, { rewardType: "enemy_coin_drop", value: coinReward, score: 0 });
+  pushFloatingReward(`+${coinReward} ${t("pieces")}`, enemy.x + enemy.w * 0.5, enemy.y, "gold");
 
-  let rewardMessage = "+100 / +6 gold";
+  let rewardMessage = t("enemyDefeatedReward", { score: 100, coins: coinReward });
   if ((enemy.questionAttempts || 0) === 1) {
     const firstStrikeRewards = ["deco_helmet", "deco_jewel", "deco_flail"];
     const rewardType = firstStrikeRewards[Math.floor(Math.random() * firstStrikeRewards.length)];
     spawnEnemyDrop(enemy, { rewardType, value: 1, score: 0 });
     const rewardLabel = rewardType === "deco_flail" ? "flail" : rewardType.replace("deco_", "");
-    rewardMessage = `${rewardMessage} + first hit ${rewardLabel} (au sol)`;
+    rewardMessage = `${rewardMessage} · ${t("enemyFirstHitBonus", { reward: rewardLabel })}`;
   }
 
-  _showMessage?.(rewardMessage);
+  showLevelFloatingMessage("enemyDefeated", { reward: rewardMessage });
 }
 
 export function respawnPlayer({ fromStart = false } = {}) {
@@ -973,16 +1020,16 @@ export function openTowerChestAttempt() {
         state.towerInterior.chestRewardPieces = pieces;
         grantGold(pieces);
         state.score += pieces * 2;
-        _showMessage?.(`Coffre ouvert: +${pieces} pieces`);
+        showLevelFloatingMessage("towerChestOpened", { pieces });
         return;
       }
-      _showMessage?.(`Serie du coffre: ${current}/${required}`);
+      showLevelFloatingMessage("towerChestStreak", { current, required });
     },
     onWrong() {
       state.towerInterior.chestStreak = 0;
       state.towerInterior.chestState = "destroyed";
       state.towerInterior.chestExplodeUntil = performance.now() + 1000;
-      _showMessage?.("Echec: le coffre explose");
+      showLevelFloatingMessage("towerChestFailed");
     },
   });
 
@@ -1020,11 +1067,11 @@ export function tryEnterTower() {
   player.vy = 0;
   player.onGround = true;
   if (state.towerInterior.chestState === "locked") {
-    _showMessage?.("Touchez le coffre: 3 reponses d'affilee");
+    showLevelFloatingMessage("towerChestTouchPrompt", { required: state.towerInterior.chestRequired });
   } else if (state.towerInterior.chestState === "open") {
-    _showMessage?.(`Coffre deja ouvert: +${state.towerInterior.chestRewardPieces} pieces`);
+    showLevelFloatingMessage("towerChestAlreadyOpened", { pieces: state.towerInterior.chestRewardPieces });
   } else {
-    _showMessage?.("Le coffre a disparu");
+    showLevelFloatingMessage("towerChestMissing");
   }
   return true;
 }
@@ -1046,7 +1093,7 @@ export function leaveTowerInterior(side) {
   player.vx = 0;
   player.vy = 0;
   player.onGround = true;
-  _showMessage?.("Sortie de la tour");
+  showLevelFloatingMessage("towerExit");
 }
 
 export function updateTowerInterior(delta) {
@@ -1113,7 +1160,7 @@ export function checkGoal() {
     const now = performance.now();
     if (now >= state.endCastleLockHintUntil) {
       const pct = Math.floor(getEnemyDefeatRatio(level) * 100);
-      _showMessage?.(`Porte fermee: ${pct}% ennemis battus`);
+      showLevelFloatingMessage("castleLocked", { pct });
       state.endCastleLockHintUntil = now + 900;
     }
     player.vx = 0;
@@ -1128,7 +1175,9 @@ export function checkGoal() {
   }
 
   state.score += 100;
-  grantGold(18);
+  const castleReward = 18;
+  grantGold(castleReward);
+  pushFloatingReward(`+${castleReward} ${t("pieces")}`, goal.x + goal.w * 0.5, goal.y, "gold");
 
   if (state.currentLevelIndex < state.levels.length - 1) {
     _loadLevel?.(state.currentLevelIndex + 1, false);
