@@ -355,3 +355,5 @@ export const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 export const TILE_STYLE_MODE_STORAGE_KEY = "cquest_tile_style_mode_v1";
 export const PARENTAL_CODE_STORAGE_KEY = "cquest_parental_code_v1";
 export const LEADERBOARD_STORAGE_KEY = "cquest_leaderboard_v1";
+export const MOBILE_BUTTONS_OFFSET_STORAGE_KEY = "cquest_mobile_buttons_offset_v1";
+export const MOBILE_GAME_OFFSET_STORAGE_KEY = "cquest_mobile_game_offset_v1";

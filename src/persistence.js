@@ -7,6 +7,8 @@ import {
   PARENTAL_CODE_STORAGE_KEY,
   ERROR_DB_STORAGE_KEY,
   LEADERBOARD_STORAGE_KEY,
+  MOBILE_BUTTONS_OFFSET_STORAGE_KEY,
+  MOBILE_GAME_OFFSET_STORAGE_KEY,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -153,6 +155,42 @@ export function saveParentalCode(value) {
   }
 }
 
+export function loadMobileButtonsOffset() {
+  try {
+    const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
+    if (!Number.isFinite(raw)) return 130;
+    return clamp(Math.round(raw), 0, 150);
+  } catch {
+    return 130;
+  }
+}
+
+export function saveMobileButtonsOffset(value) {
+  try {
+    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, 150)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function loadMobileGameOffset() {
+  try {
+    const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
+    if (!Number.isFinite(raw)) return -110;
+    return clamp(Math.round(raw), -200, 0);
+  } catch {
+    return -110;
+  }
+}
+
+export function saveMobileGameOffset(value) {
+  try {
+    localStorage.setItem(MOBILE_GAME_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), -200, 0)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
 export function resetStoredGameProgress() {
   try {
     localStorage.removeItem(PERSISTENT_CURRENCY_KEY);
@@ -162,6 +200,8 @@ export function resetStoredGameProgress() {
     localStorage.removeItem(WORLD_ZOOM_STORAGE_KEY);
     localStorage.removeItem(ERROR_DB_STORAGE_KEY);
     localStorage.removeItem(LEADERBOARD_STORAGE_KEY);
+    localStorage.removeItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY);
+    localStorage.removeItem(MOBILE_GAME_OFFSET_STORAGE_KEY);
   } catch {
     // Ignore storage issues.
   }
