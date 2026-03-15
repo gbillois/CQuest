@@ -167,7 +167,7 @@ const MESSAGES = {
     update: "Mise à jour",
     updatePwa: "Mettre à jour la PWA",
     titleKicker: "Plateformer horizontal",
-    titleSubtitle: "Libère le royaume grâce à tes pouvoirs de conjugaison ! Bats les ennemis et collecte des trésors pour ouvrir le château et découvrir de nouveaux mondes et de nouveaux héros !",
+    titleSubtitle: "Libère le royaume grâce à tes pouvoirs de conjugaison ! Interroge les personnages du niveau et collecte des trésors pour ouvrir le château et découvrir de nouveaux mondes et de nouveaux héros !",
     leaderboard: "Classement",
     leaderboardEmpty: "Aucun score pour le moment.",
     leaderboardModeGameover: "défaite",

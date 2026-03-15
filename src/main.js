@@ -20,7 +20,7 @@ import {
   tryEnterTower, collideWithEnemies, checkAnimalBounce, checkGoal, damagePlayer, respawnPlayer,
   castHeroProjectile, updateCrumblingPlatforms, updateMovingPlatforms, updateConjugationGates,
 } from "./entities.js";
-import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, toggleDebugOverlay } from "./renderer.js";
+import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, updateFloatingRewards, toggleDebugOverlay } from "./renderer.js";
 import {
   populateSettingsPanel, populatePedagogyPanel, renderErrorList,
   bindControls, applyMobileVisualDebugOffsets, loadLevel, showTitleScreen,
@@ -260,6 +260,7 @@ function update(delta) {
   state.runTime += delta;
   state.playerHitInvuln = Math.max(0, state.playerHitInvuln - delta);
   state.playerHitStun = Math.max(0, state.playerHitStun - delta);
+  updateFloatingRewards(delta);
   updateHudInfo();
 
   if (state.boss.active) {
