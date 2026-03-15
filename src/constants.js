@@ -258,13 +258,13 @@ export function getStartingHearts(profileId) {
 // ─── Hero shop ───
 export const HERO_SHOP_CONFIG = {
   paladin: { price: 0, order: 0, defaultOwned: true },
-  ninja: { price: 720, order: 1, defaultOwned: false },
-  pirate: { price: 1200, order: 2, defaultOwned: false },
-  mage: { price: 2400, order: 3, defaultOwned: false },
-  barbarian: { price: 3600, order: 4, defaultOwned: false },
-  catwarrior: { price: 5200, order: 5, defaultOwned: false },
-  golem: { price: 7200, order: 6, defaultOwned: false },
-  knight: { price: 9600, order: 7, defaultOwned: false },
+  ninja: { price: 1120, order: 1, defaultOwned: false },
+  pirate: { price: 1600, order: 2, defaultOwned: false },
+  mage: { price: 2800, order: 3, defaultOwned: false },
+  barbarian: { price: 4000, order: 4, defaultOwned: false },
+  catwarrior: { price: 5600, order: 5, defaultOwned: false },
+  golem: { price: 7600, order: 6, defaultOwned: false },
+  knight: { price: 10000, order: 7, defaultOwned: false },
 };
 
 export function getHeroShopConfig(heroId) {
