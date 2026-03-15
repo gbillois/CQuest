@@ -175,6 +175,9 @@ function applyLocaleToStaticUi() {
   setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
   setText("#resetErrorsBtn", "resetErrors");
   setText("#resetGameBtn", "resetGame");
+  setText("#resetGameConfirmText", "resetGameWarning");
+  setText("#resetGameCancelBtn", "confirmNo");
+  setText("#resetGameConfirmBtn", "confirmYes");
   setText("#errorListLabel", "errorsMade");
   setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
   setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
@@ -1100,8 +1103,34 @@ export function returnToTitleScreen() {
   showTitleScreen();
 }
 
-export function resetGameProgress() {
-  if (!window.confirm(t("resetGameConfirm"))) {
+function openResetGameConfirmation() {
+  if (!ui.resetGameConfirmModal || !ui.resetGameCancelBtn || !ui.resetGameConfirmBtn) {
+    return Promise.resolve(window.confirm(t("resetGameConfirm")));
+  }
+
+  ui.resetGameConfirmText.textContent = t("resetGameWarning");
+  ui.resetGameConfirmModal.classList.remove("hidden");
+
+  return new Promise((resolve) => {
+    let closed = false;
+    const close = (result) => {
+      if (closed) return;
+      closed = true;
+      ui.resetGameConfirmModal.classList.add("hidden");
+      ui.resetGameCancelBtn.removeEventListener("click", onCancel);
+      ui.resetGameConfirmBtn.removeEventListener("click", onConfirm);
+      resolve(result);
+    };
+    const onCancel = () => close(false);
+    const onConfirm = () => close(true);
+    ui.resetGameCancelBtn.addEventListener("click", onCancel);
+    ui.resetGameConfirmBtn.addEventListener("click", onConfirm);
+  });
+}
+
+export async function resetGameProgress() {
+  const shouldReset = await openResetGameConfirmation();
+  if (!shouldReset) {
     return;
   }
 
