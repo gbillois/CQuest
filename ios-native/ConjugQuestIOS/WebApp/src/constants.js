@@ -75,7 +75,13 @@ export const GROUND_SURFACE_VARIATION_MAX_UP = 1;
 export const GROUND_SURFACE_VARIATION_MAX_DOWN = 1;
 
 // ─── Conjugation labels ───
-export const TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple" };
+export const TENSE_LABEL = {
+  pr: "Présent",
+  pc: "Passé composé",
+  im: "Imparfait",
+  fu: "Futur",
+  co: "Conditionnel présent",
+};
 export const TENSE_KEYS = Object.keys(TENSE_LABEL);
 export const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
 
@@ -252,17 +258,17 @@ export function getStartingHearts(profileId) {
 // ─── Hero shop ───
 export const HERO_SHOP_CONFIG = {
   paladin: { price: 0, order: 0, defaultOwned: true },
-  ninja: { price: 360, order: 1, defaultOwned: false },
-  pirate: { price: 600, order: 2, defaultOwned: false },
-  mage: { price: 1200, order: 3, defaultOwned: false },
-  barbarian: { price: 1800, order: 4, defaultOwned: false },
-  catwarrior: { price: 2600, order: 5, defaultOwned: false },
-  golem: { price: 3600, order: 6, defaultOwned: false },
-  knight: { price: 4800, order: 7, defaultOwned: false },
+  ninja: { price: 720, order: 1, defaultOwned: false },
+  pirate: { price: 1200, order: 2, defaultOwned: false },
+  mage: { price: 2400, order: 3, defaultOwned: false },
+  barbarian: { price: 3600, order: 4, defaultOwned: false },
+  catwarrior: { price: 5200, order: 5, defaultOwned: false },
+  golem: { price: 7200, order: 6, defaultOwned: false },
+  knight: { price: 9600, order: 7, defaultOwned: false },
 };
 
 export function getHeroShopConfig(heroId) {
-  return HERO_SHOP_CONFIG[heroId] || { price: 9999, order: 99, defaultOwned: false };
+  return HERO_SHOP_CONFIG[heroId] || { price: 19998, order: 99, defaultOwned: false };
 }
 
 export const HERO_ROSTER_OVERRIDES = {
@@ -292,7 +298,9 @@ export const HERO_HITBOX_OVERRIDES = {
   // Align explicit overrides with sprite-manifest content boxes (scaled by HERO_SCALE)
   // so collision remains tight for the latest hero roster.
   barbarian: { w: 57, h: 68 },
-  catwarrior: { w: 45, h: 66 },
+  // Cat Warrior: shrink the top of the hitbox so the sprite can pass through
+  // tight spaces under bonus blocks while still keeping feet collision stable.
+  catwarrior: { w: 42, h: 60 },
   golem: { w: 56, h: 72 },
   knight: { w: 36, h: 65 },
 };
@@ -345,3 +353,5 @@ export const HERO_SELECTED_STORAGE_KEY = "cquest_selected_hero_v1";
 export const WORLD_ZOOM_STORAGE_KEY = "cquest_world_zoom_v1";
 export const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 export const TILE_STYLE_MODE_STORAGE_KEY = "cquest_tile_style_mode_v1";
+export const PARENTAL_CODE_STORAGE_KEY = "cquest_parental_code_v1";
+export const LEADERBOARD_STORAGE_KEY = "cquest_leaderboard_v1";

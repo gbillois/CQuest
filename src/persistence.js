@@ -7,6 +7,11 @@ import {
   PARENTAL_CODE_STORAGE_KEY,
   ERROR_DB_STORAGE_KEY,
   LEADERBOARD_STORAGE_KEY,
+  MOBILE_BUTTONS_OFFSET_STORAGE_KEY,
+  MOBILE_GAME_OFFSET_STORAGE_KEY,
+  PEDAGOGY_GROUPS_STORAGE_KEY,
+  PEDAGOGY_TENSES_STORAGE_KEY,
+  TENSE_KEYS,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -153,6 +158,84 @@ export function saveParentalCode(value) {
   }
 }
 
+export function loadMobileButtonsOffset() {
+  try {
+    const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
+    if (!Number.isFinite(raw)) return 130;
+    return clamp(Math.round(raw), 0, 150);
+  } catch {
+    return 130;
+  }
+}
+
+export function saveMobileButtonsOffset(value) {
+  try {
+    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, 150)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function loadMobileGameOffset() {
+  try {
+    const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
+    if (!Number.isFinite(raw)) return -110;
+    return clamp(Math.round(raw), -200, 0);
+  } catch {
+    return -110;
+  }
+}
+
+export function saveMobileGameOffset(value) {
+  try {
+    localStorage.setItem(MOBILE_GAME_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), -200, 0)));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function loadPedagogyGroups(allGroupKeys) {
+  try {
+    const raw = localStorage.getItem(PEDAGOGY_GROUPS_STORAGE_KEY);
+    if (!raw) return allGroupKeys.slice();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return allGroupKeys.slice();
+    const valid = parsed.filter((g) => typeof g === "string" && g.length > 0 && g.length < 64 && allGroupKeys.includes(g));
+    return valid.length > 0 ? valid : allGroupKeys.slice();
+  } catch {
+    return allGroupKeys.slice();
+  }
+}
+
+export function savePedagogyGroups(groups) {
+  try {
+    localStorage.setItem(PEDAGOGY_GROUPS_STORAGE_KEY, JSON.stringify(Array.isArray(groups) ? groups : []));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function loadPedagogyTenses() {
+  try {
+    const raw = localStorage.getItem(PEDAGOGY_TENSES_STORAGE_KEY);
+    if (!raw) return TENSE_KEYS.slice();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return TENSE_KEYS.slice();
+    const valid = parsed.filter((t) => typeof t === "string" && TENSE_KEYS.includes(t));
+    return valid.length > 0 ? valid : TENSE_KEYS.slice();
+  } catch {
+    return TENSE_KEYS.slice();
+  }
+}
+
+export function savePedagogyTenses(tenses) {
+  try {
+    localStorage.setItem(PEDAGOGY_TENSES_STORAGE_KEY, JSON.stringify(Array.isArray(tenses) ? tenses : []));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
 export function resetStoredGameProgress() {
   try {
     localStorage.removeItem(PERSISTENT_CURRENCY_KEY);
@@ -162,6 +245,10 @@ export function resetStoredGameProgress() {
     localStorage.removeItem(WORLD_ZOOM_STORAGE_KEY);
     localStorage.removeItem(ERROR_DB_STORAGE_KEY);
     localStorage.removeItem(LEADERBOARD_STORAGE_KEY);
+    localStorage.removeItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY);
+    localStorage.removeItem(MOBILE_GAME_OFFSET_STORAGE_KEY);
+    localStorage.removeItem(PEDAGOGY_GROUPS_STORAGE_KEY);
+    localStorage.removeItem(PEDAGOGY_TENSES_STORAGE_KEY);
   } catch {
     // Ignore storage issues.
   }

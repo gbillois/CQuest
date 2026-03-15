@@ -7,6 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; frame-ancestors 'self';" />
     <link rel="manifest" href="./site.webmanifest" />
     <link rel="icon" href="./assets/pwa/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/pwa/icon.svg" />
@@ -18,6 +20,9 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="preload" href="./level_generation_config.json" as="fetch" crossorigin />
+    <link rel="preload" href="./sprite-manifest.json" as="fetch" crossorigin />
+    <link rel="preload" href="./game_assets/backgrounds/forest-background.png" as="image" />
   </head>
   <body>
     <main class="app">
@@ -93,22 +98,55 @@
           <h1>Settings</h1>
 
           <section class="pedagogy" id="pedagogyPanel">
-            <h2>Conjugation Training</h2>
-            <h3>Verb types</h3>
-            <div id="groupFilters" class="check-grid"></div>
-            <h3>Tenses</h3>
-            <div id="tenseFilters" class="check-grid"></div>
+            <h2>Entraînement de conjugaison</h2>
+            <div class="pedagogy-block">
+              <h3>Temps disponibles</h3>
+              <div id="tenseFilters" class="check-grid"></div>
+            </div>
+            <div class="pedagogy-block">
+              <h3>Groupes de verbes</h3>
+              <div id="groupFilters" class="check-grid"></div>
+            </div>
+            <p id="errorListLabel">Erreurs réalisées</p>
+            <div id="errorList" class="error-list"></div>
             <div class="error-tools">
               <button id="resetErrorsBtn" class="secondary">Reset Errors</button>
             </div>
-            <div id="errorList" class="error-list"></div>
           </section>
 
-          <div class="panel-actions">
+          <section class="pedagogy" id="mobileLayoutPanel">
+            <h2>Réglages mobile</h2>
+
+            <div class="pedagogy-block">
+              <label for="settingsButtonsOffsetSlider">Position verticale des boutons</label>
+              <input id="settingsButtonsOffsetSlider" type="range" min="0" max="150" step="1" value="130" />
+              <div class="slider-hint-row" aria-hidden="true">
+                <span id="mobileButtonsOffsetHigher">Plus haut</span>
+                <span id="mobileButtonsOffsetLower">Plus bas</span>
+              </div>
+            </div>
+
+            <div class="pedagogy-block">
+              <label for="settingsGameOffsetSlider">Position verticale de la zone de jeu</label>
+              <input id="settingsGameOffsetSlider" type="range" min="-200" max="0" step="1" value="-110" />
+              <div class="slider-hint-row" aria-hidden="true">
+                <span id="mobileGameOffsetHigher">Plus haut</span>
+                <span id="mobileGameOffsetLower">Plus bas</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="settings-apply-row">
             <button id="applySettingsBtn">Apply</button>
-            <button id="closeSettingsBtn" class="secondary">Close</button>
           </div>
-        </aside>
+          <div class="settings-secondary-row">
+            <button id="forcePwaUpdateBtn" class="secondary">Mise à jour</button>
+            <button id="changeParentalCodeBtn" class="secondary">Changer le code</button>
+          </div>
+          <div class="settings-danger-row">
+            <button id="resetGameBtn" class="secondary">Remise à zéro</button>
+          </div>
+</aside>
 
         <aside class="panel question-panel" id="questionPanel" hidden>
           <div class="question-actors">
@@ -132,10 +170,24 @@
           <div class="title-card">
             <p class="title-kicker">Plateformer horizontal</p>
             <h1>ConjugQuest</h1>
-            <p>Traverse 5 biomes, bats les ennemis et ouvre le château final.</p>
+            <p>Libère le royaume grâce à tes pouvoirs de conjugaison ! Bats les ennemis et collecte des trésors pour ouvrir le château et découvrir de nouveaux mondes et de nouveaux héros !</p>
             <div class="title-actions">
               <button id="startBtn" type="button">Start Game</button>
+              <button id="openLeaderboardBtn" type="button">Leaderboard</button>
               <button id="openSettingsFromTitleBtn" type="button">Settings</button>
+            </div>
+          </div>
+        </section>
+
+
+        <section id="leaderboardModal" class="menu-modal hidden">
+          <div class="menu-card">
+            <h2 id="leaderboardTitle">Leaderboard</h2>
+            <ol id="leaderboardList" class="leaderboard-list">
+              <li class="leaderboard-empty">No score yet.</li>
+            </ol>
+            <div class="menu-actions">
+              <button id="closeLeaderboardBtn" class="secondary-btn" type="button">Close</button>
             </div>
           </div>
         </section>
@@ -148,6 +200,17 @@
               <button id="resumeBtn" type="button">Resume</button>
               <button id="openSettingsFromPauseBtn" type="button">Settings</button>
               <button id="backToTitleBtn" class="secondary-btn" type="button">Title Screen</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="resetGameConfirmModal" class="menu-modal hidden" aria-modal="true" role="dialog" aria-labelledby="resetGameConfirmTitle">
+          <div class="menu-card reset-confirm-card">
+            <h2 id="resetGameConfirmTitle">Confirmation</h2>
+            <p id="resetGameConfirmText">Attention remise à zéro des erreurs, de l'or, du score et des achats dans la boutique, êtes vous sûr ?</p>
+            <div class="menu-actions reset-confirm-actions">
+              <button id="resetGameCancelBtn" class="warn-btn" type="button">Non</button>
+              <button id="resetGameConfirmBtn" type="button">Oui</button>
             </div>
           </div>
         </section>
@@ -194,13 +257,13 @@
 
           <label for="debugButtonsOffsetSlider">Offset vertical boutons</label>
           <div class="debug-slider-row">
-            <input id="debugButtonsOffsetSlider" type="range" min="0" max="180" step="1" value="0" />
+            <input id="debugButtonsOffsetSlider" type="range" min="0" max="150" step="1" value="0" />
             <strong id="debugButtonsOffsetValue">0px</strong>
           </div>
 
           <label for="debugGameOffsetSlider">Offset vertical zone de jeu</label>
           <div class="debug-slider-row">
-            <input id="debugGameOffsetSlider" type="range" min="-200" max="200" step="1" value="0" />
+            <input id="debugGameOffsetSlider" type="range" min="-200" max="0" step="1" value="0" />
             <strong id="debugGameOffsetValue">0px</strong>
           </div>
 

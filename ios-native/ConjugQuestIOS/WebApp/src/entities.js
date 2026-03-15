@@ -30,12 +30,14 @@ let _openQuestion = null;
 let _showMessage = null;
 let _loadLevel = null;
 let _showGameOverScreen = null;
+let _requestLeaderboardEntry = null;
 
-export function setEntityHooks({ openQuestion, showMessage, loadLevel, showGameOverScreen }) {
+export function setEntityHooks({ openQuestion, showMessage, loadLevel, showGameOverScreen, requestLeaderboardEntry }) {
   _openQuestion = openQuestion;
   _showMessage = showMessage;
   _loadLevel = loadLevel;
   _showGameOverScreen = showGameOverScreen;
+  _requestLeaderboardEntry = requestLeaderboardEntry;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -966,21 +968,21 @@ export function openTowerChestAttempt() {
       state.towerInterior.chestStreak += 1;
       const current = state.towerInterior.chestStreak;
       if (current >= required) {
-        const pieces = 15 + Math.floor(Math.pow(Math.random(), 3) * 136);
+        const pieces = 50 + Math.floor(Math.random() * 101);
         state.towerInterior.chestState = "open";
         state.towerInterior.chestRewardPieces = pieces;
         grantGold(pieces);
         state.score += pieces * 2;
-        _showMessage?.(`Coffre ouvert: +${pieces} pieces`);
+        _showMessage?.(`Coffre ouvert: +${pieces} pièces`);
         return;
       }
-      _showMessage?.(`Serie du coffre: ${current}/${required}`);
+      _showMessage?.(`Série du coffre : ${current}/${required}`);
     },
     onWrong() {
       state.towerInterior.chestStreak = 0;
       state.towerInterior.chestState = "destroyed";
       state.towerInterior.chestExplodeUntil = performance.now() + 1000;
-      _showMessage?.("Echec: le coffre explose");
+      _showMessage?.("Échec : le coffre explose");
     },
   });
 
@@ -1018,9 +1020,9 @@ export function tryEnterTower() {
   player.vy = 0;
   player.onGround = true;
   if (state.towerInterior.chestState === "locked") {
-    _showMessage?.("Touchez le coffre: 3 reponses d'affilee");
+    _showMessage?.("Touchez le coffre : 3 réponses d'affilée");
   } else if (state.towerInterior.chestState === "open") {
-    _showMessage?.(`Coffre deja ouvert: +${state.towerInterior.chestRewardPieces} pieces`);
+    _showMessage?.(`Coffre déjà ouvert : +${state.towerInterior.chestRewardPieces} pièces`);
   } else {
     _showMessage?.("Le coffre a disparu");
   }
@@ -1332,6 +1334,7 @@ export function showFinalVictoryScreen() {
   ui.bossDefeatPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
+  _requestLeaderboardEntry?.("victory");
 }
 
 export function updateBossMode() {

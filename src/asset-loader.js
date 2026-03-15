@@ -115,7 +115,6 @@ export async function fetchJson(path) {
         const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
         const response = await fetch(requestUrl, {
           signal: controller.signal,
-          cache: "no-store",
         }).finally(() => window.clearTimeout(timeoutId));
         if (!response.ok) {
           throw new Error(`Unable to fetch ${requestUrl}`);
@@ -123,7 +122,7 @@ export async function fetchJson(path) {
         return response.json();
       }
 
-      const response = await fetch(requestUrl, { cache: "no-store" });
+      const response = await fetch(requestUrl);
       if (!response.ok) {
         throw new Error(`Unable to fetch ${requestUrl}`);
       }

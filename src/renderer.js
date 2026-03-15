@@ -12,6 +12,7 @@ import {
 import { clamp } from "./utils.js";
 import { state, ctx, ui, imageCache } from "./state.js";
 import { isImageRenderable, loadImage } from "./asset-loader.js";
+import { t } from "./i18n.js";
 import { getSolidTileCollisionRect, getSpriteOpaqueBounds, getEntitySpriteDrawRect } from "./physics.js";
 import { isEndCastleUnlocked, getCastleMetrics, getEndCastleBounds, getEndCastleDoorBounds, getTowerBounds, getTowerInteriorFloorY, getTowerInteriorChestBounds, getBossDragonFrame } from "./entities.js";
 
@@ -163,6 +164,7 @@ export function render(timeSeconds) {
   if (state.message) {
     drawFloatingMessage(state.message);
   }
+  drawFloatingRewards(level);
 
   if (!state.ready) {
     drawFloatingMessage("Loading...");
@@ -219,24 +221,24 @@ export function drawBossScene(timeSeconds) {
     ctx.fillStyle = "#f7fbff";
     ctx.font = "700 16px Nunito, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("You reached it, the fierce red dragon!", VIRTUAL_WIDTH * 0.5, 448);
-    ctx.fillText("Ready to fight? 5 questions, 10 seconds each,", VIRTUAL_WIDTH * 0.5, 476);
-    ctx.fillText("and you will win!", VIRTUAL_WIDTH * 0.5, 504);
+    ctx.fillText(t("bossIntroLine1"), VIRTUAL_WIDTH * 0.5, 448);
+    ctx.fillText(t("bossIntroLine2"), VIRTUAL_WIDTH * 0.5, 476);
+    ctx.fillText(t("bossIntroLine3"), VIRTUAL_WIDTH * 0.5, 504);
   }
 
   const secondsLeft = Math.max(0, Math.ceil((state.boss.trialDeadline - performance.now()) / 1000));
   ctx.fillStyle = "#f7fbff";
   ctx.font = "bold 18px Nunito, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`Dragon Boss`, VIRTUAL_WIDTH * 0.5, 52);
+  ctx.fillText(t("bossTitle"), VIRTUAL_WIDTH * 0.5, 52);
   ctx.font = "bold 15px Nunito, sans-serif";
-  ctx.fillText(`Trials: ${state.boss.streak}/${state.boss.required}`, VIRTUAL_WIDTH * 0.5, 78);
+  ctx.fillText(t("bossTrials", { current: state.boss.streak, required: state.boss.required }), VIRTUAL_WIDTH * 0.5, 78);
   if (state.boss.phase === "trials") {
     ctx.fillStyle = secondsLeft <= 3 ? "#ff8e42" : "#ffd56a";
-    ctx.fillText(`Time: ${secondsLeft}s`, VIRTUAL_WIDTH * 0.5, 102);
+    ctx.fillText(t("bossTimeLeft", { seconds: secondsLeft }), VIRTUAL_WIDTH * 0.5, 102);
   } else if (state.boss.phase === "celebration") {
     ctx.fillStyle = "#74f3d8";
-    ctx.fillText("Champion ceremony...", VIRTUAL_WIDTH * 0.5, 102);
+    ctx.fillText(t("bossCeremony"), VIRTUAL_WIDTH * 0.5, 102);
     ctx.save();
     for (let i = 0; i < 18; i += 1) {
       const angle = timeSeconds * 2 + i * (Math.PI / 9);
@@ -1337,6 +1339,47 @@ function drawDebugOverlay() {
 }
 
 /* ── UI rendering ── */
+
+export function updateFloatingRewards(delta) {
+  if (!state.floatingRewards?.length) {
+    return;
+  }
+  for (const reward of state.floatingRewards) {
+    reward.life = Math.max(0, reward.life - delta);
+    reward.rise = Math.min(44, (reward.rise || 0) + delta * 42);
+  }
+  state.floatingRewards = state.floatingRewards.filter((reward) => reward.life > 0);
+}
+
+export function drawFloatingRewards(level) {
+  if (!level || !state.floatingRewards?.length) {
+    return;
+  }
+
+  const zoom = getWorldZoom();
+  const worldOffsetY = getWorldRenderOffsetY(level);
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const reward of state.floatingRewards) {
+    const alpha = clamp((reward.life || 0) / (reward.ttl || 1), 0, 1);
+    const screenX = (reward.worldX - state.cameraX) * zoom;
+    const screenY = (reward.worldY + worldOffsetY - (reward.rise || 0)) * zoom;
+    if (screenX < -80 || screenX > VIRTUAL_WIDTH + 80 || screenY < -80 || screenY > VIRTUAL_HEIGHT + 80) {
+      continue;
+    }
+
+    ctx.globalAlpha = alpha;
+    ctx.font = "700 13px Trebuchet MS";
+    ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
+    ctx.strokeStyle = "rgba(6, 8, 14, 0.9)";
+    ctx.lineWidth = 3;
+    ctx.strokeText(reward.text, screenX, screenY);
+    ctx.fillText(reward.text, screenX, screenY);
+  }
+  ctx.restore();
+}
 
 export function drawFloatingMessage(text) {
   const messageHeight = 36;

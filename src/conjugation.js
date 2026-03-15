@@ -54,7 +54,7 @@ export function getVerbSource() {
       },
     },
     g2: {
-      label: "2e groupe",
+      label: "2ème groupe",
       list: {
         finir: {
           inf: "finir",
@@ -68,7 +68,7 @@ export function getVerbSource() {
       },
     },
     g3: {
-      label: "3e groupe",
+      label: "3ème groupe",
       list: {
         prendre: {
           inf: "prendre",
@@ -125,6 +125,24 @@ export function getVerbSource() {
     irr2: {
       label: "Verbes irréguliers — Groupe 2",
       list: {
+        dire: {
+          inf: "dire",
+          pr: ["dis", "dis", "dit", "disons", "dites", "disent"],
+          pc: ["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"],
+          im: ["disais", "disais", "disait", "disions", "disiez", "disaient"],
+          fu: ["dirai", "diras", "dira", "dirons", "direz", "diront"],
+          co: ["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"],
+          pp: "dit",
+        },
+        venir: {
+          inf: "venir",
+          pr: ["viens", "viens", "vient", "venons", "venez", "viennent"],
+          pc: ["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"],
+          im: ["venais", "venais", "venait", "venions", "veniez", "venaient"],
+          fu: ["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"],
+          co: ["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"],
+          pp: "venu",
+        },
         pouvoir: {
           inf: "pouvoir",
           pr: ["peux", "peux", "peut", "pouvons", "pouvez", "peuvent"],
@@ -143,24 +161,6 @@ export function getVerbSource() {
           co: ["voudrais", "voudrais", "voudrait", "voudrions", "voudriez", "voudraient"],
           pp: "voulu",
         },
-        venir: {
-          inf: "venir",
-          pr: ["viens", "viens", "vient", "venons", "venez", "viennent"],
-          pc: ["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"],
-          im: ["venais", "venais", "venait", "venions", "veniez", "venaient"],
-          fu: ["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"],
-          co: ["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"],
-          pp: "venu",
-        },
-        dire: {
-          inf: "dire",
-          pr: ["dis", "dis", "dit", "disons", "dites", "disent"],
-          pc: ["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"],
-          im: ["disais", "disais", "disait", "disions", "disiez", "disaient"],
-          fu: ["dirai", "diras", "dira", "dirons", "direz", "diront"],
-          co: ["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"],
-          pp: "dit",
-        },
         prendre: {
           inf: "prendre",
           pr: ["prends", "prends", "prend", "prenons", "prenez", "prennent"],
@@ -170,6 +170,11 @@ export function getVerbSource() {
           co: ["prendrais", "prendrais", "prendrait", "prendrions", "prendriez", "prendraient"],
           pp: "pris",
         },
+      },
+    },
+    irr3: {
+      label: "Verbes irréguliers — Groupe 3",
+      list: {
         savoir: {
           inf: "savoir",
           pr: ["sais", "sais", "sait", "savons", "savez", "savent"],

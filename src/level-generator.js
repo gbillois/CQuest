@@ -264,12 +264,12 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   };
 
   const addPlatformRail = ({ startX, y, length, segmentType, isSecret, forceStyleId = null }) => {
-    if (length < 2) return;
+    if (length < 2) return null;
     const maxRailY = Math.max(2, baseGroundY - 2);
     let railY = clamp(y, 2, maxRailY);
     const endX = startX + length - 1;
-    if (startX < 1 || endX >= widthTiles - 1) return;
-    if (intersectsRanges(startX, endX, reservedRanges)) return;
+    if (startX < 1 || endX >= widthTiles - 1) return null;
+    if (intersectsRanges(startX, endX, reservedRanges)) return null;
 
     // Ensure the platform is reachable: find the nearest solid surface below
     // (another platform or the ground) and clamp height to max jump distance.
@@ -290,16 +290,18 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
     const resolvedY = resolveRailYWithoutStacking(railY, startX, endX, minRailY, maxRailY);
     if (resolvedY == null) {
-      return;
+      return null;
     }
     railY = resolvedY;
 
     const theme = pickPlatformTheme(forceStyleId) || pickMarioPlatformTheme({ biomeId, fallbackBiome: biome, xTile: startX, castleTileX, segmentType, rand });
     placePlatform(tileGrid, theme, startX, railY, length, rand);
-    platformRails.push({ start: startX, end: endX, y: railY, themeId: theme.id || biomeId, isSecret: !!isSecret });
+    const rail = { start: startX, end: endX, y: railY, themeId: theme.id || biomeId, isSecret: !!isSecret };
+    platformRails.push(rail);
     if (theme?.id && platformStyleById.has(theme.id)) {
       usedPlatformStyleIds.add(theme.id);
     }
+    return rail;
   };
 
   const tryCreateHole = (holeStart, holeWidth) => {
@@ -383,13 +385,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         for (let p = 0; p < platCount; p++) {
           const px = bridgeStart + p * spacing;
           if (px > bridgeEnd - 1) break;
-          addPlatformRail({ startX: px, y: bridgeY, length: 2, segmentType: "crumbling" });
+          const rail = addPlatformRail({ startX: px, y: bridgeY, length: 2, segmentType: "crumbling" });
+          if (!rail) {
+            continue;
+          }
           const tilePaths = [];
           for (let ti = 0; ti < 2; ti++) {
-            tilePaths.push(tileGrid[bridgeY]?.[px + ti]?.path || null);
+            tilePaths.push(tileGrid[rail.y]?.[rail.start + ti]?.path || null);
           }
           crumblingPlatforms.push({
-            x: px, y: bridgeY, width: 2,
+            x: rail.start, y: rail.y, width: 2,
             disappearDelay: clamp(1.2 - difficulty * 0.15, 0.4, 1.2),
             tilePaths,
           });
@@ -421,13 +426,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         // Moving platform in the middle.
         const platY = localGY - 2;
         const platX = gapStart + Math.floor(gapWidth / 2) - 1;
-        addPlatformRail({ startX: platX, y: platY, length: 3, segmentType: "canyon" });
+        const rail = addPlatformRail({ startX: platX, y: platY, length: 3, segmentType: "canyon" });
+        if (!rail) {
+          break;
+        }
         const canyonTilePaths = [];
         for (let ti = 0; ti < 3; ti++) {
-          canyonTilePaths.push(tileGrid[platY]?.[platX + ti]?.path || null);
+          canyonTilePaths.push(tileGrid[rail.y]?.[rail.start + ti]?.path || null);
         }
         movingPlatforms.push({
-          x: platX, y: platY, width: 3,
+          x: rail.start, y: rail.y, width: 3,
           rangeX: gapWidth * state.tileSize * 0.3,
           speed: clamp(40 - difficulty * 5, 20, 45),
           axis: "horizontal",
@@ -467,13 +475,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         const spacing = Math.floor(segWidth / (platCount + 1));
         for (let p = 0; p < platCount; p++) {
           const px = startX + (p + 1) * spacing;
-          addPlatformRail({ startX: px, y: platY, length: 2, segmentType: "pendulum" });
+          const rail = addPlatformRail({ startX: px, y: platY, length: 2, segmentType: "pendulum" });
+          if (!rail) {
+            continue;
+          }
           const pendTilePaths = [];
           for (let ti = 0; ti < 2; ti++) {
-            pendTilePaths.push(tileGrid[platY]?.[px + ti]?.path || null);
+            pendTilePaths.push(tileGrid[rail.y]?.[rail.start + ti]?.path || null);
           }
           movingPlatforms.push({
-            x: px, y: platY, width: 2,
+            x: rail.start, y: rail.y, width: 2,
             rangeY: 2 * state.tileSize,
             speed: clamp(35 + difficulty * 5, 30, 55),
             axis: "vertical",
@@ -550,15 +561,19 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
         const totalSlots = letterCount + randInt(rand, 1, 3); // Extra wrong platforms.
         let lx = startX + 2;
         for (let l = 0; l < totalSlots && lx < endX - 1; l++) {
-          addPlatformRail({ startX: lx, y: bridgeY, length: 2, segmentType: "letter" });
+          const rail = addPlatformRail({ startX: lx, y: bridgeY, length: 2, segmentType: "letter" });
+          if (!rail) {
+            lx += 3;
+            continue;
+          }
           const isCorrect = l < letterCount;
           if (!isCorrect) {
             const tilePaths = [];
             for (let ti = 0; ti < 2; ti++) {
-              tilePaths.push(tileGrid[bridgeY]?.[lx + ti]?.path || null);
+              tilePaths.push(tileGrid[rail.y]?.[rail.start + ti]?.path || null);
             }
             crumblingPlatforms.push({
-              x: lx, y: bridgeY, width: 2,
+              x: rail.start, y: rail.y, width: 2,
               disappearDelay: clamp(0.8 - difficulty * 0.1, 0.3, 1.0),
               isLetterPlatform: true,
               tilePaths,
@@ -648,13 +663,16 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
           addPlatformRail({ startX: fakeHoleX, y: localGY - 1, length: 3, segmentType: "fake_safe" });
         } else {
           // Hidden challenge: easy-looking flat area with a crumbling section.
-          addPlatformRail({ startX: startX + 2, y: localGY - 2, length: 4, segmentType: "trap" });
+          const rail = addPlatformRail({ startX: startX + 2, y: localGY - 2, length: 4, segmentType: "trap" });
+          if (!rail || rail.end - rail.start + 1 < 4) {
+            break;
+          }
           const trapTilePaths = [];
           for (let ti = 0; ti < 2; ti++) {
-            trapTilePaths.push(tileGrid[localGY - 2]?.[startX + 3 + ti]?.path || null);
+            trapTilePaths.push(tileGrid[rail.y]?.[rail.start + 1 + ti]?.path || null);
           }
           crumblingPlatforms.push({
-            x: startX + 3, y: localGY - 2, width: 2,
+            x: rail.start + 1, y: rail.y, width: 2,
             disappearDelay: 0.8,
             isTrap: true,
             tilePaths: trapTilePaths,
@@ -828,6 +846,25 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     }
   }
 
+  // ─── Late-level density boost (after tower) ───
+  const postTowerStart = towerTileX + 10;
+  const postTowerWidth = Math.max(0, playableEnd - postTowerStart + 1);
+  const extraRailsTarget = clamp(Math.floor(postTowerWidth / 18), 2, 6);
+  let extraRailsPlaced = 0;
+  let extraRailAttempts = 0;
+  while (extraRailsPlaced < extraRailsTarget && extraRailAttempts < extraRailsTarget * 8) {
+    extraRailAttempts += 1;
+    const railLength = randInt(rand, 3, 6);
+    const startX = randInt(rand, postTowerStart, Math.max(postTowerStart, playableEnd - railLength));
+    const localGroundY = getLocalGroundY(startX + Math.floor(railLength * 0.5));
+    const preferredY = clamp(localGroundY - randInt(rand, 2, 4), 2, Math.max(2, baseGroundY - 2));
+    const beforeCount = platformRails.length;
+    addPlatformRail({ startX, y: preferredY, length: railLength, segmentType: "post_tower_dense" });
+    if (platformRails.length > beforeCount) {
+      extraRailsPlaced += 1;
+    }
+  }
+
   // ─── Post-Generation: Ground Holes & Validation ───
   if (allowGroundHoles) {
     const targetHoleCount = clamp(
@@ -884,7 +921,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   const bonuses = buildBonusScatter({
     biome, rand, tileGrid, bonusDensity, pathNodes: finalPathNodes,
     groundY: baseGroundY, holes, reservedRanges, platformRails,
-    levelIndex: index, secretZones, heightTiles,
+    levelIndex: index, secretZones, towerTileX, heightTiles,
   });
 
   const decorations = [];
@@ -894,7 +931,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
   const enemySpawns = buildEnemySpawns({
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
-    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, heightTiles,
+    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
   const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
@@ -1445,10 +1482,14 @@ function augmentGroundHoles({ tileGrid, groundY, startX, endX, reservedRanges, h
 
 // ─── Bonus Scatter (30%+ off main path) ───
 
-function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, groundY, holes, reservedRanges, platformRails, levelIndex, secretZones, heightTiles }) {
+function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, groundY, holes, reservedRanges, platformRails, levelIndex, secretZones, towerTileX, heightTiles }) {
   const allBonus = state.config.object_pools?.bonus || [];
   const allDecor = state.config.object_pools?.decoration || [];
-  const count = clamp(Math.round((tileGrid[0].length * bonusDensity) / 150) + Math.floor((levelIndex || 0) * 0.5), 4, 14);
+  const baseCount = Math.round((tileGrid[0].length * bonusDensity) / 150) + Math.floor((levelIndex || 0) * 0.5);
+  const postTowerBonus = Number.isFinite(towerTileX)
+    ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 20), 1, 4)
+    : 0;
+  const count = clamp(baseCount + postTowerBonus, 5, 18);
   const items = [];
   if (pathNodes.length < 3 || groundY == null) return items;
 
@@ -1552,6 +1593,24 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
     tryPlaceBlock(node.x + offX, clamp(node.y + offY, 2, (heightTiles || tileGrid.length) - 3), Math.abs(offX) > 1);
   }
 
+  // Ensure denser rewards in the second half (after the tower landmark).
+  if (Number.isFinite(towerTileX)) {
+    const lateGroundNodes = groundNodes.filter((node) => node.x >= towerTileX + 8);
+    const lateTarget = clamp(Math.floor(count * 0.45), 2, 8);
+    let latePlaced = items.filter((item) => item.tileX >= towerTileX + 8).length;
+    let lateAttempts = 0;
+    while (latePlaced < lateTarget && lateGroundNodes.length && lateAttempts < lateTarget * 10) {
+      lateAttempts += 1;
+      const node = lateGroundNodes[randInt(rand, 0, lateGroundNodes.length - 1)];
+      if (!node) continue;
+      const offX = randInt(rand, -2, 2);
+      const offY = rand() < 0.45 ? -minPassUnderGapTiles - 1 : -minPassUnderGapTiles;
+      if (tryPlaceBlock(node.x + offX, clamp(node.y + offY, 2, (heightTiles || tileGrid.length) - 3), Math.abs(offX) > 0)) {
+        latePlaced += 1;
+      }
+    }
+  }
+
   return items;
 }
 
@@ -1625,14 +1684,17 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
 
 // ─── Enemy Spawns ───
 
-function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, heightTiles }) {
+function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, towerTileX, heightTiles }) {
   const profile = generation || GENERATION_PROFILES.normal;
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
+  const postTowerEnemyBonus = Number.isFinite(towerTileX)
+    ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 22), 1, 4)
+    : 0;
   const count = clamp(
     profile.enemyBase + levelIndex * profile.enemyPerLevel,
     profile.enemyMin,
-    profile.enemyMax,
+    profile.enemyMax + postTowerEnemyBonus,
   );
   const enemies = [];
   if (!candidates.length) return enemies;
@@ -1640,7 +1702,11 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   const lanePool = (lanes || []).filter((lane) => lane.end - lane.start + 1 >= 4);
   if (!lanePool.length) return enemies;
 
-  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const postTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start >= towerTileX + 6) : [];
+  const preTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start < towerTileX + 6) : lanePool;
+  const shuffledPostTower = postTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledPreTower = preTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledLanes = [...shuffledPostTower, ...shuffledPreTower];
 
   for (const lane of shuffledLanes) {
     if (enemies.length >= count) break;

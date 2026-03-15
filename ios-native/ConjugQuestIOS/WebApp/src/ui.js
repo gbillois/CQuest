@@ -6,20 +6,28 @@ import {
   getHeroShopConfig, getStartingHearts, getHeroHitboxOverride,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, HERO_SCALE,
   PLAYER_DEATH_DELAY_SECONDS,
-  ERROR_DB_STORAGE_KEY,
 } from "./constants.js";
 import { clamp, capitalize, createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
+import { getLocale, t } from "./i18n.js";
 import {
   isHeroOwned, ensureSelectedHeroIsOwned, getPaladinIndex,
   saveHeroUnlocks, saveSelectedHeroId, spendPersistentGold,
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
+  loadParentalCode, saveParentalCode, resetStoredGameProgress,
+  addLeaderboardEntry, isLeaderboardNameAllowed,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
 import { validateAllLevels } from "./level-validator.js";
+
+/* ── Dev mode detection ── */
+const _isDevMode = typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+   window.location.hostname === "127.0.0.1" ||
+   window.location.protocol === "file:");
 
 /* ── late-binding for cross-module calls ── */
 
@@ -59,11 +67,262 @@ function applyWorldZoom(value) {
   _setWorldZoom(value);
 }
 
+
+function askParentalCode({ isFirstSetup = false } = {}) {
+  const title = isFirstSetup
+    ? t("parentalPromptSetup")
+    : t("parentalPromptEnter");
+  const answer = window.prompt(title, "");
+  if (answer === null) {
+    return null;
+  }
+  return String(answer).trim();
+}
+
+function ensureParentalCodeConfigured() {
+  const existing = loadParentalCode();
+  if (existing) {
+    return existing;
+  }
+  const createdCode = askParentalCode({ isFirstSetup: true });
+  if (createdCode === null) {
+    return null;
+  }
+  if (!createdCode) {
+    window.alert(t("parentalCodeEmpty"));
+    return null;
+  }
+  if (!saveParentalCode(createdCode)) {
+    window.alert(t("parentalCodeSaveError"));
+    return null;
+  }
+  window.alert(t("parentalCodeSaved"));
+  return createdCode;
+}
+
+function requireParentalCodeAccess() {
+  const currentCode = ensureParentalCodeConfigured();
+  if (!currentCode) {
+    return false;
+  }
+  const entered = askParentalCode();
+  if (entered === null) {
+    return false;
+  }
+  if (entered !== currentCode) {
+    window.alert(t("wrongParentalCode"));
+    return false;
+  }
+  return true;
+}
+
+function changeParentalCode() {
+  const currentCode = loadParentalCode();
+  if (!currentCode) {
+    const configured = ensureParentalCodeConfigured();
+    if (!configured) {
+      return;
+    }
+  } else {
+    const entered = window.prompt(t("parentalEnterCurrent"), "");
+    if (entered === null) {
+      return;
+    }
+    if (String(entered).trim() !== currentCode) {
+      window.alert(t("wrongParentalCode"));
+      return;
+    }
+  }
+
+  const newCode = window.prompt(t("parentalPromptNew"), "");
+  if (newCode === null) {
+    return;
+  }
+  if (!String(newCode).trim()) {
+    window.alert(t("parentalCodeEmpty"));
+    return;
+  }
+  if (!saveParentalCode(newCode)) {
+    window.alert(t("parentalCodeNewSaveError"));
+    return;
+  }
+  window.alert(t("parentalCodeUpdated"));
+}
+
+
+function applyLocaleToStaticUi() {
+  document.documentElement.lang = getLocale();
+  const setText = (selector, key) => {
+    const element = document.querySelector(selector);
+    if (element) element.textContent = t(key);
+  };
+  setText("#shopPanel h1", "shop");
+  const hudLabels = document.querySelectorAll(".hud-label");
+  if (hudLabels.length >= 3) {
+    hudLabels[0].textContent = t("hudScore");
+    hudLabels[1].textContent = t("hudHeart");
+    hudLabels[2].textContent = t("hudGold");
+  }
+  const walletLabel = document.querySelector(".shop-wallet");
+  if (walletLabel?.firstChild) {
+    walletLabel.firstChild.textContent = `${t("yourGold")} `;
+  }
+  setText('label[for="heroSelect"]', "equippedHero");
+  setText("#heroShopPanel h2", "heroicMounts");
+  setText("#closeShopBtn", "close");
+  setText("#settingsPanel h1", "settings");
+  setText("#pedagogyPanel h2", "conjugationTraining");
+  setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
+  setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
+  setText("#resetErrorsBtn", "resetErrors");
+  setText("#resetGameBtn", "resetGame");
+  setText("#resetGameConfirmText", "resetGameWarning");
+  setText("#resetGameCancelBtn", "confirmNo");
+  setText("#resetGameConfirmBtn", "confirmYes");
+  setText("#errorListLabel", "errorsMade");
+  setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
+  setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
+  setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
+  setText("#mobileButtonsOffsetHigher", "sliderHigher");
+  setText("#mobileButtonsOffsetLower", "sliderLower");
+  setText("#mobileGameOffsetHigher", "sliderHigher");
+  setText("#mobileGameOffsetLower", "sliderLower");
+  setText("#changeParentalCodeBtn", "changeCode");
+  setText("#applySettingsBtn", "apply");
+  setText("#closeSettingsBtn", "close");
+  setText("#forcePwaUpdateBtn", "update");
+  setText(".title-kicker", "titleKicker");
+  setText(".title-card > p:nth-of-type(2)", "titleSubtitle");
+  setText("#startBtn", "startGame");
+  setText("#openLeaderboardBtn", "leaderboardButton");
+  setText("#openSettingsFromTitleBtn", "settings");
+  setText("#leaderboardTitle", "leaderboard");
+  setText("#closeLeaderboardBtn", "close");
+  setText("#pauseModal h2", "pause");
+  setText("#pauseModal p", "gamePaused");
+  setText("#resumeBtn", "resume");
+  setText("#openSettingsFromPauseBtn", "settings");
+  setText("#backToTitleBtn", "titleScreen");
+  setText("#cheatModal h2", "tipsTricks");
+  setText('label[for="cheatLevelSelect"]', "selectLevel");
+  setText('label[for="cheatDifficultySelect"]', "generationProfile");
+  setText('label[for="cheatTileStyleSelect"]', "tileStyle");
+  setText('label[for="cheatHeroSelect"]', "selectHero");
+  setText('label[for="cheatWorldZoomSlider"]', "worldZoom");
+  setText("#cheatGivePiecesBtn", "givePieces");
+  setText("#cheatApplyBtn", "apply");
+  setText("#cheatCloseBtn", "close");
+  setText("#visualDebugPanel h2", "visualDebug");
+  setText("#visualDebugPanel p", "mobileAdjustments");
+  setText('label[for="debugButtonsOffsetSlider"]', "buttonsVerticalOffset");
+  setText('label[for="debugGameOffsetSlider"]', "gameVerticalOffset");
+  setText('label[for="debugScaleSlider"]', "worldScale");
+  setText("#validateLevelsBtn", "validateLevels");
+  setText("#closeVisualDebugBtn", "close");
+  setText("#restartBtn", "restartLevel");
+  setText("#backToTitleFromGameOverBtn", "titleScreen");
+  setText("#bossDefeatPanel h2", "dragonWon");
+  setText("#bossDefeatText", "trialFailed");
+  setText("#bossDefeatRetryText", "returningWave");
+  setText("#finalVictoryPanel h2", "champion");
+  setText("#finalVictoryPanel p:nth-of-type(1)", "dragonDefeated");
+  setText("#finalVictoryPanel p:nth-of-type(2)", "championStatus");
+  setText("#backToTitleFromVictoryBtn", "titleScreen");
+}
+
+function renderLeaderboard() {
+  if (!ui.leaderboardList) {
+    return;
+  }
+  ui.leaderboardList.textContent = "";
+  const entries = Array.isArray(state.leaderboard) ? state.leaderboard : [];
+  if (!entries.length) {
+    const empty = document.createElement("li");
+    empty.className = "leaderboard-empty";
+    empty.textContent = t("leaderboardEmpty");
+    ui.leaderboardList.appendChild(empty);
+    return;
+  }
+
+  entries.forEach((entry, index) => {
+    const item = document.createElement("li");
+    item.className = "leaderboard-entry";
+    const modeLabel = entry.mode === "victory" ? t("leaderboardModeVictory") : t("leaderboardModeGameover");
+    item.textContent = `${index + 1}. ${entry.name} — ${entry.score} pts • ${entry.coins} ${t("pieces")} (${modeLabel})`;
+    ui.leaderboardList.appendChild(item);
+  });
+}
+
+export function openLeaderboardModal() {
+  if (!ui.leaderboardModal) {
+    return;
+  }
+  renderLeaderboard();
+  ui.leaderboardModal.classList.remove("hidden");
+  state.paused = true;
+}
+
+export function closeLeaderboardModal() {
+  if (!ui.leaderboardModal) {
+    return;
+  }
+  ui.leaderboardModal.classList.add("hidden");
+  if (!state.started) {
+    state.paused = false;
+    return;
+  }
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
+}
+
+export function requestLeaderboardEntry(mode) {
+  const promptKey = mode === "victory" ? "askPlayerNameVictory" : "askPlayerNameGameOver";
+  const answer = window.prompt(t(promptKey), "");
+  if (answer === null) {
+    return;
+  }
+  const trimmed = String(answer).trim();
+  if (!trimmed) {
+    return;
+  }
+  if (!isLeaderboardNameAllowed(trimmed)) {
+    window.alert(t("invalidPlayerName"));
+    return;
+  }
+  state.leaderboard = addLeaderboardEntry({
+    name: trimmed,
+    score: state.score,
+    coins: state.coins,
+    mode: mode === "victory" ? "victory" : "gameover",
+  });
+  renderLeaderboard();
+}
+
+async function forcePwaUpdate() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        await reg.update();
+      }
+    }
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map((name) => caches.delete(name)));
+    }
+    showMessage(t("pwaUpdateDone"));
+    const url = new URL(window.location.href);
+    url.searchParams.set("update", String(Date.now()));
+    window.location.replace(url.toString());
+  } catch (_error) {
+    showMessage(t("pwaUpdateFailed"));
+  }
+}
+
 /* ── Hero shop ── */
 
 export function renderHeroShop() {
   if (ui.shopGoldValue) {
-    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)} pièces`;
+    ui.shopGoldValue.textContent = `${Math.floor(state.persistentGold || 0)} ${t("pieces")}`;
   }
   if (!ui.heroShopList) {
     return;
@@ -71,32 +330,66 @@ export function renderHeroShop() {
 
   const selectedHero = state.heroes[state.selectedHeroIndex];
   const selectedHeroId = selectedHero?.id || "";
-  ui.heroShopList.innerHTML = state.heroes
-    .map((hero) => {
-      const cfg = getHeroShopConfig(hero.id);
-      const owned = isHeroOwned(hero.id);
-      const equipped = owned && hero.id === selectedHeroId;
-      const canBuy = !owned && state.persistentGold >= cfg.price;
-      const actionLabel = equipped ? "Équipé" : owned ? "Équiper" : "Acheter";
-      const actionClass = owned ? "hero-shop-btn" : "hero-shop-btn buy";
-      const disabled = !owned && !canBuy ? "disabled" : "";
-      const lockStateClass = owned ? "owned" : "locked";
-      const priceLabel = owned
-        ? "Déjà débloquée"
-        : `Prix : <span class="amount">${cfg.price} pièces</span>`;
-      return `<div class="hero-shop-item ${lockStateClass}">
-        <div class="hero-shop-preview">
-          <img src="${hero.sprite.idleSE}" alt="${hero.name}" loading="lazy" />
-          ${owned ? "" : '<span class="hero-shop-lock" aria-hidden="true">🔒</span>'}
-        </div>
-        <div class="hero-shop-meta">
-          <div class="hero-shop-name">${hero.name}</div>
-          <div class="hero-shop-price">${priceLabel}</div>
-        </div>
-        <button type="button" class="${actionClass}" data-hero-id="${hero.id}" data-action="${owned ? "equip" : "buy"}" ${disabled}>${actionLabel}</button>
-      </div>`;
-    })
-    .join("");
+  ui.heroShopList.textContent = "";
+  state.heroes.forEach((hero) => {
+    const cfg = getHeroShopConfig(hero.id);
+    const owned = isHeroOwned(hero.id);
+    const equipped = owned && hero.id === selectedHeroId;
+    const canBuy = !owned && state.persistentGold >= cfg.price;
+    const actionLabel = equipped ? t("heroEquipped") : owned ? t("equip") : t("buy");
+
+    const item = document.createElement("div");
+    item.className = `hero-shop-item ${owned ? "owned" : "locked"}`;
+
+    const preview = document.createElement("div");
+    preview.className = "hero-shop-preview";
+    const img = document.createElement("img");
+    img.src = hero.sprite.idleSE;
+    img.alt = hero.name;
+    img.loading = "lazy";
+    preview.appendChild(img);
+    if (!owned) {
+      const lock = document.createElement("span");
+      lock.className = "hero-shop-lock";
+      lock.setAttribute("aria-hidden", "true");
+      lock.textContent = "\uD83D\uDD12";
+      preview.appendChild(lock);
+    }
+    item.appendChild(preview);
+
+    const meta = document.createElement("div");
+    meta.className = "hero-shop-meta";
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "hero-shop-name";
+    nameDiv.textContent = hero.name;
+    meta.appendChild(nameDiv);
+    const priceDiv = document.createElement("div");
+    priceDiv.className = "hero-shop-price";
+    if (owned) {
+      priceDiv.textContent = t("alreadyUnlocked");
+    } else {
+      priceDiv.textContent = `${t("price")} `;
+      const amount = document.createElement("span");
+      amount.className = "amount";
+      amount.textContent = `${cfg.price} ${t("pieces")}`;
+      priceDiv.appendChild(amount);
+    }
+    meta.appendChild(priceDiv);
+    item.appendChild(meta);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = owned ? "hero-shop-btn" : "hero-shop-btn buy";
+    btn.dataset.heroId = hero.id;
+    btn.dataset.action = owned ? "equip" : "buy";
+    if (!owned && !canBuy) {
+      btn.disabled = true;
+    }
+    btn.textContent = actionLabel;
+    item.appendChild(btn);
+
+    ui.heroShopList.appendChild(item);
+  });
 }
 
 /* ── Zoom UI ── */
@@ -127,6 +420,7 @@ export function populateSettingsPanel() {
   ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   renderHeroShop();
   renderErrorList();
   syncHeroActionButtonVisibility();
@@ -142,7 +436,7 @@ export function populateCheatModalOptions() {
   state.levels.forEach((level, index) => {
     const option = document.createElement("option");
     option.value = String(index);
-    option.textContent = `Niveau ${level.id || index + 1} - ${capitalize(level.biomeId)}`;
+    option.textContent = t("levelLabel", { level: level.id || index + 1, biome: capitalize(level.biomeId) });
     ui.cheatLevelSelect.appendChild(option);
   });
 
@@ -221,8 +515,8 @@ export function isMobileViewport() {
 }
 
 export function applyMobileVisualDebugOffsets() {
-  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 180);
-  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 200);
+  const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 150);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 0);
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
@@ -240,6 +534,12 @@ export function applyMobileVisualDebugOffsets() {
   }
   if (ui.debugGameOffsetValue) {
     ui.debugGameOffsetValue.textContent = `${gameOffset}px`;
+  }
+  if (ui.settingsButtonsOffsetSlider) {
+    ui.settingsButtonsOffsetSlider.value = String(buttonsOffset);
+  }
+  if (ui.settingsGameOffsetSlider) {
+    ui.settingsGameOffsetSlider.value = String(gameOffset);
   }
 }
 
@@ -354,6 +654,8 @@ export function applyCheatSelections() {
 /* ── Controls binding ── */
 
 export function bindControls() {
+  applyLocaleToStaticUi();
+  renderLeaderboard();
   const setHeldState = (buttons, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
       return;
@@ -434,11 +736,19 @@ export function bindControls() {
   attachLongPressListeners(ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
 
   ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
-    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 180);
+    state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 150);
     applyMobileVisualDebugOffsets();
   });
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 200);
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 0);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsButtonsOffsetSlider?.addEventListener("input", () => {
+    state.mobileButtonsOffsetY = clamp(Number(ui.settingsButtonsOffsetSlider.value) || 0, 0, 150);
+    applyMobileVisualDebugOffsets();
+  });
+  ui.settingsGameOffsetSlider?.addEventListener("input", () => {
+    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, -200, 0);
     applyMobileVisualDebugOffsets();
   });
   ui.debugScaleSlider?.addEventListener("input", () => {
@@ -511,7 +821,7 @@ export function bindControls() {
         return;
       }
       if (!spendPersistentGold(cfg.price)) {
-        showMessage("Pas assez de pièces");
+        showMessage(t("notEnoughPieces"));
         renderHeroShop();
         return;
       }
@@ -519,7 +829,7 @@ export function bindControls() {
       saveHeroUnlocks(state.heroUnlocks);
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
-      showMessage(`${state.heroes[heroIndex].name} débloquée`);
+      showMessage(t("heroUnlocked", { hero: state.heroes[heroIndex].name }));
       populateSettingsPanel();
       syncHeroActionButtonVisibility();
       return;
@@ -547,7 +857,7 @@ export function bindControls() {
     openPauseMenu();
   });
 
-  ui.closeSettingsBtn.addEventListener("click", closeSettingsPanel);
+  ui.closeSettingsBtn?.addEventListener("click", closeSettingsPanel);
   ui.closeShopBtn?.addEventListener("click", closeShopPanel);
 
   ui.cheatWorldZoomSlider?.addEventListener("input", () => {
@@ -558,7 +868,12 @@ export function bindControls() {
     closeSettingsPanel();
   });
 
+  ui.changeParentalCodeBtn?.addEventListener("click", changeParentalCode);
+  ui.forcePwaUpdateBtn?.addEventListener("click", forcePwaUpdate);
+
   ui.startBtn?.addEventListener("click", startGameFromMenu);
+  ui.openLeaderboardBtn?.addEventListener("click", openLeaderboardModal);
+  ui.closeLeaderboardBtn?.addEventListener("click", closeLeaderboardModal);
   ui.openSettingsFromTitleBtn?.addEventListener("click", openSettingsPanel);
   ui.resumeBtn?.addEventListener("click", closePauseMenu);
   ui.openSettingsFromPauseBtn?.addEventListener("click", () => {
@@ -600,7 +915,7 @@ export function bindControls() {
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")))) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")) || (ui.leaderboardModal && !ui.leaderboardModal.classList.contains("hidden")))) {
           event.preventDefault();
           closeOverlayPanels();
         }
@@ -736,6 +1051,7 @@ export function openShopPanel() {
   renderHeroShop();
   ui.settingsPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.shopPanel.hidden = false;
   state.paused = true;
 }
@@ -756,9 +1072,14 @@ export function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
     return;
   }
+  if (!requireParentalCodeAccess()) {
+    return;
+  }
   syncWorldZoomUi();
+  applyMobileVisualDebugOffsets();
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -779,6 +1100,7 @@ export function closeOverlayPanels() {
   closeSettingsPanel();
   closeShopPanel();
   closeCheatModal();
+  closeLeaderboardModal();
 }
 
 export function openPauseMenu() {
@@ -789,6 +1111,7 @@ export function openPauseMenu() {
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -826,6 +1149,7 @@ export function startGameFromMenu() {
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   if (state.pendingBossStart) {
     _startBossMode({ sourceLevelIndex: _getBossPrepLevelIndex() });
     return;
@@ -849,12 +1173,63 @@ export function showTitleScreen() {
   ui.shopPanel.hidden = true;
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.titleScreen?.classList.remove("hidden");
   updateHudInfo();
+  renderLeaderboard();
 }
 
 export function returnToTitleScreen() {
   loadLevel(state.currentLevelIndex, true);
+  showTitleScreen();
+}
+
+function openResetGameConfirmation() {
+  if (!ui.resetGameConfirmModal || !ui.resetGameCancelBtn || !ui.resetGameConfirmBtn) {
+    return Promise.resolve(window.confirm(t("resetGameConfirm")));
+  }
+
+  ui.resetGameConfirmText.textContent = t("resetGameWarning");
+  ui.resetGameConfirmModal.classList.remove("hidden");
+
+  return new Promise((resolve) => {
+    let closed = false;
+    const close = (result) => {
+      if (closed) return;
+      closed = true;
+      ui.resetGameConfirmModal.classList.add("hidden");
+      ui.resetGameCancelBtn.removeEventListener("click", onCancel);
+      ui.resetGameConfirmBtn.removeEventListener("click", onConfirm);
+      resolve(result);
+    };
+    const onCancel = () => close(false);
+    const onConfirm = () => close(true);
+    ui.resetGameCancelBtn.addEventListener("click", onCancel);
+    ui.resetGameConfirmBtn.addEventListener("click", onConfirm);
+  });
+}
+
+export async function resetGameProgress() {
+  const shouldReset = await openResetGameConfirmation();
+  if (!shouldReset) {
+    return;
+  }
+
+  resetStoredGameProgress();
+  resetErrors();
+
+  state.persistentGold = 0;
+  state.coins = 0;
+  state.score = 0;
+  state.currentLevelIndex = 0;
+  state.leaderboard = [];
+
+  initializeHeroProgress();
+  populateSettingsPanel();
+  renderErrorList();
+  updateHudInfo();
+  renderLeaderboard();
+
   showTitleScreen();
 }
 
@@ -874,17 +1249,18 @@ export function showGameOverScreen() {
   ui.pauseModal?.classList.add("hidden");
   ui.titleScreen?.classList.add("hidden");
   if (ui.gameOverTitle) {
-    ui.gameOverTitle.textContent = "Game Over";
+    ui.gameOverTitle.textContent = t("gameOver");
   }
   if (ui.gameOverText) {
-    ui.gameOverText.textContent = "You lost all hearts.";
+    ui.gameOverText.textContent = t("lostHearts");
   }
   if (ui.finalScoreText) {
-    ui.finalScoreText.textContent = `Final score: ${state.score}`;
+    ui.finalScoreText.textContent = t("finalScore", { value: state.score });
   }
   if (ui.finalCoinsText) {
-    ui.finalCoinsText.textContent = `Coins: ${state.coins}`;
+    ui.finalCoinsText.textContent = t("coins", { value: state.coins });
   }
+  requestLeaderboardEntry("gameover");
   ui.gameOverPanel?.classList.remove("hidden");
 }
 
@@ -1046,34 +1422,37 @@ export function populatePedagogyPanel() {
   const verbs = getVerbSource();
   const groupKeys = Object.keys(verbs);
 
-  const isIrregularGroup = (groupKey, label) =>
-    /^irr/i.test(groupKey) || /irrégulier/i.test(String(label || ""));
+  ui.tenseFilters.textContent = "";
+  ui.groupFilters.textContent = "";
+  groupKeys.forEach((g) => {
+    const group = verbs[g] || {};
+    const irregularVerbList = (g === "irr1" || g === "irr2" || g === "irr3")
+      ? Object.values(group.list || {})
+        .map((verb) => String(verb?.inf || "").trim())
+        .filter(Boolean)
+        .join(", ")
+      : "";
+    const groupLabel = `${group.label || g}${irregularVerbList ? ` (${irregularVerbList})` : ""}`;
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.group = g;
+    input.checked = state.pedagogy.activeGroups.includes(g);
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(` ${groupLabel}`));
+    ui.groupFilters.appendChild(label);
+  });
 
-  const getIrregularHint = (groupKey) => {
-    const group = verbs[groupKey];
-    if (!isIrregularGroup(groupKey, group?.label)) {
-      return "";
-    }
-    const verbsInGroup = Object.values(group?.list || {})
-      .map((verb) => verb?.inf)
-      .filter(Boolean);
-    return verbsInGroup.length ? ` (${verbsInGroup.join(", ")})` : "";
-  };
-
-  ui.groupFilters.innerHTML = groupKeys
-    .map((g) => {
-      const checked = state.pedagogy.activeGroups.includes(g) ? "checked" : "";
-      const label = `${verbs[g]?.label || g}${getIrregularHint(g)}`;
-      return `<label><input type="checkbox" data-group="${g}" ${checked}/> ${label}</label>`;
-    })
-    .join("");
-
-  ui.tenseFilters.innerHTML = TENSE_KEYS
-    .map((t) => {
-      const checked = state.pedagogy.activeTenses.includes(t) ? "checked" : "";
-      return `<label><input type="checkbox" data-tense="${t}" ${checked}/> ${TENSE_LABEL[t]}</label>`;
-    })
-    .join("");
+  TENSE_KEYS.forEach((t) => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.tense = t;
+    input.checked = state.pedagogy.activeTenses.includes(t);
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(` ${TENSE_LABEL[t]}`));
+    ui.tenseFilters.appendChild(label);
+  });
 
   ui.groupFilters.querySelectorAll("input[data-group]").forEach((input) => {
     input.addEventListener("change", () => {
@@ -1093,6 +1472,11 @@ export function populatePedagogyPanel() {
     ui.resetErrorsBtn.onclick = () => {
       resetErrors();
       renderErrorList();
+    };
+  }
+  if (ui.resetGameBtn) {
+    ui.resetGameBtn.onclick = () => {
+      resetGameProgress();
     };
   }
 }
@@ -1167,7 +1551,23 @@ export function buildQuestionUiHooks() {
       if (ui.questionCountdown) {
         ui.questionCountdown.hidden = !state.boss.active;
       }
-      ui.questionPrompt.innerHTML = `Conjugue <span class="verb">${inf}</span> ${tenseText}<br/><span class="pronoun">${pronoun}</span> <span class="blank">???</span>`;
+      ui.questionPrompt.textContent = "";
+      ui.questionPrompt.appendChild(document.createTextNode("Conjugue "));
+      const verbSpan = document.createElement("span");
+      verbSpan.className = "verb";
+      verbSpan.textContent = inf;
+      ui.questionPrompt.appendChild(verbSpan);
+      ui.questionPrompt.appendChild(document.createTextNode(` ${tenseText}`));
+      ui.questionPrompt.appendChild(document.createElement("br"));
+      const pronounSpan = document.createElement("span");
+      pronounSpan.className = "pronoun";
+      pronounSpan.textContent = pronoun;
+      ui.questionPrompt.appendChild(pronounSpan);
+      const blankSpan = document.createElement("span");
+      blankSpan.className = "blank";
+      blankSpan.textContent = "???";
+      ui.questionPrompt.appendChild(document.createTextNode(" "));
+      ui.questionPrompt.appendChild(blankSpan);
       ui.answerButtons.innerHTML = "";
       question.options.forEach((option) => {
         const btn = document.createElement("button");
@@ -1251,6 +1651,7 @@ export function renderErrorList() {
 /* ── Conjugation API ── */
 
 export function exposeConjugationApi() {
+  if (!_isDevMode) return;
   window.openQuestion = openQuestion;
   window.makeQuestion = makeQuestion;
   window.answerClick = answerClick;
