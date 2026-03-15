@@ -1281,7 +1281,7 @@ export function updateBossRetryText(levelIndex) {
     return;
   }
   const wave = clamp(levelIndex + 1, 1, 999);
-  ui.bossDefeatRetryText.textContent = `Returning to wave ${wave}...`;
+  ui.bossDefeatRetryText.textContent = t("returningWaveWithNumber", { wave });
 }
 
 export function startBossTrial() {
@@ -1293,8 +1293,8 @@ export function startBossTrial() {
     vd: state.duel.randomVerbData(),
     uiMeta: {
       enemyEmoji: "\uD83D\uDC09",
-      groupLabel: `Dragon Trial ${state.boss.streak}/${state.boss.required}`,
-      tenseLabel: "10 seconds",
+      groupLabel: t("dragonTrialLabel", { current: state.boss.streak, required: state.boss.required }),
+      tenseLabel: t("dragonTrialTenseLabel"),
     },
     onCorrect: () => {
       if (!state.boss.active || state.boss.phase !== "trials") {
@@ -1304,7 +1304,7 @@ export function startBossTrial() {
       if (state.boss.streak >= state.boss.required) {
         state.boss.phase = "celebration";
         state.boss.phaseUntil = performance.now() + BOSS_CELEBRATION_SECONDS * 1000;
-        _showMessage?.("Dragon defeated!");
+        _showMessage?.(t("dragonDefeatedMessage"));
         return;
       }
       startBossTrial();
@@ -1313,12 +1313,12 @@ export function startBossTrial() {
       if (!state.boss.active || state.boss.phase !== "trials") {
         return;
       }
-      failBossTrial("Wrong answer");
+      failBossTrial(t("wrongAnswer"));
     },
   });
   if (!opened) {
     state.boss.phase = "defeat";
-    state.boss.defeatReason = "Trial setup failed";
+    state.boss.defeatReason = t("trialSetupFailed");
     state.boss.phaseUntil = performance.now() + BOSS_DEFEAT_OVERLAY_SECONDS * 1000;
   }
 }
@@ -1363,7 +1363,7 @@ export function failBossTrial(reason) {
     state.duel.closeQuestion();
   }
   state.boss.phase = "defeat";
-  state.boss.defeatReason = reason || "Trial failed";
+  state.boss.defeatReason = reason || t("trialFailed");
   state.boss.streak = 0;
   state.boss.phaseUntil = performance.now() + BOSS_DEFEAT_OVERLAY_SECONDS * 1000;
   if (ui.bossDefeatText) {
@@ -1407,7 +1407,7 @@ export function updateBossMode() {
 
   if (state.boss.phase === "trials") {
     if (state.duel?.QS.active && !state.duel?.QS.resolving && now >= state.boss.trialDeadline) {
-      failBossTrial("Time up");
+      failBossTrial(t("timeUp"));
       return;
     }
     if (!state.duel?.QS.active && state.boss.streak < state.boss.required) {
@@ -1420,7 +1420,7 @@ export function updateBossMode() {
     ui.bossDefeatPanel?.classList.add("hidden");
     const retryIndex = clamp(state.boss.sourceLevelIndex, 0, Math.max(0, state.levels.length - 1));
     _loadLevel?.(retryIndex, false);
-    _showMessage?.(`Back to wave ${retryIndex + 1}`);
+    _showMessage?.(t("returningWaveWithNumber", { wave: retryIndex + 1 }));
     return;
   }
 

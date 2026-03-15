@@ -35,6 +35,7 @@ import {
   loadPedagogyGroups, loadPedagogyTenses,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
+import { t } from "./i18n.js";
 
 // ─── Wire late-binding hooks ───
 setUpdateHudInfo(updateHudInfo);
@@ -407,7 +408,7 @@ function updatePlayer(delta) {
   checkGoal();
 
   if (player.y > level.worldHeight + 80) {
-    damagePlayer("Fell");
+    damagePlayer(t("fell"));
     if (!state.deathSequence.active) {
       respawnPlayer({ fromStart: true });
       state.respawnTrail.history = [];
