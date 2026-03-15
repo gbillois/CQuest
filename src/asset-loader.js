@@ -19,9 +19,38 @@ import { state, ui, imageCache, imagePromiseCache } from "./state.js";
 // updateHudInfo lives in the rendering/UI layer which may not yet be extracted.
 // Register it via setUpdateHudInfo() so loadConfig can call it.
 let _updateHudInfo = null;
+let _spriteManifestCache = null;
 
 export function setUpdateHudInfo(fn) {
   _updateHudInfo = fn;
+}
+
+async function getSpriteManifestJson() {
+  if (_spriteManifestCache) {
+    return _spriteManifestCache;
+  }
+  try {
+    _spriteManifestCache = await fetchJson("./sprite-manifest.json");
+    return _spriteManifestCache;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveRosterDirsFromManifest(sectionName, fallbackDirs = []) {
+  const base = Array.isArray(fallbackDirs) ? fallbackDirs.slice() : [];
+  const manifest = await getSpriteManifestJson();
+  const section = manifest?.[sectionName];
+  if (!section || typeof section !== "object" || Array.isArray(section)) {
+    return base;
+  }
+  const merged = new Set(base);
+  for (const key of Object.keys(section)) {
+    if (key) {
+      merged.add(key);
+    }
+  }
+  return Array.from(merged);
 }
 
 // ─── Core image helpers ───
@@ -297,8 +326,35 @@ export async function buildHeroFromConvention(dir) {
 // ─── Enemy builders ───
 
 export async function buildEnemyFromMetadata(dir, metadata) {
-  const walkingSet = metadata.frames?.animations?.["walking-6-frames"] || metadata.frames?.animations?.["walk-6-frames"] || {};
+  const animations = metadata.frames?.animations || {};
+  const walkingSet = animations["walking-6-frames"] || animations["walk-6-frames"] || animations.walking || {};
   const rotations = metadata.frames?.rotations || {};
+  const base = `./game_assets/enemies/${dir}`;
+  let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
+  let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
+
+  if (!walkE.length) {
+    walkE = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/animations/walking/east/frame_`,
+        `game_assets/enemies/${dir}/walk/east/frame_`,
+      ],
+      6,
+    );
+  }
+  if (!walkW.length) {
+    walkW = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/animations/walking/west/frame_`,
+        `game_assets/enemies/${dir}/walk/west/frame_`,
+      ],
+      6,
+    );
+  }
 
   const enemy = {
     id: dir,
@@ -309,10 +365,10 @@ export async function buildEnemyFromMetadata(dir, metadata) {
       height: metadata.character?.size?.height || 48,
     },
     sprite: {
-      idleE: toAssetPath(`./game_assets/enemies/${dir}`, rotations.east || rotations.south),
-      idleW: toAssetPath(`./game_assets/enemies/${dir}`, rotations.west || rotations.south),
-      walkE: normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
-      walkW: normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
+      idleE: toAssetPath(base, rotations.east || rotations.south),
+      idleW: toAssetPath(base, rotations.west || rotations.south),
+      walkE,
+      walkW,
     },
   };
 
@@ -752,9 +808,10 @@ export async function loadHeroes() {
 
 export async function loadEnemies() {
   const enemies = [];
+  const enemyDirs = await resolveRosterDirsFromManifest("enemies", KNOWN_ENEMY_DIRS);
 
   await Promise.all(
-    KNOWN_ENEMY_DIRS.map(async (dir) => {
+    enemyDirs.map(async (dir) => {
       const metadataPath = `./game_assets/enemies/${dir}/metadata.json`;
       const metadata = await fetchJson(metadataPath).catch(() => null);
 
@@ -808,9 +865,10 @@ export function ensureEmergencyRoster() {
 
 export async function loadAnimals() {
   const animals = [];
+  const animalDirs = await resolveRosterDirsFromManifest("animals", KNOWN_ANIMAL_DIRS);
 
   await Promise.all(
-    KNOWN_ANIMAL_DIRS.map(async (dir) => {
+    animalDirs.map(async (dir) => {
       const metadataPath = `./game_assets/animals/${dir}/metadata.json`;
       const metadata = await fetchJson(metadataPath).catch(() => null);
 
@@ -827,9 +885,35 @@ export async function loadAnimals() {
 }
 
 async function buildAnimalFromMetadata(dir, metadata) {
-  const walkingSet = metadata.frames?.animations?.["walking-6-frames"] || metadata.frames?.animations?.["walk-6-frames"] || {};
+  const animations = metadata.frames?.animations || {};
+  const walkingSet = animations["walking-6-frames"] || animations["walk-6-frames"] || animations.walking || {};
   const rotations = metadata.frames?.rotations || {};
   const base = `./game_assets/animals/${dir}`;
+  let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
+  let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
+
+  if (!walkE.length) {
+    walkE = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/animations/walking/east/frame_`,
+        `game_assets/animals/${dir}/walk/east/frame_`,
+      ],
+      6,
+    );
+  }
+  if (!walkW.length) {
+    walkW = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/animations/walking/west/frame_`,
+        `game_assets/animals/${dir}/walk/west/frame_`,
+      ],
+      6,
+    );
+  }
 
   const animal = {
     id: dir,
@@ -842,8 +926,8 @@ async function buildAnimalFromMetadata(dir, metadata) {
     sprite: {
       idleE: toAssetPath(base, rotations.east || rotations.south),
       idleW: toAssetPath(base, rotations.west || rotations.south),
-      walkE: normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file))),
-      walkW: normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file))),
+      walkE,
+      walkW,
     },
   };
 

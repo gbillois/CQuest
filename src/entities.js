@@ -199,6 +199,10 @@ export function checkAnimalBounce() {
 
     player.vy = ANIMAL_BOUNCE_VELOCITY;
     player.onGround = false;
+    const bounceReward = 5;
+    grantGold(bounceReward);
+    state.score += 10;
+    pushFloatingReward(`+${bounceReward} ${t("pieces")}`, animal.x + animal.w * 0.5, animal.y, "gold");
     break;
   }
 }

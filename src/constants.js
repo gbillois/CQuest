@@ -103,6 +103,20 @@ export const KNOWN_ANIMAL_DIRS = [
   "snow-reindeer", "snow-otter",
   "desolation-frog", "desolation-earthworm",
 ];
+export const BIOME_ANIMAL_IDS_BY_BIOME = {
+  forest: ["forest-goat", "forest-sheep"],
+  desert: ["desert-camel", "desert-fennec"],
+  mountain: ["mountain-marmot", "mountain-ibex"],
+  snow: ["snow-reindeer", "snow-otter"],
+  desolation: ["desolation-frog", "desolation-earthworm"],
+};
+export const BIOME_ENEMY_IDS_BY_BIOME = {
+  forest: "forest-wasp",
+  desert: "desert-scorpion",
+  mountain: "mountain-snake",
+  snow: "snow-fox",
+  desolation: "desolation-wolf",
+};
 export const ANIMAL_BOUNCE_VELOCITY = -520;
 export const FIXED_LEVEL_BIOME_ORDER = ["forest", "desert", "mountain", "snow", "desolation"];
 
