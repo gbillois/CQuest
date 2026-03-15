@@ -357,3 +357,5 @@ export const PARENTAL_CODE_STORAGE_KEY = "cquest_parental_code_v1";
 export const LEADERBOARD_STORAGE_KEY = "cquest_leaderboard_v1";
 export const MOBILE_BUTTONS_OFFSET_STORAGE_KEY = "cquest_mobile_buttons_offset_v1";
 export const MOBILE_GAME_OFFSET_STORAGE_KEY = "cquest_mobile_game_offset_v1";
+export const PEDAGOGY_GROUPS_STORAGE_KEY = "cquest_pedagogy_groups_v1";
+export const PEDAGOGY_TENSES_STORAGE_KEY = "cquest_pedagogy_tenses_v1";

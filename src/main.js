@@ -32,6 +32,7 @@ import {
   loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom,
   initializeHeroProgress, setRenderHeroShop, loadTileStyleMode, loadLeaderboard,
   loadMobileButtonsOffset, loadMobileGameOffset,
+  loadPedagogyGroups, loadPedagogyTenses,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
 
@@ -118,7 +119,9 @@ async function init() {
   state.mobileButtonsOffsetY = loadMobileButtonsOffset();
   state.mobileGameOffsetY = loadMobileGameOffset();
   syncWorldZoomUi();
-  state.pedagogy.activeGroups = getDefaultActiveGroups();
+  const allGroups = getDefaultActiveGroups();
+  state.pedagogy.activeGroups = loadPedagogyGroups(allGroups);
+  state.pedagogy.activeTenses = loadPedagogyTenses();
   state.duel = createConjugationDuelSystem({
     verbs: getVerbSource(),
     pronouns: PRONOUN_LABEL,

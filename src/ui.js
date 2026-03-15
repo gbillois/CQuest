@@ -19,6 +19,7 @@ import {
   loadParentalCode, saveParentalCode, resetStoredGameProgress,
   addLeaderboardEntry, isLeaderboardNameAllowed,
   saveMobileButtonsOffset, saveMobileGameOffset,
+  savePedagogyGroups, savePedagogyTenses,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -1453,6 +1454,7 @@ export function populatePedagogyPanel() {
     input.addEventListener("change", () => {
       const selected = [...ui.groupFilters.querySelectorAll("input[data-group]:checked")].map((el) => el.dataset.group);
       state.pedagogy.activeGroups = selected.length ? selected : groupKeys.slice();
+      savePedagogyGroups(state.pedagogy.activeGroups);
       renderErrorList();
     });
   });
@@ -1460,6 +1462,7 @@ export function populatePedagogyPanel() {
     input.addEventListener("change", () => {
       const selected = [...ui.tenseFilters.querySelectorAll("input[data-tense]:checked")].map((el) => el.dataset.tense);
       state.pedagogy.activeTenses = selected.length ? selected : TENSE_KEYS.slice();
+      savePedagogyTenses(state.pedagogy.activeTenses);
       renderErrorList();
     });
   });
