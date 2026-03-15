@@ -354,3 +354,4 @@ export const WORLD_ZOOM_STORAGE_KEY = "cquest_world_zoom_v1";
 export const ERROR_DB_STORAGE_KEY = "cquest_conjugation_errors_v1";
 export const TILE_STYLE_MODE_STORAGE_KEY = "cquest_tile_style_mode_v1";
 export const PARENTAL_CODE_STORAGE_KEY = "cquest_parental_code_v1";
+export const LEADERBOARD_STORAGE_KEY = "cquest_leaderboard_v1";
