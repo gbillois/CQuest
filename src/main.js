@@ -26,11 +26,11 @@ import {
   bindControls, applyMobileVisualDebugOffsets, loadLevel, showTitleScreen,
   showMessage, showGameOverScreen, updateHudInfo, syncWorldZoomUi,
   startGameFromMenu, buildQuestionUiHooks, exposeConjugationApi,
-  setUiHooks, renderHeroShop,
+  setUiHooks, renderHeroShop, requestLeaderboardEntry,
 } from "./ui.js";
 import {
   loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom,
-  initializeHeroProgress, setRenderHeroShop, loadTileStyleMode,
+  initializeHeroProgress, setRenderHeroShop, loadTileStyleMode, loadLeaderboard,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
 
@@ -42,6 +42,7 @@ setEntityHooks({
   showMessage,
   loadLevel,
   showGameOverScreen,
+  requestLeaderboardEntry,
 });
 setRendererHooks({
   syncWorldZoomUi,
@@ -110,6 +111,7 @@ async function init() {
   state.coins = state.persistentGold;
   state.tileStyleMode = loadTileStyleMode();
   state.worldZoom = normalizeWorldZoom(loadWorldZoom());
+  state.leaderboard = loadLeaderboard();
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({

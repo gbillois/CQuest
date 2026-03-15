@@ -6,6 +6,7 @@ import {
   TILE_STYLE_MODE_STORAGE_KEY,
   PARENTAL_CODE_STORAGE_KEY,
   ERROR_DB_STORAGE_KEY,
+  LEADERBOARD_STORAGE_KEY,
   WORLD_SCALE,
   MIN_WORLD_ZOOM,
   MAX_WORLD_ZOOM,
@@ -160,9 +161,112 @@ export function resetStoredGameProgress() {
     localStorage.removeItem(PARENTAL_CODE_STORAGE_KEY);
     localStorage.removeItem(WORLD_ZOOM_STORAGE_KEY);
     localStorage.removeItem(ERROR_DB_STORAGE_KEY);
+    localStorage.removeItem(LEADERBOARD_STORAGE_KEY);
   } catch {
     // Ignore storage issues.
   }
+}
+
+
+function sanitizeLeaderboardName(value) {
+  const normalized = String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) {
+    return "";
+  }
+  const stripped = normalized.replace(/[^A-Za-z0-9À-ÖØ-öø-ÿ _.'-]/g, "");
+  return stripped.slice(0, 24).trim();
+}
+
+export function isLeaderboardNameAllowed(value) {
+  const normalized = String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) {
+    return false;
+  }
+  return sanitizeLeaderboardName(normalized) === normalized.slice(0, 24).trim();
+}
+
+function sanitizeLeaderboardEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+  const name = sanitizeLeaderboardName(entry.name);
+  const score = Math.max(0, Math.floor(Number(entry.score) || 0));
+  const coins = Math.max(0, Math.floor(Number(entry.coins) || 0));
+  const mode = entry.mode === "victory" ? "victory" : "gameover";
+  const timestamp = Number(entry.timestamp) || Date.now();
+  if (!name) {
+    return null;
+  }
+  return { name, score, coins, mode, timestamp };
+}
+
+export function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((entry) => sanitizeLeaderboardEntry(entry))
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (b.coins !== a.coins) return b.coins - a.coins;
+        return a.timestamp - b.timestamp;
+      })
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+export function saveLeaderboard(entries) {
+  try {
+    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(Array.isArray(entries) ? entries : []));
+  } catch {
+    // Ignore storage issues.
+  }
+}
+
+export function addLeaderboardEntry({ name, score, coins, mode }) {
+  const cleanName = sanitizeLeaderboardName(name);
+  if (!cleanName) {
+    return loadLeaderboard();
+  }
+  const nextEntry = sanitizeLeaderboardEntry({
+    name: cleanName,
+    score,
+    coins,
+    mode,
+    timestamp: Date.now(),
+  });
+  if (!nextEntry) {
+    return loadLeaderboard();
+  }
+  const entries = loadLeaderboard();
+  entries.push(nextEntry);
+  const sorted = entries
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.coins !== a.coins) return b.coins - a.coins;
+      return a.timestamp - b.timestamp;
+    })
+    .slice(0, 10);
+  saveLeaderboard(sorted);
+  return sorted;
+}
+
+export function clearLeaderboard() {
+  saveLeaderboard([]);
 }
 
 export function getSelectedHeroId() {

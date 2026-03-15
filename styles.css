@@ -720,6 +720,23 @@ body {
   margin-top: 16px;
 }
 
+
+.leaderboard-list {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+  max-height: 260px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.leaderboard-entry,
+.leaderboard-empty {
+  color: rgba(245, 248, 255, 0.95);
+}
+
 .title-actions button,
 .menu-actions button {
   border: none;
@@ -732,6 +749,7 @@ body {
   box-shadow: 0 4px 0 #9f381d;
 }
 
+#openLeaderboardBtn,
 #openSettingsFromTitleBtn,
 #openSettingsFromPauseBtn,
 .secondary-btn {

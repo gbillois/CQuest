@@ -17,6 +17,7 @@ import {
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
   loadParentalCode, saveParentalCode, resetStoredGameProgress,
+  addLeaderboardEntry, isLeaderboardNameAllowed,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -193,7 +194,10 @@ function applyLocaleToStaticUi() {
   setText(".title-kicker", "titleKicker");
   setText(".title-card > p:nth-of-type(2)", "titleSubtitle");
   setText("#startBtn", "startGame");
+  setText("#openLeaderboardBtn", "leaderboardButton");
   setText("#openSettingsFromTitleBtn", "settings");
+  setText("#leaderboardTitle", "leaderboard");
+  setText("#closeLeaderboardBtn", "close");
   setText("#pauseModal h2", "pause");
   setText("#pauseModal p", "gamePaused");
   setText("#resumeBtn", "resume");
@@ -224,6 +228,73 @@ function applyLocaleToStaticUi() {
   setText("#finalVictoryPanel p:nth-of-type(1)", "dragonDefeated");
   setText("#finalVictoryPanel p:nth-of-type(2)", "championStatus");
   setText("#backToTitleFromVictoryBtn", "titleScreen");
+}
+
+function renderLeaderboard() {
+  if (!ui.leaderboardList) {
+    return;
+  }
+  ui.leaderboardList.textContent = "";
+  const entries = Array.isArray(state.leaderboard) ? state.leaderboard : [];
+  if (!entries.length) {
+    const empty = document.createElement("li");
+    empty.className = "leaderboard-empty";
+    empty.textContent = t("leaderboardEmpty");
+    ui.leaderboardList.appendChild(empty);
+    return;
+  }
+
+  entries.forEach((entry, index) => {
+    const item = document.createElement("li");
+    item.className = "leaderboard-entry";
+    const modeLabel = entry.mode === "victory" ? t("leaderboardModeVictory") : t("leaderboardModeGameover");
+    item.textContent = `${index + 1}. ${entry.name} — ${entry.score} pts • ${entry.coins} ${t("pieces")} (${modeLabel})`;
+    ui.leaderboardList.appendChild(item);
+  });
+}
+
+export function openLeaderboardModal() {
+  if (!ui.leaderboardModal) {
+    return;
+  }
+  renderLeaderboard();
+  ui.leaderboardModal.classList.remove("hidden");
+  state.paused = true;
+}
+
+export function closeLeaderboardModal() {
+  if (!ui.leaderboardModal) {
+    return;
+  }
+  ui.leaderboardModal.classList.add("hidden");
+  if (!state.started) {
+    state.paused = false;
+    return;
+  }
+  state.paused = isPauseModalOpen() || !ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden"));
+}
+
+export function requestLeaderboardEntry(mode) {
+  const promptKey = mode === "victory" ? "askPlayerNameVictory" : "askPlayerNameGameOver";
+  const answer = window.prompt(t(promptKey), "");
+  if (answer === null) {
+    return;
+  }
+  const trimmed = String(answer).trim();
+  if (!trimmed) {
+    return;
+  }
+  if (!isLeaderboardNameAllowed(trimmed)) {
+    window.alert(t("invalidPlayerName"));
+    return;
+  }
+  state.leaderboard = addLeaderboardEntry({
+    name: trimmed,
+    score: state.score,
+    coins: state.coins,
+    mode: mode === "victory" ? "victory" : "gameover",
+  });
+  renderLeaderboard();
 }
 
 async function forcePwaUpdate() {
@@ -584,6 +655,7 @@ export function applyCheatSelections() {
 
 export function bindControls() {
   applyLocaleToStaticUi();
+  renderLeaderboard();
   const setHeldState = (buttons, key, isDown) => {
     if (state.duel?.QS.active || !state.started || state.paused || state.gameOver || state.deathSequence.active) {
       return;
@@ -800,6 +872,8 @@ export function bindControls() {
   ui.forcePwaUpdateBtn?.addEventListener("click", forcePwaUpdate);
 
   ui.startBtn?.addEventListener("click", startGameFromMenu);
+  ui.openLeaderboardBtn?.addEventListener("click", openLeaderboardModal);
+  ui.closeLeaderboardBtn?.addEventListener("click", closeLeaderboardModal);
   ui.openSettingsFromTitleBtn?.addEventListener("click", openSettingsPanel);
   ui.resumeBtn?.addEventListener("click", closePauseMenu);
   ui.openSettingsFromPauseBtn?.addEventListener("click", () => {
@@ -841,7 +915,7 @@ export function bindControls() {
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")))) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")) || (ui.leaderboardModal && !ui.leaderboardModal.classList.contains("hidden")))) {
           event.preventDefault();
           closeOverlayPanels();
         }
@@ -977,6 +1051,7 @@ export function openShopPanel() {
   renderHeroShop();
   ui.settingsPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.shopPanel.hidden = false;
   state.paused = true;
 }
@@ -1004,6 +1079,7 @@ export function openSettingsPanel() {
   applyMobileVisualDebugOffsets();
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -1024,6 +1100,7 @@ export function closeOverlayPanels() {
   closeSettingsPanel();
   closeShopPanel();
   closeCheatModal();
+  closeLeaderboardModal();
 }
 
 export function openPauseMenu() {
@@ -1034,6 +1111,7 @@ export function openPauseMenu() {
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -1071,6 +1149,7 @@ export function startGameFromMenu() {
   ui.settingsPanel.hidden = true;
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   if (state.pendingBossStart) {
     _startBossMode({ sourceLevelIndex: _getBossPrepLevelIndex() });
     return;
@@ -1094,8 +1173,10 @@ export function showTitleScreen() {
   ui.shopPanel.hidden = true;
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
+  ui.leaderboardModal?.classList.add("hidden");
   ui.titleScreen?.classList.remove("hidden");
   updateHudInfo();
+  renderLeaderboard();
 }
 
 export function returnToTitleScreen() {
@@ -1141,11 +1222,13 @@ export async function resetGameProgress() {
   state.coins = 0;
   state.score = 0;
   state.currentLevelIndex = 0;
+  state.leaderboard = [];
 
   initializeHeroProgress();
   populateSettingsPanel();
   renderErrorList();
   updateHudInfo();
+  renderLeaderboard();
 
   showTitleScreen();
 }
@@ -1177,6 +1260,7 @@ export function showGameOverScreen() {
   if (ui.finalCoinsText) {
     ui.finalCoinsText.textContent = t("coins", { value: state.coins });
   }
+  requestLeaderboardEntry("gameover");
   ui.gameOverPanel?.classList.remove("hidden");
 }
 
