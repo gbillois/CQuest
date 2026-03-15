@@ -1908,13 +1908,14 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
     min: castleTileX - 16,
     max: castleTileX + 3,
   };
-  const lanePool = (lanes || []).filter((lane) => {
-    if (lane.kind !== "ground" || lane.end - lane.start + 1 < 4) return false;
+  const groundLanes = (lanes || []).filter((lane) => lane.kind === "ground" && lane.end - lane.start + 1 >= 4);
+  const lanePool = groundLanes.filter((lane) => {
     const overlapsTowerZone = lane.start <= towerZone.max && lane.end >= towerZone.min;
     const overlapsCastleZone = lane.start <= castleZone.max && lane.end >= castleZone.min;
     return overlapsTowerZone || overlapsCastleZone;
   });
-  if (!lanePool.length) return [];
+  const eligibleLanes = lanePool.length ? lanePool : groundLanes;
+  if (!eligibleLanes.length) return [];
 
   const animals = [];
   const candidateSource = preferredCandidates.length ? preferredCandidates : baseCandidates;
@@ -1925,7 +1926,7 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
   const spawnedAnimalIds = new Set();
   const rawTargetCount = randInt(rand, 6, 8);
   const targetCount = Math.max(1, Math.round(rawTargetCount * 0.9));
-  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledLanes = eligibleLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
   const laneSpawnCounts = new Map();
 
   const pickAnimalDef = () => {
