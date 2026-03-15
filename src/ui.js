@@ -258,6 +258,12 @@ export function openLeaderboardModal() {
     return;
   }
   renderLeaderboard();
+  ui.titleScreen?.classList.add("hidden");
+  ui.settingsPanel.hidden = true;
+  ui.shopPanel.hidden = true;
+  ui.cheatModal?.classList.add("hidden");
+  ui.pauseModal?.classList.add("hidden");
+  ui.gameOverPanel?.classList.add("hidden");
   ui.leaderboardModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -268,6 +274,7 @@ export function closeLeaderboardModal() {
   }
   ui.leaderboardModal.classList.add("hidden");
   if (!state.started) {
+    ui.titleScreen?.classList.remove("hidden");
     state.paused = false;
     return;
   }
