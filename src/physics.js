@@ -13,13 +13,14 @@ function tileHasTag(tile, tag) {
 
 export function resolveHorizontalCollisions(entity, level) {
   const rects = getNearbySolidRects(entity, level);
+  const prevBottom = (entity.prevY ?? entity.y) + entity.h;
   for (const tile of rects) {
     if (tile.oneWay) {
-      // Block horizontally only when the entity is walking on top of (or above)
-      // the platform surface. This prevents walking through a higher platform
-      // when coming from a lower adjacent one.
-      const entityBottom = entity.y + entity.h;
-      if (entityBottom > tile.y + 2) {
+      // One-way platforms should block horizontally only when the entity was
+      // already above their top surface on the previous frame. This avoids
+      // getting pushed backward when jumping up into a platform edge/corner
+      // from below.
+      if (prevBottom > tile.y + 1) {
         continue;
       }
     }
