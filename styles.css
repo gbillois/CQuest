@@ -252,6 +252,22 @@ body {
   font-size: 1rem;
 }
 
+#shopPanel {
+  padding-top: 56px;
+}
+
+.shop-close-top {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(56%, 210px);
+}
+
+.shop-close-top #closeShopBtn {
+  width: 100%;
+}
+
 
 .hero-shop {
   margin-top: 10px;

@@ -189,6 +189,9 @@ export function checkAnimalBounce() {
   if (player.vy <= 0) return;
 
   for (const animal of level.animalSpawns) {
+    if (animal.bounceRewardClaimed) {
+      continue;
+    }
     // Check horizontal overlap
     if (player.x + player.w <= animal.x || player.x >= animal.x + animal.w) continue;
     // Player was above animal top in previous frame
@@ -202,6 +205,7 @@ export function checkAnimalBounce() {
     const bounceReward = 5;
     grantGold(bounceReward);
     state.score += 10;
+    animal.bounceRewardClaimed = true;
     pushFloatingReward(`+${bounceReward} ${t("pieces")}`, animal.x + animal.w * 0.5, animal.y, "gold");
     break;
   }

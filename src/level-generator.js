@@ -1699,11 +1699,12 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   const postTowerEnemyBonus = Number.isFinite(towerTileX)
     ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 22), 1, 4)
     : 0;
-  const count = clamp(
+  const rawCount = clamp(
     profile.enemyBase + levelIndex * profile.enemyPerLevel,
     profile.enemyMin,
     profile.enemyMax + postTowerEnemyBonus,
   );
+  const count = Math.max(1, Math.round(rawCount * 0.9));
   const enemies = [];
   if (!candidates.length) return enemies;
 
@@ -1890,7 +1891,8 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
     .map((id) => baseCandidates.find((animal) => animal.id === id))
     .filter(Boolean);
 
-  const lanePool = (lanes || []).filter((lane) => lane.end - lane.start + 1 >= 4);
+  // Animals must stay on terrain (ground/mountain), never on elevated platform rails.
+  const lanePool = (lanes || []).filter((lane) => lane.kind === "ground" && lane.end - lane.start + 1 >= 4);
   if (!lanePool.length) return [];
 
   const animals = [];
@@ -1900,7 +1902,8 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
     : candidateSource.slice().sort(() => rand() - 0.5).slice(0, 2);
   const requiredAnimalIds = new Set(candidates.map((animal) => animal.id));
   const spawnedAnimalIds = new Set();
-  const targetCount = randInt(rand, 6, 8);
+  const rawTargetCount = randInt(rand, 6, 8);
+  const targetCount = Math.max(1, Math.round(rawTargetCount * 0.9));
   const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
   const laneSpawnCounts = new Map();
 
@@ -1964,6 +1967,7 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
         patrolMax,
         animTime: rand() * 3,
         onGround: false,
+        bounceRewardClaimed: false,
       });
       spawnedAnimalIds.add(animalDef.id);
       laneSpawnCounts.set(lane, currentLaneCount + 1);
