@@ -3,7 +3,7 @@ import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIP
 import { createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
 import {
-  loadConfig, setupUiAssets, buildBiomeIndex, loadHeroes, loadEnemies,
+  loadConfig, setupUiAssets, buildBiomeIndex, loadHeroes, loadEnemies, loadAnimals,
   ensureEmergencyRoster, enforceMinimumJumpHeight, preloadLevelAssetImages,
   preloadSelectedHeroSprites, scheduleBackgroundWarmup, setUpdateHudInfo,
 } from "./asset-loader.js";
@@ -13,11 +13,11 @@ import { validateAllLevels, scoreLevelQuality } from "./level-validator.js";
 import { logInfo, logError, dumpLogs, setLogLevel, getLogs, clearLogs } from "./logger.js";
 import { setTriggerBonusBlock, resolveHorizontalCollisions, resolveVerticalCollisions } from "./physics.js";
 import {
-  updateEnemies, updateFireballs, updateBonusBlocks, updateEnemyDrops,
+  updateEnemies, updateAnimals, updateFireballs, updateBonusBlocks, updateEnemyDrops,
   updateDeathSequence, updateTowerInterior, updateBossMode,
   updateBossQuestionCountdown, triggerBonusBlock, hitPlayer, defeatEnemy,
   startBossMode, getBossPrepLevelIndex, resetBossState, setEntityHooks,
-  tryEnterTower, collideWithEnemies, checkGoal, damagePlayer, respawnPlayer,
+  tryEnterTower, collideWithEnemies, checkAnimalBounce, checkGoal, damagePlayer, respawnPlayer,
   castHeroProjectile, updateCrumblingPlatforms, updateMovingPlatforms, updateConjugationGates,
 } from "./entities.js";
 import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, toggleDebugOverlay } from "./renderer.js";
@@ -215,6 +215,7 @@ async function init() {
   await loadHeroes();
   initializeHeroProgress();
   await loadEnemies();
+  await loadAnimals();
   ensureEmergencyRoster();
 
   logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
@@ -296,6 +297,7 @@ function update(delta) {
   updateRespawnTrail(delta);
   updatePlayer(delta);
   updateEnemies(delta);
+  updateAnimals(delta);
   updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
@@ -390,6 +392,7 @@ function updatePlayer(delta) {
   player.animTime += delta;
 
   collideWithEnemies();
+  checkAnimalBounce();
   checkGoal();
 
   if (player.y > level.worldHeight + 80) {

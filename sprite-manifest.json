@@ -5289,6 +5289,279 @@
         ]
       }
     },
+    "desolation-wolf": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/enemies/desolation-wolf/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 8,
+            "w": 33,
+            "h": 27
+          }
+        },
+        "north": {
+          "path": "game_assets/enemies/desolation-wolf/rotations/north.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 7,
+            "w": 14,
+            "h": 28
+          }
+        },
+        "south": {
+          "path": "game_assets/enemies/desolation-wolf/rotations/south.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 7,
+            "w": 18,
+            "h": 28
+          }
+        },
+        "west": {
+          "path": "game_assets/enemies/desolation-wolf/rotations/west.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 8,
+            "w": 33,
+            "h": 27
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 33,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 33,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 34,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 33,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 33,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 10,
+                "w": 32,
+                "h": 24
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 24
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 10,
+                "w": 14,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 10,
+                "w": 14,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 9,
+                "w": 14,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 9,
+                "w": 14,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 10,
+                "w": 14,
+                "h": 25
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 28,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 28,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 30,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/enemies/desolation-wolf/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 29,
+                "h": 21
+              }
+            }
+          ]
+        }
+      },
+      "walk": {}
+    },
     "desolation-wraith": {
       "canvas_size": {
         "w": 48,
@@ -6278,6 +6551,279 @@
         ]
       }
     },
+    "forest-wasp": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/enemies/forest-wasp/rotations/east.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 7,
+            "w": 19,
+            "h": 34
+          }
+        },
+        "north": {
+          "path": "game_assets/enemies/forest-wasp/rotations/north.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 6,
+            "w": 18,
+            "h": 34
+          }
+        },
+        "south": {
+          "path": "game_assets/enemies/forest-wasp/rotations/south.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 6,
+            "w": 18,
+            "h": 34
+          }
+        },
+        "west": {
+          "path": "game_assets/enemies/forest-wasp/rotations/west.png",
+          "content_bbox": {
+            "x": 14,
+            "y": 7,
+            "w": 19,
+            "h": 33
+          }
+        }
+      },
+      "animations": {
+        "walking-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 20,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 19,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 19,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 19,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 19,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 19,
+                "h": 33
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 19,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 19,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 18,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 18,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 6,
+                "w": 19,
+                "h": 34
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 21,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 18,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/forest-wasp/animations/walking-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 14,
+                "y": 7,
+                "w": 19,
+                "h": 33
+              }
+            }
+          ]
+        }
+      },
+      "walk": {}
+    },
     "mountain-dwarf": {
       "canvas_size": {
         "w": 48,
@@ -6664,6 +7210,279 @@
         ]
       }
     },
+    "mountain-snake": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/enemies/mountain-snake/rotations/east.png",
+          "content_bbox": {
+            "x": 19,
+            "y": 8,
+            "w": 12,
+            "h": 33
+          }
+        },
+        "north": {
+          "path": "game_assets/enemies/mountain-snake/rotations/north.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 7,
+            "w": 15,
+            "h": 34
+          }
+        },
+        "south": {
+          "path": "game_assets/enemies/mountain-snake/rotations/south.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 8,
+            "w": 12,
+            "h": 33
+          }
+        },
+        "west": {
+          "path": "game_assets/enemies/mountain-snake/rotations/west.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 7,
+            "w": 12,
+            "h": 34
+          }
+        }
+      },
+      "animations": {
+        "walking-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 8,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 8,
+                "w": 13,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 8,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 15,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 7,
+                "w": 14,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 34
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 7,
+                "w": 14,
+                "h": 34
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 7,
+                "w": 14,
+                "h": 33
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 13,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 12,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 8,
+                "w": 15,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/enemies/mountain-snake/animations/walking-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            }
+          ]
+        }
+      },
+      "walk": {}
+    },
     "mountain-troll": {
       "canvas_size": {
         "w": 48,
@@ -7049,6 +7868,224 @@
           }
         ]
       }
+    },
+    "snow-fox": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/enemies/snow-fox/rotations/east.png",
+          "content_bbox": {
+            "x": 4,
+            "y": 10,
+            "w": 34,
+            "h": 25
+          }
+        },
+        "north": {
+          "path": "game_assets/enemies/snow-fox/rotations/north.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 10,
+            "w": 14,
+            "h": 26
+          }
+        },
+        "south": {
+          "path": "game_assets/enemies/snow-fox/rotations/south.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 10,
+            "w": 14,
+            "h": 25
+          }
+        },
+        "west": {
+          "path": "game_assets/enemies/snow-fox/rotations/west.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 10,
+            "w": 34,
+            "h": 25
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 13,
+                "w": 33,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 3,
+                "y": 13,
+                "w": 34,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 13,
+                "w": 33,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 13,
+                "w": 33,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 13,
+                "w": 33,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 3,
+                "y": 13,
+                "w": 34,
+                "h": 21
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 11,
+                "w": 14,
+                "h": 23
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 13,
+                "w": 34,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 34,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 11,
+                "w": 32,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 34,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/enemies/snow-fox/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 34,
+                "h": 25
+              }
+            }
+          ]
+        },
+        "walking-6-frames": {}
+      },
+      "walk": {}
     },
     "snow-yeti": {
       "canvas_size": {
@@ -7820,6 +8857,2616 @@
             }
           }
         ]
+      }
+    }
+  },
+  "animals": {
+    "desert-camel": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/desert-camel/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 11,
+            "w": 36,
+            "h": 26
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/desert-camel/rotations/north.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 10,
+            "w": 12,
+            "h": 27
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/desert-camel/rotations/south.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 11,
+            "w": 12,
+            "h": 26
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/desert-camel/rotations/west.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 11,
+            "w": 36,
+            "h": 26
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 12,
+                "w": 35,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 12,
+                "w": 35,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 12,
+                "w": 35,
+                "h": 23
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 12,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 12,
+                "h": 25
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 20,
+                "y": 13,
+                "w": 10,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 11,
+                "h": 22
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 13,
+                "w": 34,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 35,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 13,
+                "w": 34,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 34,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-camel/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 35,
+                "h": 23
+              }
+            }
+          ]
+        }
+      }
+    },
+    "desert-fennec": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/desert-fennec/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 7,
+            "w": 21,
+            "h": 17
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/desert-fennec/rotations/north.png",
+          "content_bbox": {
+            "x": 12,
+            "y": 6,
+            "w": 8,
+            "h": 18
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/desert-fennec/rotations/south.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 6,
+            "w": 10,
+            "h": 18
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/desert-fennec/rotations/west.png",
+          "content_bbox": {
+            "x": 6,
+            "y": 7,
+            "w": 21,
+            "h": 17
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 9,
+                "w": 21,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 18,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 15
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 7,
+                "w": 8,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 7,
+                "w": 8,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 13,
+                "y": 7,
+                "w": 8,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 6,
+                "w": 8,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 6,
+                "w": 8,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 7,
+                "w": 8,
+                "h": 16
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 18
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 18
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 6,
+                "w": 10,
+                "h": 17
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 21,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 21,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 22,
+                "h": 16
+              }
+            },
+            {
+              "path": "game_assets/animals/desert-fennec/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 21,
+                "h": 15
+              }
+            }
+          ]
+        }
+      }
+    },
+    "desolation-earthworm": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/desolation-earthworm/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 9,
+            "w": 21,
+            "h": 15
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/desolation-earthworm/rotations/north.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 8,
+            "w": 10,
+            "h": 16
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/desolation-earthworm/rotations/south.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 8,
+            "w": 10,
+            "h": 16
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/desolation-earthworm/rotations/west.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 9,
+                "w": 21,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 9,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 9,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 9,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 9,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 9,
+                "h": 13
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-earthworm/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            }
+          ]
+        }
+      }
+    },
+    "desolation-frog": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/desolation-frog/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/desolation-frog/rotations/north.png",
+          "content_bbox": {
+            "x": 9,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/desolation-frog/rotations/south.png",
+          "content_bbox": {
+            "x": 9,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/desolation-frog/rotations/west.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 19,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 18,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 18,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 18,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 18,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 18,
+                "h": 14
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 16,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 16,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 17,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 16,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 15,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 16,
+                "h": 13
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/desolation-frog/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            }
+          ]
+        }
+      }
+    },
+    "forest-goat": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/forest-goat/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 7,
+            "w": 35,
+            "h": 30
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/forest-goat/rotations/north.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 7,
+            "w": 14,
+            "h": 31
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/forest-goat/rotations/south.png",
+          "content_bbox": {
+            "x": 16,
+            "y": 8,
+            "w": 16,
+            "h": 29
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/forest-goat/rotations/west.png",
+          "content_bbox": {
+            "x": 8,
+            "y": 7,
+            "w": 35,
+            "h": 30
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 8,
+                "w": 35,
+                "h": 27
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 8,
+                "w": 35,
+                "h": 27
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 13,
+                "h": 28
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 13,
+                "h": 28
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 7,
+                "w": 13,
+                "h": 29
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 29
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 13,
+                "h": 29
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 13,
+                "h": 29
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 27
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 10,
+                "w": 16,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 27
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 16,
+                "h": 27
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 10,
+                "w": 16,
+                "h": 26
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 8,
+                "w": 35,
+                "h": 27
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 9,
+                "w": 35,
+                "h": 26
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-goat/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 8,
+                "w": 35,
+                "h": 27
+              }
+            }
+          ]
+        }
+      }
+    },
+    "forest-sheep": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/forest-sheep/rotations/east.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 10,
+            "w": 30,
+            "h": 25
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/forest-sheep/rotations/north.png",
+          "content_bbox": {
+            "x": 16,
+            "y": 9,
+            "w": 16,
+            "h": 26
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/forest-sheep/rotations/south.png",
+          "content_bbox": {
+            "x": 16,
+            "y": 9,
+            "w": 16,
+            "h": 26
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/forest-sheep/rotations/west.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 9,
+            "w": 30,
+            "h": 26
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 12,
+                "w": 28,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 12,
+                "w": 30,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 12,
+                "w": 28,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 12,
+                "w": 29,
+                "h": 22
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 25
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 11,
+                "w": 16,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 11,
+                "w": 16,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 11,
+                "w": 16,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 10,
+                "w": 16,
+                "h": 23
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sheep/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            }
+          ]
+        }
+      }
+    },
+    "mountain-ibex": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/mountain-ibex/rotations/east.png",
+          "content_bbox": {
+            "x": 8,
+            "y": 8,
+            "w": 30,
+            "h": 27
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/mountain-ibex/rotations/north.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 9,
+            "w": 12,
+            "h": 27
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/mountain-ibex/rotations/south.png",
+          "content_bbox": {
+            "x": 19,
+            "y": 9,
+            "w": 10,
+            "h": 26
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/mountain-ibex/rotations/west.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 8,
+            "w": 28,
+            "h": 27
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 10,
+                "w": 27,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 10,
+                "w": 28,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 29,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 10,
+                "w": 28,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 10,
+                "w": 28,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 29,
+                "h": 23
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 23
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 26,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 28,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 30,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 27,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 29,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-ibex/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 10,
+                "w": 30,
+                "h": 24
+              }
+            }
+          ]
+        }
+      }
+    },
+    "mountain-marmot": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/mountain-marmot/rotations/east.png",
+          "content_bbox": {
+            "x": 5,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/mountain-marmot/rotations/north.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 8,
+            "w": 12,
+            "h": 16
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/mountain-marmot/rotations/south.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 8,
+            "w": 12,
+            "h": 15
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/mountain-marmot/rotations/west.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 9,
+            "w": 20,
+            "h": 15
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 9,
+                "w": 20,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 10,
+                "w": 20,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 10,
+                "w": 19,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 10,
+                "w": 20,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 10,
+                "w": 19,
+                "h": 12
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 9,
+                "w": 11,
+                "h": 14
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 9,
+                "w": 10,
+                "h": 14
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 19,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 14
+              }
+            },
+            {
+              "path": "game_assets/animals/mountain-marmot/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 9,
+                "w": 20,
+                "h": 13
+              }
+            }
+          ]
+        }
+      }
+    },
+    "snow-otter": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/snow-otter/rotations/east.png",
+          "content_bbox": {
+            "x": 3,
+            "y": 10,
+            "w": 22,
+            "h": 14
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/snow-otter/rotations/north.png",
+          "content_bbox": {
+            "x": 12,
+            "y": 9,
+            "w": 8,
+            "h": 15
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/snow-otter/rotations/south.png",
+          "content_bbox": {
+            "x": 12,
+            "y": 10,
+            "w": 8,
+            "h": 14
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/snow-otter/rotations/west.png",
+          "content_bbox": {
+            "x": 8,
+            "y": 10,
+            "w": 21,
+            "h": 14
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 20,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 3,
+                "y": 10,
+                "w": 21,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 4,
+                "y": 10,
+                "w": 20,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 3,
+                "y": 10,
+                "w": 21,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 2,
+                "y": 10,
+                "w": 22,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 2,
+                "y": 10,
+                "w": 22,
+                "h": 12
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 9,
+                "w": 8,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 9,
+                "w": 8,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 9,
+                "w": 8,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 8,
+                "w": 8,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 8,
+                "w": 8,
+                "h": 15
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 8,
+                "w": 8,
+                "h": 15
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 11,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 11,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 11,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 11,
+                "w": 8,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 10,
+                "w": 8,
+                "h": 13
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 20,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 21,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 20,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 21,
+                "h": 13
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 22,
+                "h": 12
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-otter/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 22,
+                "h": 12
+              }
+            }
+          ]
+        }
+      }
+    },
+    "snow-reindeer": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/snow-reindeer/rotations/east.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 4,
+            "w": 33,
+            "h": 33
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/snow-reindeer/rotations/north.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 6,
+            "w": 14,
+            "h": 32
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/snow-reindeer/rotations/south.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 5,
+            "w": 14,
+            "h": 32
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/snow-reindeer/rotations/west.png",
+          "content_bbox": {
+            "x": 8,
+            "y": 4,
+            "w": 33,
+            "h": 33
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 6,
+                "w": 32,
+                "h": 30
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 6,
+                "w": 33,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 6,
+                "w": 33,
+                "h": 30
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 7,
+                "w": 32,
+                "h": 29
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 6,
+                "w": 33,
+                "h": 30
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 6,
+                "w": 33,
+                "h": 30
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 6,
+                "w": 14,
+                "h": 31
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 30
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-reindeer/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 5,
+                "w": 32,
+                "h": 31
+              }
+            }
+          ]
+        }
       }
     }
   },

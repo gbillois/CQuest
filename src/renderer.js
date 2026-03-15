@@ -140,6 +140,7 @@ export function render(timeSeconds) {
     drawGroundDecorations(level, { foreground: false });
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
+    drawAnimals(level);
     drawEnemies(level);
     drawFireballs(level);
     drawEnemyDrops(level);
@@ -655,6 +656,26 @@ export function drawEnemies(level) {
       ctx.fillStyle = "#cf4b4b";
       ctx.fillRect(enemy.x, enemy.y + riseOffset, enemy.w, enemy.h);
       ctx.restore();
+    }
+  }
+}
+
+export function drawAnimals(level) {
+  if (!level.animalSpawns?.length) return;
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
+  for (const animal of level.animalSpawns) {
+    if (animal.x + animal.w < camLeft || animal.x > camRight) continue;
+    const image = pickEnemyFrame(animal);
+    if (isImageRenderable(image)) {
+      const drawW = animal.def.size.width * ENEMY_SCALE;
+      const drawH = animal.def.size.height * ENEMY_SCALE;
+      const rect = getEntitySpriteDrawRect(image, animal, drawW, drawH);
+      ctx.drawImage(image, rect.x, rect.y, drawW, drawH);
+    } else {
+      ctx.fillStyle = "#6abf69";
+      ctx.fillRect(animal.x, animal.y, animal.w, animal.h);
     }
   }
 }

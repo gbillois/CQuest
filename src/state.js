@@ -132,6 +132,7 @@ export const state = {
   biomes: {},
   heroes: [],
   enemies: [],
+  animals: [],
   levels: [],
   levelSeedBase: createRunSeed(),
   heroUnlocks: {},

@@ -54,6 +54,10 @@ export const ENEMY_MIN_HITBOX_W = 28;
 export const ENEMY_MAX_HITBOX_W = 56;
 export const ENEMY_MIN_HITBOX_H = 56;
 export const ENEMY_MAX_HITBOX_H = 104;
+export const ANIMAL_MIN_HITBOX_W = 20;
+export const ANIMAL_MAX_HITBOX_W = 72;
+export const ANIMAL_MIN_HITBOX_H = 18;
+export const ANIMAL_MAX_HITBOX_H = 72;
 export const ENEMY_DEFEAT_FADE_SECONDS = 0.75;
 export const ENEMY_DEFEAT_RISE_PX = 10;
 export const ENEMY_DROP_GRAVITY = 1450;
@@ -89,9 +93,17 @@ export const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"
 export const KNOWN_HERO_DIRS = ["mage", "ninja", "paladin", "pirate", "Barbarian", "CatWarrior", "Golem", "Knight"];
 export const KNOWN_ENEMY_DIRS = [
   "desert-mummy", "desert-scorpion", "desolation-skeleton", "desolation-wraith",
-  "forest-goblin-green", "forest-sprite", "mountain-dwarf", "mountain-troll",
-  "snow-yeti", "snow-zombie",
+  "forest-goblin-green", "forest-sprite", "forest-wasp", "mountain-dwarf", "mountain-troll",
+  "mountain-snake", "snow-yeti", "snow-zombie", "snow-fox", "desolation-wolf",
 ];
+export const KNOWN_ANIMAL_DIRS = [
+  "forest-goat", "forest-sheep",
+  "desert-camel", "desert-fennec",
+  "mountain-marmot", "mountain-ibex",
+  "snow-reindeer", "snow-otter",
+  "desolation-frog", "desolation-earthworm",
+];
+export const ANIMAL_BOUNCE_VELOCITY = -520;
 export const FIXED_LEVEL_BIOME_ORDER = ["forest", "desert", "mountain", "snow", "desolation"];
 
 // ─── Biome visuals ───

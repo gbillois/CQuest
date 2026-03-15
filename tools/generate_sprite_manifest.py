@@ -198,11 +198,60 @@ def scan_backgrounds():
         })
     return items
 
+def scan_animals():
+    animals_dir = GAME_ASSETS / "animals"
+    if not animals_dir.exists():
+        return {}
+    animals = {}
+    for animal_dir in sorted(animals_dir.iterdir()):
+        if not animal_dir.is_dir():
+            continue
+        animal_name = animal_dir.name
+        animal_data = {"canvas_size": None, "rotations": {}, "animations": {}}
+
+        rot_dir = animal_dir / "rotations"
+        if rot_dir.exists():
+            for png in sorted(rot_dir.glob("*.png")):
+                img = Image.open(png)
+                if animal_data["canvas_size"] is None:
+                    animal_data["canvas_size"] = {"w": img.width, "h": img.height}
+                animal_data["rotations"][png.stem] = {
+                    "path": str(png.relative_to(GAME_ASSETS.parent)),
+                    "content_bbox": get_opaque_bounds(png)
+                }
+
+        anim_dir = animal_dir / "animations"
+        if anim_dir.exists():
+            for anim_type_dir in sorted(anim_dir.iterdir()):
+                if not anim_type_dir.is_dir():
+                    continue
+                anim_name = anim_type_dir.name
+                animal_data["animations"][anim_name] = {}
+                for dir_dir in sorted(anim_type_dir.iterdir()):
+                    if not dir_dir.is_dir():
+                        continue
+                    frames = []
+                    for png in sorted(dir_dir.glob("*.png")):
+                        img = Image.open(png)
+                        if animal_data["canvas_size"] is None:
+                            animal_data["canvas_size"] = {"w": img.width, "h": img.height}
+                        frames.append({
+                            "path": str(png.relative_to(GAME_ASSETS.parent)),
+                            "content_bbox": get_opaque_bounds(png)
+                        })
+                    if frames:
+                        animal_data["animations"][anim_name][dir_dir.name] = frames
+
+        animals[animal_name] = animal_data
+    return animals
+
 def main():
     print("Scanning heroes...", file=sys.stderr)
     heroes = scan_heroes()
     print("Scanning enemies...", file=sys.stderr)
     enemies = scan_enemies()
+    print("Scanning animals...", file=sys.stderr)
+    animals = scan_animals()
     print("Scanning tiles...", file=sys.stderr)
     tiles = scan_tiles()
     print("Scanning bonus...", file=sys.stderr)
@@ -225,6 +274,7 @@ def main():
         },
         "heroes": heroes,
         "enemies": enemies,
+        "animals": animals,
         "tiles": tiles,
         "bonus": bonus,
         "decorations": decorations,

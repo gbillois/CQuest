@@ -6,6 +6,7 @@ import {
   GAME, GROUND_THICKNESS_TILES, GROUND_SURFACE_VARIATION_MAX_UP, GROUND_SURFACE_VARIATION_MAX_DOWN,
   ENEMY_MOVE_SPEED, ENEMY_SCALE, ENEMY_HITBOX_WIDTH_RATIO, ENEMY_HITBOX_HEIGHT_RATIO,
   ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W, ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H,
+  ANIMAL_MIN_HITBOX_W, ANIMAL_MAX_HITBOX_W, ANIMAL_MIN_HITBOX_H, ANIMAL_MAX_HITBOX_H,
   PLAYER_HITBOX_HEIGHT, BONUS_MIN_SUPPORT_GAP_TILES, BONUS_MAX_SUPPORT_GAP_TILES,
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
@@ -895,6 +896,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
     tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, heightTiles,
   });
+  const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
     enemySpawns[i].verbData = levelVerbDatas[i] || (state.duel ? state.duel.randomVerbData() : null);
@@ -938,6 +940,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     enemySpawns,
     initialEnemyCount: enemySpawns.length,
     defeatedEnemyCount: 0,
+    animalSpawns,
     structures,
     start,
     end,
@@ -1731,6 +1734,54 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   return enemies;
 }
 
+function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
+  const pool = state.animals.filter((a) => a.biomeHint === biomeId);
+  const candidates = pool.length ? pool : state.animals;
+  if (!candidates.length) return [];
+
+  const lanePool = (lanes || []).filter((lane) => lane.end - lane.start + 1 >= 4);
+  if (!lanePool.length) return [];
+
+  const animals = [];
+  const targetCount = 2;
+  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5);
+
+  for (const lane of shuffledLanes) {
+    if (animals.length >= targetCount) break;
+    let attempts = 0;
+    while (attempts < 12 && animals.length < targetCount) {
+      attempts += 1;
+      const tileX = randInt(rand, lane.start + 1, lane.end - 1);
+      if (!tileGrid[lane.y]?.[tileX]) continue;
+
+      const animalDef = candidates[randInt(rand, 0, candidates.length - 1)];
+      const hitbox = getAnimalHitboxSize(animalDef);
+      const spawnX = tileX * state.tileSize + (state.tileSize - hitbox.w) * 0.5;
+      const patrolMin = lane.start * state.tileSize + 1;
+      const patrolMax = (lane.end + 1) * state.tileSize - hitbox.w - 1;
+      if (patrolMax - patrolMin < hitbox.w + 8) continue;
+
+      animals.push({
+        def: animalDef,
+        x: spawnX,
+        y: lane.y * state.tileSize - hitbox.h,
+        vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
+        vy: 0,
+        dir: rand() > 0.5 ? 1 : -1,
+        w: hitbox.w,
+        h: hitbox.h,
+        prevY: lane.y * state.tileSize - hitbox.h,
+        patrolMin,
+        patrolMax,
+        animTime: rand() * 3,
+        onGround: false,
+      });
+      break;
+    }
+  }
+  return animals;
+}
+
 export function getEnemyHitboxSize(enemyDef) {
   const idlePath = enemyDef?.sprite?.idleE || enemyDef?.sprite?.idleW;
   if (idlePath) {
@@ -1747,5 +1798,24 @@ export function getEnemyHitboxSize(enemyDef) {
   return {
     w: clamp(Math.round(spriteW * ENEMY_HITBOX_WIDTH_RATIO), ENEMY_MIN_HITBOX_W, ENEMY_MAX_HITBOX_W),
     h: clamp(Math.round(spriteH * ENEMY_HITBOX_HEIGHT_RATIO), ENEMY_MIN_HITBOX_H, ENEMY_MAX_HITBOX_H),
+  };
+}
+
+export function getAnimalHitboxSize(animalDef) {
+  const idlePath = animalDef?.sprite?.idleE || animalDef?.sprite?.idleW;
+  if (idlePath) {
+    const mbox = getManifestHitbox(idlePath, ENEMY_SCALE);
+    if (mbox) {
+      return {
+        w: clamp(mbox.w, ANIMAL_MIN_HITBOX_W, ANIMAL_MAX_HITBOX_W),
+        h: clamp(mbox.h, ANIMAL_MIN_HITBOX_H, ANIMAL_MAX_HITBOX_H),
+      };
+    }
+  }
+  const spriteW = (animalDef?.size?.width || 48) * ENEMY_SCALE;
+  const spriteH = (animalDef?.size?.height || 48) * ENEMY_SCALE;
+  return {
+    w: clamp(Math.round(spriteW * ENEMY_HITBOX_WIDTH_RATIO), ANIMAL_MIN_HITBOX_W, ANIMAL_MAX_HITBOX_W),
+    h: clamp(Math.round(spriteH * ENEMY_HITBOX_HEIGHT_RATIO), ANIMAL_MIN_HITBOX_H, ANIMAL_MAX_HITBOX_H),
   };
 }

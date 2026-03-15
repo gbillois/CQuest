@@ -16,6 +16,7 @@ import {
   KNIGHT_FIREBALL_SPEED, KNIGHT_FIREBALL_RADIUS,
   BIOME_PARALLAX_BACKGROUNDS,
   PLAYER_HITBOX_WIDTH, PLAYER_HITBOX_HEIGHT, PLAYER_HIT_BLINK_HZ,
+  ANIMAL_BOUNCE_VELOCITY,
   getStartingHearts,
 } from "./constants.js";
 import { clamp, aabb, circleIntersectsRect } from "./utils.js";
@@ -103,6 +104,72 @@ export function updateEnemies(delta) {
     enemy.vy = Math.min(enemy.vy + GAME.gravity * delta, GAME.maxFallVelocity);
     enemy.y += enemy.vy * delta;
     resolveVerticalCollisions(enemy, level);
+  }
+}
+
+export function updateAnimals(delta) {
+  const level = state.currentLevel;
+  if (!level?.animalSpawns) return;
+
+  for (const animal of level.animalSpawns) {
+    animal.prevY = animal.y;
+    animal.animTime += delta;
+
+    let dir = animal.dir >= 0 ? 1 : -1;
+    if (animal.onGround) {
+      const wallAhead = enemyHasObstacleAhead(animal, level, dir);
+      const supportAhead = enemyHasSupportAhead(animal, level, dir, 5);
+      if (wallAhead || !supportAhead) {
+        dir *= -1;
+      }
+    }
+
+    animal.dir = dir;
+    animal.vx = dir * ENEMY_MOVE_SPEED;
+    const prevX = animal.x;
+    animal.x += animal.vx * delta;
+    resolveHorizontalCollisions(animal, level);
+
+    if (Math.abs(animal.x - prevX) < 0.05) {
+      animal.dir *= -1;
+    }
+
+    if (animal.onGround && !enemyHasGroundUnder(animal, level)) {
+      animal.x = prevX;
+      animal.dir *= -1;
+    }
+
+    if (animal.x <= 0) {
+      animal.dir = 1;
+    } else if (animal.x >= level.worldWidth - animal.w) {
+      animal.dir = -1;
+    }
+
+    animal.vy = Math.min(animal.vy + GAME.gravity * delta, GAME.maxFallVelocity);
+    animal.y += animal.vy * delta;
+    resolveVerticalCollisions(animal, level);
+  }
+}
+
+export function checkAnimalBounce() {
+  const level = state.currentLevel;
+  const player = state.player;
+  if (!level?.animalSpawns || !player) return;
+
+  if (player.vy <= 0) return;
+
+  for (const animal of level.animalSpawns) {
+    // Check horizontal overlap
+    if (player.x + player.w <= animal.x || player.x >= animal.x + animal.w) continue;
+    // Player was above animal top in previous frame
+    const prevBottom = (player.prevY ?? player.y) + player.h;
+    if (prevBottom > animal.y + animal.h * 0.4) continue;
+    // Player bottom is now overlapping animal top
+    if (player.y + player.h < animal.y) continue;
+
+    player.vy = ANIMAL_BOUNCE_VELOCITY;
+    player.onGround = false;
+    break;
   }
 }
 
