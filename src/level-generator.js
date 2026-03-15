@@ -1889,45 +1889,93 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   return enemies;
 }
 
-function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleTileX }) {
+function buildAnimalSpawns({ biomeId, rand, tileGrid, towerTileX, castleTileX }) {
   const pool = state.animals.filter((a) => a.biomeHint === biomeId);
   const baseCandidates = pool.length ? pool : state.animals;
   if (!baseCandidates.length) return [];
+
   const preferredAnimalIds = BIOME_ANIMAL_IDS_BY_BIOME[biomeId] || [];
   const preferredCandidates = preferredAnimalIds
     .map((id) => baseCandidates.find((animal) => animal.id === id))
     .filter(Boolean);
 
-  // Animals must stay on terrain (ground/mountain), never on elevated platform rails,
-  // and only appear near major landmarks (tower/castle) to avoid mixing with enemy lanes.
-  const towerZone = {
-    min: towerTileX - 9,
-    max: towerTileX + 10,
-  };
-  const castleZone = {
-    min: castleTileX - 16,
-    max: castleTileX + 3,
-  };
-  const groundLanes = (lanes || []).filter((lane) => lane.kind === "ground" && lane.end - lane.start + 1 >= 4);
-  const lanePool = groundLanes.filter((lane) => {
-    const overlapsTowerZone = lane.start <= towerZone.max && lane.end >= towerZone.min;
-    const overlapsCastleZone = lane.start <= castleZone.max && lane.end >= castleZone.min;
-    return overlapsTowerZone || overlapsCastleZone;
-  });
-  const eligibleLanes = lanePool.length ? lanePool : groundLanes;
-  if (!eligibleLanes.length) return [];
-
-  const animals = [];
   const candidateSource = preferredCandidates.length ? preferredCandidates : baseCandidates;
   const candidates = candidateSource.length <= 2
     ? candidateSource.slice()
     : candidateSource.slice().sort(() => rand() - 0.5).slice(0, 2);
+  if (!candidates.length) return [];
+
   const requiredAnimalIds = new Set(candidates.map((animal) => animal.id));
   const spawnedAnimalIds = new Set();
-  const rawTargetCount = randInt(rand, 6, 8);
-  const targetCount = Math.max(1, Math.round(rawTargetCount * 0.9));
-  const shuffledLanes = eligibleLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
-  const laneSpawnCounts = new Map();
+
+  // Spawn uniquement autour de la tour et du château final.
+  const towerZone = { min: towerTileX - 9, max: towerTileX + 10, tag: "tower" };
+  const castleZone = { min: castleTileX - 16, max: castleTileX + 3, tag: "castle" };
+  const zones = [towerZone, castleZone];
+
+  const heightTiles = tileGrid.length;
+  const widthTiles = tileGrid[0]?.length || 0;
+  if (!heightTiles || !widthTiles) return [];
+
+  const findGroundTopY = (x) => {
+    for (let y = 0; y < heightTiles; y += 1) {
+      if (isSolidTile(tileGrid[y]?.[x]) && tileGrid[y][x]?.groundSolid) {
+        return y;
+      }
+    }
+    return null;
+  };
+
+  const laneByZone = zones
+    .map((zone) => {
+      const start = clamp(zone.min, 1, Math.max(1, widthTiles - 2));
+      const end = clamp(zone.max, start, Math.max(start, widthTiles - 2));
+      const runs = [];
+      let runStart = null;
+      let runY = null;
+
+      for (let x = start; x <= end; x += 1) {
+        const gy = findGroundTopY(x);
+        const walkable = gy != null;
+
+        if (walkable) {
+          if (runStart == null) {
+            runStart = x;
+            runY = gy;
+          } else if (Math.abs((runY ?? gy) - gy) > 2) {
+            if (x - runStart >= 4) {
+              runs.push({ start: runStart, end: x - 1, y: runY, zone: zone.tag });
+            }
+            runStart = x;
+            runY = gy;
+          }
+          continue;
+        }
+
+        if (runStart != null) {
+          if (x - runStart >= 4) {
+            runs.push({ start: runStart, end: x - 1, y: runY, zone: zone.tag });
+          }
+          runStart = null;
+          runY = null;
+        }
+      }
+
+      if (runStart != null && end - runStart >= 3) {
+        runs.push({ start: runStart, end, y: runY, zone: zone.tag });
+      }
+
+      return { zone: zone.tag, runs };
+    })
+    .filter((entry) => entry.runs.length);
+
+  if (!laneByZone.length) return [];
+
+  const lanePool = laneByZone.flatMap((entry) => entry.runs);
+  const animals = [];
+
+  const rawTargetCount = randInt(rand, 3, 8);
+  const targetCount = clamp(rawTargetCount, 3, 8);
 
   const pickAnimalDef = () => {
     const missingRequired = candidates.filter((animal) => requiredAnimalIds.has(animal.id) && !spawnedAnimalIds.has(animal.id));
@@ -1941,22 +1989,23 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
     return candidates[randInt(rand, 0, candidates.length - 1)];
   };
 
-  const getLaneCap = (lane) => {
+  const laneCap = (lane) => {
     const laneLen = lane.end - lane.start + 1;
-    if (laneLen >= 16) return 3;
-    if (laneLen >= 9) return 2;
+    if (laneLen >= 18) return 4;
+    if (laneLen >= 12) return 3;
+    if (laneLen >= 8) return 2;
     return 1;
   };
 
+  const laneSpawnCounts = new Map();
+
   const trySpawnAnimalOnLane = (lane, minSpacingTiles = 3) => {
-    const laneCap = getLaneCap(lane);
+    const cap = laneCap(lane);
     const currentLaneCount = laneSpawnCounts.get(lane) || 0;
-    if (currentLaneCount >= laneCap) {
-      return false;
-    }
+    if (currentLaneCount >= cap) return false;
 
     let attempts = 0;
-    while (attempts < 18 && animals.length < targetCount) {
+    while (attempts < 30 && animals.length < targetCount) {
       attempts += 1;
       const tileX = randInt(rand, lane.start + 1, lane.end - 1);
       if (!tileGrid[lane.y]?.[tileX]) continue;
@@ -1964,10 +2013,12 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
       const animalDef = pickAnimalDef();
       const hitbox = getAnimalHitboxSize(animalDef);
       const spawnX = tileX * state.tileSize + (state.tileSize - hitbox.w) * 0.5;
+      const spawnY = lane.y * state.tileSize - hitbox.h;
+
       const tooClose = animals.some(
         (animal) =>
           Math.abs(spawnX - animal.x) < state.tileSize * minSpacingTiles &&
-          Math.abs(lane.y * state.tileSize - (animal.y + animal.h)) < state.tileSize * 2,
+          Math.abs((spawnY + hitbox.h) - (animal.y + animal.h)) < state.tileSize * 2,
       );
       if (tooClose) continue;
 
@@ -1978,19 +2029,20 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
       animals.push({
         def: animalDef,
         x: spawnX,
-        y: lane.y * state.tileSize - hitbox.h,
+        y: spawnY,
         vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
         vy: 0,
         dir: rand() > 0.5 ? 1 : -1,
         w: hitbox.w,
         h: hitbox.h,
-        prevY: lane.y * state.tileSize - hitbox.h,
+        prevY: spawnY,
         patrolMin,
         patrolMax,
         animTime: rand() * 3,
         onGround: false,
         bounceRewardClaimed: false,
       });
+
       spawnedAnimalIds.add(animalDef.id);
       laneSpawnCounts.set(lane, currentLaneCount + 1);
       return true;
@@ -1998,27 +2050,35 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleT
     return false;
   };
 
-  // Pass 1: spread animals across many lanes for better world presence.
-  for (const lane of shuffledLanes) {
+  // Pass 1: garantir une présence autour de chaque landmark disponible.
+  for (const entry of laneByZone) {
     if (animals.length >= targetCount) break;
-    trySpawnAnimalOnLane(lane, 3);
+    const ordered = entry.runs.slice().sort((a, b) => a.start - b.start);
+    for (const lane of ordered) {
+      if (trySpawnAnimalOnLane(lane, 3)) break;
+    }
   }
 
-  // Pass 2: densify on longer lanes until reaching 6-8 animals.
-  if (animals.length < targetCount) {
-    for (const lane of shuffledLanes) {
-      if (animals.length >= targetCount) break;
-      const laneCap = getLaneCap(lane);
-      while (animals.length < targetCount && (laneSpawnCounts.get(lane) || 0) < laneCap) {
-        if (!trySpawnAnimalOnLane(lane, 2)) {
-          break;
-        }
-      }
+  // Pass 2: compléter jusqu'à l'objectif (3..8) en restant dans les zones tower/castle.
+  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5);
+  for (const lane of shuffledLanes) {
+    if (animals.length >= targetCount) break;
+    while (animals.length < targetCount && (laneSpawnCounts.get(lane) || 0) < laneCap(lane)) {
+      if (!trySpawnAnimalOnLane(lane, 2)) break;
+    }
+  }
+
+  // Pass 3: backfill pour garantir au moins 3 si la géométrie le permet (espacement assoupli).
+  for (const lane of shuffledLanes) {
+    if (animals.length >= 3) break;
+    while (animals.length < 3 && (laneSpawnCounts.get(lane) || 0) < laneCap(lane)) {
+      if (!trySpawnAnimalOnLane(lane, 1)) break;
     }
   }
 
   return animals;
 }
+
 
 export function getEnemyHitboxSize(enemyDef) {
   const idlePath = enemyDef?.sprite?.idleE || enemyDef?.sprite?.idleW;
