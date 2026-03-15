@@ -1700,7 +1700,7 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   if (preferredEnemyId) {
     const preferredEnemy = candidates.find((enemy) => enemy.id === preferredEnemyId);
     if (preferredEnemy) {
-      candidates = [preferredEnemy];
+      candidates = [preferredEnemy, ...candidates.filter((enemy) => enemy.id !== preferredEnemyId)];
     }
   }
   const postTowerEnemyBonus = Number.isFinite(towerTileX)
@@ -1731,7 +1731,11 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   const minPreTowerEnemies = Number.isFinite(towerTileX)
     ? clamp(Math.floor(count * 0.45), 2, Math.max(2, count - 1))
     : 0;
+  const minPostTowerEnemies = Number.isFinite(towerTileX)
+    ? clamp(Math.floor(count * 0.35), 1, Math.max(1, count - minPreTowerEnemies))
+    : 0;
   let preTowerSpawned = 0;
+  let postTowerSpawned = 0;
 
   const pickEnemyDef = () => {
     const missingRequired = requiredTypes.filter((def) => !spawnedTypeIds.has(def.id));
@@ -1799,6 +1803,8 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
       spawnedTypeIds.add(enemyDef.id);
       if (tileX < preTowerThreshold) {
         preTowerSpawned += 1;
+      } else {
+        postTowerSpawned += 1;
       }
       return true;
     }
@@ -1845,6 +1851,8 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
     spawnedTypeIds.add(enemyDef.id);
     if (node.x < preTowerThreshold) {
       preTowerSpawned += 1;
+    } else {
+      postTowerSpawned += 1;
     }
     return true;
   };
@@ -1856,6 +1864,17 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
     const laneSlots = laneLen >= profile.doubleSpawnLaneLength ? 2 : 1;
     for (let n = 0; n < laneSlots; n += 1) {
       if (enemies.length >= count || preTowerSpawned >= minPreTowerEnemies) break;
+      trySpawnOnLane(lane);
+    }
+  }
+
+  // Second pass: reserve part of the roster for the second half of the level.
+  for (const lane of shuffledPostTower) {
+    if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
+    const laneLen = lane.end - lane.start + 1;
+    const laneSlots = laneLen >= profile.doubleSpawnLaneLength ? 2 : 1;
+    for (let n = 0; n < laneSlots; n += 1) {
+      if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
       trySpawnOnLane(lane);
     }
   }
@@ -1874,6 +1893,15 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
     const preTowerNodes = pathNodes.filter((node) => node.kind === "ground" && node.x < preTowerThreshold);
     for (const node of preTowerNodes) {
       if (enemies.length >= count || preTowerSpawned >= minPreTowerEnemies) break;
+      trySpawnOnPathNode(node);
+    }
+  }
+
+  // If post-tower lanes are constrained, backfill from path nodes after the tower.
+  if (postTowerSpawned < minPostTowerEnemies && pathNodes?.length) {
+    const postTowerNodes = pathNodes.filter((node) => node.kind === "ground" && node.x >= preTowerThreshold);
+    for (const node of postTowerNodes) {
+      if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
       trySpawnOnPathNode(node);
     }
   }
@@ -1971,11 +1999,16 @@ function buildAnimalSpawns({ biomeId, rand, tileGrid, towerTileX, castleTileX })
 
   if (!laneByZone.length) return [];
 
+  const zoneRuns = new Map(laneByZone.map((entry) => [entry.zone, entry.runs]));
   const lanePool = laneByZone.flatMap((entry) => entry.runs);
   const animals = [];
 
-  const rawTargetCount = randInt(rand, 3, 8);
-  const targetCount = clamp(rawTargetCount, 3, 8);
+  const targetByZone = {
+    tower: randInt(rand, 2, 3),
+    castle: randInt(rand, 1, 3),
+  };
+  const minTotal = targetByZone.tower + targetByZone.castle;
+  const targetCount = clamp(minTotal, 3, 6);
 
   const pickAnimalDef = () => {
     const missingRequired = candidates.filter((animal) => requiredAnimalIds.has(animal.id) && !spawnedAnimalIds.has(animal.id));
@@ -1998,6 +2031,7 @@ function buildAnimalSpawns({ biomeId, rand, tileGrid, towerTileX, castleTileX })
   };
 
   const laneSpawnCounts = new Map();
+  const spawnedByZone = { tower: 0, castle: 0 };
 
   const trySpawnAnimalOnLane = (lane, minSpacingTiles = 3) => {
     const cap = laneCap(lane);
@@ -2045,21 +2079,31 @@ function buildAnimalSpawns({ biomeId, rand, tileGrid, towerTileX, castleTileX })
 
       spawnedAnimalIds.add(animalDef.id);
       laneSpawnCounts.set(lane, currentLaneCount + 1);
+      if (lane.zone && spawnedByZone[lane.zone] != null) {
+        spawnedByZone[lane.zone] += 1;
+      }
       return true;
     }
     return false;
   };
 
-  // Pass 1: garantir une présence autour de chaque landmark disponible.
-  for (const entry of laneByZone) {
-    if (animals.length >= targetCount) break;
-    const ordered = entry.runs.slice().sort((a, b) => a.start - b.start);
-    for (const lane of ordered) {
-      if (trySpawnAnimalOnLane(lane, 3)) break;
+  // Pass 1: respecter les quotas par zone (tour puis château).
+  for (const zone of ["tower", "castle"]) {
+    const runs = (zoneRuns.get(zone) || []).slice().sort((a, b) => a.start - b.start);
+    if (!runs.length) continue;
+    while (spawnedByZone[zone] < targetByZone[zone] && animals.length < targetCount) {
+      let spawned = false;
+      for (const lane of runs) {
+        if (trySpawnAnimalOnLane(lane, 3)) {
+          spawned = true;
+          break;
+        }
+      }
+      if (!spawned) break;
     }
   }
 
-  // Pass 2: compléter jusqu'à l'objectif (3..8) en restant dans les zones tower/castle.
+  // Pass 2: compléter jusqu'à l'objectif global si une zone était contrainte.
   const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5);
   for (const lane of shuffledLanes) {
     if (animals.length >= targetCount) break;
@@ -2068,10 +2112,10 @@ function buildAnimalSpawns({ biomeId, rand, tileGrid, towerTileX, castleTileX })
     }
   }
 
-  // Pass 3: backfill pour garantir au moins 3 si la géométrie le permet (espacement assoupli).
+  // Pass 3: backfill pour atteindre le total minimal visé (espacement assoupli).
   for (const lane of shuffledLanes) {
-    if (animals.length >= 3) break;
-    while (animals.length < 3 && (laneSpawnCounts.get(lane) || 0) < laneCap(lane)) {
+    if (animals.length >= minTotal) break;
+    while (animals.length < minTotal && (laneSpawnCounts.get(lane) || 0) < laneCap(lane)) {
       if (!trySpawnAnimalOnLane(lane, 1)) break;
     }
   }
