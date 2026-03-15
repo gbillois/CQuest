@@ -171,6 +171,7 @@ export const state = {
   duel: null,
   message: "",
   messageUntil: 0,
+  floatingRewards: [],
   endCastleLockHintUntil: 0,
   playerHitInvuln: 0,
   playerHitStun: 0,
