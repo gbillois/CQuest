@@ -97,15 +97,17 @@ function updateRespawnTrail(delta) {
 
 // ─── Init ───
 async function init() {
-  const config = await loadConfig();
+  // Load config and sprite manifest in parallel (both are independent fetches).
+  const [config] = await Promise.all([
+    loadConfig(),
+    loadSpriteManifest(),
+  ]);
   state.config = config;
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
 
-  // Load sprite manifest for fast bounding-box lookups (replaces runtime pixel scanning).
-  await loadSpriteManifest();
-
-  await setupUiAssets(config);
+  // Setup UI assets and build biome index in parallel with hero/enemy loading.
+  setupUiAssets(config);  // fire-and-forget (non-blocking)
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
   state.coins = state.persistentGold;
@@ -212,17 +214,22 @@ async function init() {
   };
 
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
-  await loadHeroes();
+
+  // Load heroes and enemies in parallel.
+  await Promise.all([loadHeroes(), loadEnemies()]);
   initializeHeroProgress();
-  await loadEnemies();
   ensureEmergencyRoster();
 
   logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
 
   generateLevelsFromConfig(config);
   logInfo("init", `Generated ${state.levels.length} levels`);
-  await preloadLevelAssetImages(state.levels[0]);
-  await preloadSelectedHeroSprites();
+
+  // Preload level assets and selected hero sprites in parallel.
+  await Promise.all([
+    preloadLevelAssetImages(state.levels[0]),
+    preloadSelectedHeroSprites(),
+  ]);
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();

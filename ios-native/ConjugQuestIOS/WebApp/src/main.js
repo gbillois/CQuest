@@ -26,11 +26,11 @@ import {
   bindControls, applyMobileVisualDebugOffsets, loadLevel, showTitleScreen,
   showMessage, showGameOverScreen, updateHudInfo, syncWorldZoomUi,
   startGameFromMenu, buildQuestionUiHooks, exposeConjugationApi,
-  setUiHooks, renderHeroShop,
+  setUiHooks, renderHeroShop, requestLeaderboardEntry,
 } from "./ui.js";
 import {
   loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom,
-  initializeHeroProgress, setRenderHeroShop, loadTileStyleMode,
+  initializeHeroProgress, setRenderHeroShop, loadTileStyleMode, loadLeaderboard,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
 
@@ -42,6 +42,7 @@ setEntityHooks({
   showMessage,
   loadLevel,
   showGameOverScreen,
+  requestLeaderboardEntry,
 });
 setRendererHooks({
   syncWorldZoomUi,
@@ -96,20 +97,23 @@ function updateRespawnTrail(delta) {
 
 // ─── Init ───
 async function init() {
-  const config = await loadConfig();
+  // Load config and sprite manifest in parallel (both are independent fetches).
+  const [config] = await Promise.all([
+    loadConfig(),
+    loadSpriteManifest(),
+  ]);
   state.config = config;
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
 
-  // Load sprite manifest for fast bounding-box lookups (replaces runtime pixel scanning).
-  await loadSpriteManifest();
-
-  await setupUiAssets(config);
+  // Setup UI assets and build biome index in parallel with hero/enemy loading.
+  setupUiAssets(config);  // fire-and-forget (non-blocking)
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
   state.coins = state.persistentGold;
   state.tileStyleMode = loadTileStyleMode();
   state.worldZoom = normalizeWorldZoom(loadWorldZoom());
+  state.leaderboard = loadLeaderboard();
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
@@ -153,22 +157,30 @@ async function init() {
       },
     },
   });
-  exposeConjugationApi();
-  // Expose debug APIs on window for console access.
-  window.validateLevels = validateAllLevels;
-  window.scoreLevelQuality = scoreLevelQuality;
-  window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  // Only expose debug/conjugation APIs in development (localhost or file://).
+  const _isDevMode = typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+     window.location.hostname === "127.0.0.1" ||
+     window.location.protocol === "file:");
 
-  // F11: toggle level design debug overlay.
+  if (_isDevMode) {
+    exposeConjugationApi();
+    // Expose debug APIs on window for console access.
+    window.validateLevels = validateAllLevels;
+    window.scoreLevelQuality = scoreLevelQuality;
+    window.gameLogs = { dump: dumpLogs, get: getLogs, clear: clearLogs, setLevel: setLogLevel };
+  }
+
+  // F11: toggle level design debug overlay (dev mode only).
   document.addEventListener("keydown", (e) => {
-    if (e.key === "F11") {
+    if (e.key === "F11" && _isDevMode) {
       e.preventDefault();
       toggleDebugOverlay();
     }
   });
 
-  // A/B testing: generate 5 levels with same difficulty, log comparison.
-  window.compareGenerations = (difficultyProfile) => {
+  // A/B testing: generate 5 levels with same difficulty, log comparison (dev only).
+  if (_isDevMode) window.compareGenerations = (difficultyProfile) => {
     const profile = difficultyProfile || state.generationProfile;
     const savedProfile = state.generationProfile;
     state.generationProfile = profile;
@@ -202,17 +214,22 @@ async function init() {
   };
 
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
-  await loadHeroes();
+
+  // Load heroes and enemies in parallel.
+  await Promise.all([loadHeroes(), loadEnemies()]);
   initializeHeroProgress();
-  await loadEnemies();
   ensureEmergencyRoster();
 
   logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
 
   generateLevelsFromConfig(config);
   logInfo("init", `Generated ${state.levels.length} levels`);
-  await preloadLevelAssetImages(state.levels[0]);
-  await preloadSelectedHeroSprites();
+
+  // Preload level assets and selected hero sprites in parallel.
+  await Promise.all([
+    preloadLevelAssetImages(state.levels[0]),
+    preloadSelectedHeroSprites(),
+  ]);
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();

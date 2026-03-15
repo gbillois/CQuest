@@ -30,12 +30,14 @@ let _openQuestion = null;
 let _showMessage = null;
 let _loadLevel = null;
 let _showGameOverScreen = null;
+let _requestLeaderboardEntry = null;
 
-export function setEntityHooks({ openQuestion, showMessage, loadLevel, showGameOverScreen }) {
+export function setEntityHooks({ openQuestion, showMessage, loadLevel, showGameOverScreen, requestLeaderboardEntry }) {
   _openQuestion = openQuestion;
   _showMessage = showMessage;
   _loadLevel = loadLevel;
   _showGameOverScreen = showGameOverScreen;
+  _requestLeaderboardEntry = requestLeaderboardEntry;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1332,6 +1334,7 @@ export function showFinalVictoryScreen() {
   ui.bossDefeatPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
+  _requestLeaderboardEntry?.("victory");
 }
 
 export function updateBossMode() {
