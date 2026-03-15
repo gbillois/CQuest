@@ -54,7 +54,7 @@ export function getVerbSource() {
       },
     },
     g2: {
-      label: "2e groupe",
+      label: "2ème groupe",
       list: {
         finir: {
           inf: "finir",
@@ -68,7 +68,7 @@ export function getVerbSource() {
       },
     },
     g3: {
-      label: "3e groupe",
+      label: "3ème groupe",
       list: {
         prendre: {
           inf: "prendre",

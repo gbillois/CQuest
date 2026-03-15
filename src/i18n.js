@@ -141,7 +141,7 @@ const MESSAGES = {
     resetGame: "Remise à zéro",
     errorsMade: "Erreurs réalisées",
     resetGameConfirm: "Confirmer la remise à zéro du jeu ? Cela effacera le score, les pièces, les héros débloqués, le héros sélectionné, le code parental, les réglages de mise en page mobile et les erreurs enregistrées.",
-    resetGameWarning: "Attention remise à zéro des erreurs, de l'or, du score et des achats dans la boutique, êtes vous sûr ?",
+    resetGameWarning: "Attention : la remise à zéro des erreurs, de l'or, du score et des achats dans la boutique sera définitive. Êtes-vous sûr ?",
     confirmNo: "Non",
     confirmYes: "Oui",
     parentalCode: "Code parental",
