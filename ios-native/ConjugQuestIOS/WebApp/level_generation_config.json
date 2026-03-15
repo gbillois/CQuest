@@ -3380,7 +3380,7 @@
         "id": "bonus_heart",
         "path": "game_assets/bonus/bonus_heart.png",
         "kind": "health_pickup",
-        "spawn_weight": 2,
+        "spawn_weight": 4,
         "spawn_rules": {
           "min_height_above_ground": 1,
           "max_height_above_ground": 4
@@ -3519,7 +3519,7 @@
         "id": "deco_potion",
         "path": "game_assets/decoration/deco_potion.png",
         "kind": "prop",
-        "spawn_weight": 1,
+        "spawn_weight": 4,
         "spawn_rules": {
           "on_surface_only": true
         }
