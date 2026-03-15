@@ -845,6 +845,25 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     }
   }
 
+  // ─── Late-level density boost (after tower) ───
+  const postTowerStart = towerTileX + 10;
+  const postTowerWidth = Math.max(0, playableEnd - postTowerStart + 1);
+  const extraRailsTarget = clamp(Math.floor(postTowerWidth / 18), 2, 6);
+  let extraRailsPlaced = 0;
+  let extraRailAttempts = 0;
+  while (extraRailsPlaced < extraRailsTarget && extraRailAttempts < extraRailsTarget * 8) {
+    extraRailAttempts += 1;
+    const railLength = randInt(rand, 3, 6);
+    const startX = randInt(rand, postTowerStart, Math.max(postTowerStart, playableEnd - railLength));
+    const localGroundY = getLocalGroundY(startX + Math.floor(railLength * 0.5));
+    const preferredY = clamp(localGroundY - randInt(rand, 2, 4), 2, Math.max(2, baseGroundY - 2));
+    const beforeCount = platformRails.length;
+    addPlatformRail({ startX, y: preferredY, length: railLength, segmentType: "post_tower_dense" });
+    if (platformRails.length > beforeCount) {
+      extraRailsPlaced += 1;
+    }
+  }
+
   // ─── Post-Generation: Ground Holes & Validation ───
   if (allowGroundHoles) {
     const targetHoleCount = clamp(
@@ -901,7 +920,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   const bonuses = buildBonusScatter({
     biome, rand, tileGrid, bonusDensity, pathNodes: finalPathNodes,
     groundY: baseGroundY, holes, reservedRanges, platformRails,
-    levelIndex: index, secretZones, heightTiles,
+    levelIndex: index, secretZones, towerTileX, heightTiles,
   });
 
   const decorations = [];
@@ -911,7 +930,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
   const enemySpawns = buildEnemySpawns({
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
-    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, heightTiles,
+    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
@@ -1460,10 +1479,14 @@ function augmentGroundHoles({ tileGrid, groundY, startX, endX, reservedRanges, h
 
 // ─── Bonus Scatter (30%+ off main path) ───
 
-function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, groundY, holes, reservedRanges, platformRails, levelIndex, secretZones, heightTiles }) {
+function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, groundY, holes, reservedRanges, platformRails, levelIndex, secretZones, towerTileX, heightTiles }) {
   const allBonus = state.config.object_pools?.bonus || [];
   const allDecor = state.config.object_pools?.decoration || [];
-  const count = clamp(Math.round((tileGrid[0].length * bonusDensity) / 150) + Math.floor((levelIndex || 0) * 0.5), 4, 14);
+  const baseCount = Math.round((tileGrid[0].length * bonusDensity) / 150) + Math.floor((levelIndex || 0) * 0.5);
+  const postTowerBonus = Number.isFinite(towerTileX)
+    ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 20), 1, 4)
+    : 0;
+  const count = clamp(baseCount + postTowerBonus, 5, 18);
   const items = [];
   if (pathNodes.length < 3 || groundY == null) return items;
 
@@ -1567,6 +1590,24 @@ function buildBonusScatter({ biome, rand, tileGrid, bonusDensity, pathNodes, gro
     tryPlaceBlock(node.x + offX, clamp(node.y + offY, 2, (heightTiles || tileGrid.length) - 3), Math.abs(offX) > 1);
   }
 
+  // Ensure denser rewards in the second half (after the tower landmark).
+  if (Number.isFinite(towerTileX)) {
+    const lateGroundNodes = groundNodes.filter((node) => node.x >= towerTileX + 8);
+    const lateTarget = clamp(Math.floor(count * 0.45), 2, 8);
+    let latePlaced = items.filter((item) => item.tileX >= towerTileX + 8).length;
+    let lateAttempts = 0;
+    while (latePlaced < lateTarget && lateGroundNodes.length && lateAttempts < lateTarget * 10) {
+      lateAttempts += 1;
+      const node = lateGroundNodes[randInt(rand, 0, lateGroundNodes.length - 1)];
+      if (!node) continue;
+      const offX = randInt(rand, -2, 2);
+      const offY = rand() < 0.45 ? -minPassUnderGapTiles - 1 : -minPassUnderGapTiles;
+      if (tryPlaceBlock(node.x + offX, clamp(node.y + offY, 2, (heightTiles || tileGrid.length) - 3), Math.abs(offX) > 0)) {
+        latePlaced += 1;
+      }
+    }
+  }
+
   return items;
 }
 
@@ -1640,14 +1681,17 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
 
 // ─── Enemy Spawns ───
 
-function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, heightTiles }) {
+function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, towerTileX, heightTiles }) {
   const profile = generation || GENERATION_PROFILES.normal;
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
+  const postTowerEnemyBonus = Number.isFinite(towerTileX)
+    ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 22), 1, 4)
+    : 0;
   const count = clamp(
     profile.enemyBase + levelIndex * profile.enemyPerLevel,
     profile.enemyMin,
-    profile.enemyMax,
+    profile.enemyMax + postTowerEnemyBonus,
   );
   const enemies = [];
   if (!candidates.length) return enemies;
@@ -1655,7 +1699,11 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   const lanePool = (lanes || []).filter((lane) => lane.end - lane.start + 1 >= 4);
   if (!lanePool.length) return enemies;
 
-  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const postTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start >= towerTileX + 6) : [];
+  const preTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start < towerTileX + 6) : lanePool;
+  const shuffledPostTower = postTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledPreTower = preTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledLanes = [...shuffledPostTower, ...shuffledPreTower];
 
   for (const lane of shuffledLanes) {
     if (enemies.length >= count) break;
