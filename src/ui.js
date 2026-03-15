@@ -910,13 +910,18 @@ export function bindControls() {
       const key = event.key.toLowerCase();
       const titleVisible = Boolean(ui.titleScreen && !ui.titleScreen.classList.contains("hidden"));
       if (state.gameOver) {
+        const isInputLocked = performance.now() < (state.gameOverInputLockedUntil || 0);
         if (event.code === "Enter" || event.code === "Space") {
           event.preventDefault();
-          restartLevelAfterGameOver();
+          if (!isInputLocked) {
+            restartLevelAfterGameOver();
+          }
         }
         if (key === "escape") {
           event.preventDefault();
-          returnToTitleScreen();
+          if (!isInputLocked) {
+            returnToTitleScreen();
+          }
         }
         return;
       }
@@ -1248,6 +1253,7 @@ export function showGameOverScreen() {
   state.started = false;
   state.paused = true;
   state.gameOver = true;
+  state.gameOverInputLockedUntil = performance.now() + 250;
   state.screenMode = "game";
   state.towerInterior.active = false;
   resetMovementInputs();
@@ -1279,7 +1285,11 @@ export function restartLevelAfterGameOver() {
   if (!state.gameOver) {
     return;
   }
+  if (performance.now() < (state.gameOverInputLockedUntil || 0)) {
+    return;
+  }
   state.gameOver = false;
+  state.gameOverInputLockedUntil = 0;
   state.started = true;
   state.paused = false;
   ui.gameOverPanel?.classList.add("hidden");

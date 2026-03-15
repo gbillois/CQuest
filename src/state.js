@@ -127,6 +127,7 @@ export const state = {
   started: false,
   paused: false,
   gameOver: false,
+  gameOverInputLockedUntil: 0,
   config: null,
   tileSize: 64,
   biomes: {},
