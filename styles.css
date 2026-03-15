@@ -1028,3 +1028,7 @@ body {
 .reset-confirm-actions {
   margin-top: 6px;
 }
+
+#resetGameConfirmModal {
+  z-index: 120;
+}
