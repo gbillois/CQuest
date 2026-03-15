@@ -920,13 +920,13 @@ body {
   word-break: break-word;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px), (pointer: coarse) {
   body.mobile-debug-adjust #gameCanvas {
     transform: translateY(var(--mobile-game-offset, 0px));
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px), (pointer: coarse) {
   body {
     --mobile-controls-lift: 0px;
   }
@@ -981,7 +981,7 @@ body {
 }
 
 @supports (-webkit-touch-callout: none) {
-  @media (max-width: 480px) {
+  @media (max-width: 900px), (pointer: coarse) {
     .controls-zone {
       padding-top: 8px;
     }
