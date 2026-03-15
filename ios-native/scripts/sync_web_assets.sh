@@ -16,7 +16,6 @@ rsync -a --delete --prune-empty-dirs \
   --include="/sprite-manifest.json" \
   --include="/level_generation_config.json" \
   --include="/level-blocks.json" \
-  --include="/game.js" \
   --include="/assets/***" \
   --include="/game_assets/***" \
   --include="/src/***" \
