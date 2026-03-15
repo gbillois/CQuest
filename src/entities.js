@@ -1015,7 +1015,7 @@ export function openTowerChestAttempt() {
       state.towerInterior.chestStreak += 1;
       const current = state.towerInterior.chestStreak;
       if (current >= required) {
-        const pieces = 15 + Math.floor(Math.pow(Math.random(), 3) * 136);
+        const pieces = 50 + Math.floor(Math.random() * 101);
         state.towerInterior.chestState = "open";
         state.towerInterior.chestRewardPieces = pieces;
         grantGold(pieces);
