@@ -934,7 +934,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
     tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
-  const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid });
+  const animalSpawns = buildAnimalSpawns({
+    biomeId,
+    rand,
+    lanes: enemyLanes,
+    tileGrid,
+    towerTileX,
+    castleTileX,
+  });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
     enemySpawns[i].verbData = levelVerbDatas[i] || (state.duel ? state.duel.randomVerbData() : null);
@@ -1882,7 +1889,7 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   return enemies;
 }
 
-function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
+function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid, towerTileX, castleTileX }) {
   const pool = state.animals.filter((a) => a.biomeHint === biomeId);
   const baseCandidates = pool.length ? pool : state.animals;
   if (!baseCandidates.length) return [];
@@ -1891,8 +1898,22 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
     .map((id) => baseCandidates.find((animal) => animal.id === id))
     .filter(Boolean);
 
-  // Animals must stay on terrain (ground/mountain), never on elevated platform rails.
-  const lanePool = (lanes || []).filter((lane) => lane.kind === "ground" && lane.end - lane.start + 1 >= 4);
+  // Animals must stay on terrain (ground/mountain), never on elevated platform rails,
+  // and only appear near major landmarks (tower/castle) to avoid mixing with enemy lanes.
+  const towerZone = {
+    min: towerTileX - 9,
+    max: towerTileX + 10,
+  };
+  const castleZone = {
+    min: castleTileX - 16,
+    max: castleTileX + 3,
+  };
+  const lanePool = (lanes || []).filter((lane) => {
+    if (lane.kind !== "ground" || lane.end - lane.start + 1 < 4) return false;
+    const overlapsTowerZone = lane.start <= towerZone.max && lane.end >= towerZone.min;
+    const overlapsCastleZone = lane.start <= castleZone.max && lane.end >= castleZone.min;
+    return overlapsTowerZone || overlapsCastleZone;
+  });
   if (!lanePool.length) return [];
 
   const animals = [];
