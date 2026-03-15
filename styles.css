@@ -429,8 +429,11 @@ body {
   gap: 10px;
 }
 
+
 .settings-danger-row {
-  margin-top: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .settings-danger-row button {
@@ -986,4 +989,24 @@ body {
       pointer-events: auto;
     }
   }
+}
+
+.warn-btn {
+  border: none;
+  background: linear-gradient(180deg, #ffb15c, #e16b35);
+  box-shadow: 0 4px 0 #9f381d;
+  color: #f7fbff;
+}
+
+.reset-confirm-card {
+  max-width: 520px;
+}
+
+.reset-confirm-card p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.reset-confirm-actions {
+  margin-top: 6px;
 }
