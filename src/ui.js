@@ -1540,7 +1540,7 @@ export function populatePedagogyPanel() {
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
     const group = verbs[g] || {};
-    const irregularVerbList = (g === "irr1" || g === "irr2")
+    const irregularVerbList = (g === "irr1" || g === "irr2" || g === "irr3")
       ? Object.values(group.list || {})
         .map((verb) => String(verb?.inf || "").trim())
         .filter(Boolean)
