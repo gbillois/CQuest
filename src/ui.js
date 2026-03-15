@@ -1470,13 +1470,21 @@ export function populatePedagogyPanel() {
   ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
   groupKeys.forEach((g) => {
+    const group = verbs[g] || {};
+    const irregularVerbList = (g === "irr1" || g === "irr2")
+      ? Object.values(group.list || {})
+        .map((verb) => String(verb?.inf || "").trim())
+        .filter(Boolean)
+        .join(", ")
+      : "";
+    const groupLabel = `${group.label || g}${irregularVerbList ? ` (${irregularVerbList})` : ""}`;
     const label = document.createElement("label");
     const input = document.createElement("input");
     input.type = "checkbox";
     input.dataset.group = g;
     input.checked = state.pedagogy.activeGroups.includes(g);
     label.appendChild(input);
-    label.appendChild(document.createTextNode(` ${verbs[g]?.label || g}`));
+    label.appendChild(document.createTextNode(` ${groupLabel}`));
     ui.groupFilters.appendChild(label);
   });
 
