@@ -429,6 +429,14 @@ body {
   gap: 10px;
 }
 
+.settings-danger-row {
+  margin-top: 10px;
+}
+
+.settings-danger-row button {
+  width: 100%;
+}
+
 .panel-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
