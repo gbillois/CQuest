@@ -182,6 +182,10 @@ function applyLocaleToStaticUi() {
   setText("#resetGameCancelBtn", "confirmNo");
   setText("#resetGameConfirmBtn", "confirmYes");
   setText("#errorListLabel", "errorsMade");
+  setText("#gameModePanelTitle", "gameMode");
+  setText("#settingsGameModeLabel", "gameMode");
+  setText("#settingsGameModeNormalOption", "gameModeNormal");
+  setText("#settingsGameModeEasyOption", "gameModeEasy");
   setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
   setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
   setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
@@ -428,6 +432,9 @@ export function populateSettingsPanel() {
 
   ensureSelectedHeroIsOwned();
   ui.heroSelect.value = String(state.selectedHeroIndex);
+  if (ui.settingsGameModeSelect) {
+    ui.settingsGameModeSelect.value = state.generationProfile === "easy" ? "easy" : "normal";
+  }
   syncWorldZoomUi();
   applyMobileVisualDebugOffsets();
   renderHeroShop();
@@ -876,6 +883,19 @@ export function bindControls() {
   ui.applySettingsBtn.addEventListener("click", () => {
     saveMobileButtonsOffset(state.mobileButtonsOffsetY);
     saveMobileGameOffset(state.mobileGameOffsetY);
+
+    const requestedMode = ui.settingsGameModeSelect?.value === "easy" ? "easy" : "normal";
+    const profileChanged = state.generationProfile !== requestedMode;
+    state.generationProfile = requestedMode;
+
+    if (profileChanged) {
+      state.levelSeedBase = createRunSeed();
+      _generateLevelsFromConfig(state.config);
+      if (state.started) {
+        loadLevel(state.currentLevelIndex, false);
+      }
+    }
+
     closeSettingsPanel();
   });
 

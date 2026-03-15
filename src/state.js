@@ -72,6 +72,7 @@ export const ui = {
   applySettingsBtn: document.getElementById("applySettingsBtn"),
   forcePwaUpdateBtn: document.getElementById("forcePwaUpdateBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+  settingsGameModeSelect: document.getElementById("settingsGameModeSelect"),
   settingsButtonsOffsetSlider: document.getElementById("settingsButtonsOffsetSlider"),
   settingsGameOffsetSlider: document.getElementById("settingsGameOffsetSlider"),
   closeShopBtn: document.getElementById("closeShopBtn"),
