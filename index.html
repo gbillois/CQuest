@@ -228,6 +228,21 @@
           </div>
         </section>
 
+        <section id="parentalCodeModal" class="menu-modal hidden" aria-modal="true" role="dialog" aria-labelledby="parentalCodeModalTitle">
+          <div class="menu-card parental-code-card">
+            <h2 id="parentalCodeModalTitle">Code parental</h2>
+            <p id="parentalCodeModalText">Entrez le code parental.</p>
+            <div id="parentalCodeInputRow" class="parental-code-input-row">
+              <input id="parentalCodeInput" type="password" autocomplete="off" maxlength="64" />
+              <button id="toggleParentalCodeVisibilityBtn" type="button" class="secondary-btn parental-eye-btn" aria-label="Afficher le code">👁️</button>
+            </div>
+            <div class="menu-actions">
+              <button id="parentalCodeCancelBtn" class="warn-btn" type="button">Annuler</button>
+              <button id="parentalCodeConfirmBtn" type="button">Valider</button>
+            </div>
+          </div>
+        </section>
+
         <section id="cheatModal" class="menu-modal hidden">
           <div class="menu-card cheat-card">
             <h2>Tips &amp; Tricks</h2>

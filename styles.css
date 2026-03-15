@@ -825,6 +825,44 @@ body {
   gap: 8px;
 }
 
+.parental-code-card {
+  text-align: left;
+  display: grid;
+  gap: 10px;
+}
+
+.parental-code-card h2,
+.parental-code-card p {
+  text-align: center;
+}
+
+.parental-code-card p {
+  white-space: pre-line;
+}
+
+.parental-code-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+#parentalCodeInput {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(2, 8, 24, 0.82);
+  color: #f7fbff;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.parental-eye-btn {
+  min-width: 46px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .game-over {
   position: absolute;
   inset: 10% 8% 6%;
