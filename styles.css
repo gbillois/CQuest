@@ -696,19 +696,29 @@ body {
   inset: 0;
   z-index: 60;
   display: grid;
-  place-items: center;
-  padding: 18px;
+  place-items: stretch;
+  padding:
+    max(18px, calc(env(safe-area-inset-top) + 18px))
+    max(18px, calc(env(safe-area-inset-right) + 18px))
+    max(18px, calc(env(safe-area-inset-bottom) + 18px))
+    max(18px, calc(env(safe-area-inset-left) + 18px));
+  overflow-y: auto;
   background: radial-gradient(circle at 80% 20%, rgba(255, 234, 153, 0.22), transparent 42%);
 }
 
 .title-card {
-  width: min(100%, 370px);
+  width: min(100%, 420px);
+  min-height: 100%;
   border-radius: 20px;
-  padding: 18px 16px;
+  padding: clamp(18px, 4vw, 28px) 16px;
   background: rgba(10, 16, 38, 0.84);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 14px 34px rgba(5, 8, 22, 0.48);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 2vh, 18px);
 }
 
 .title-kicker {
@@ -728,12 +738,13 @@ body {
 
 .title-card p {
   margin: 0;
+  line-height: 1.5;
 }
 
 .title-actions {
   display: grid;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: auto;
 }
 
 
