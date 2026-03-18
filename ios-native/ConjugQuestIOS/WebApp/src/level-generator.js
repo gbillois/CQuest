@@ -911,7 +911,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
 
   const enemySpawns = buildEnemySpawns({
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
-    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, heightTiles,
+    tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
@@ -1640,14 +1640,17 @@ function buildGroundDecorScatter({ biome, rand, widthTiles, groundY, getLocalGro
 
 // ─── Enemy Spawns ───
 
-function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, heightTiles }) {
+function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, groundY, lanes, generation, towerTileX, heightTiles }) {
   const profile = generation || GENERATION_PROFILES.normal;
   const pool = state.enemies.filter((enemy) => enemy.biomeHint === biomeId);
   const candidates = pool.length ? pool : state.enemies;
+  const postTowerEnemyBonus = Number.isFinite(towerTileX)
+    ? clamp(Math.floor((tileGrid[0].length - towerTileX) / 22), 1, 4)
+    : 0;
   const count = clamp(
     profile.enemyBase + levelIndex * profile.enemyPerLevel,
     profile.enemyMin,
-    profile.enemyMax,
+    profile.enemyMax + postTowerEnemyBonus,
   );
   const enemies = [];
   if (!candidates.length) return enemies;
@@ -1655,7 +1658,82 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   const lanePool = (lanes || []).filter((lane) => lane.end - lane.start + 1 >= 4);
   if (!lanePool.length) return enemies;
 
-  const shuffledLanes = lanePool.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const postTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start >= towerTileX + 6) : [];
+  const preTowerLanes = Number.isFinite(towerTileX) ? lanePool.filter((lane) => lane.start < towerTileX + 6) : lanePool;
+  const shuffledPostTower = postTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledPreTower = preTowerLanes.slice().sort(() => rand() - 0.5).sort((a, b) => a.start - b.start);
+  const shuffledLanes = [...shuffledPreTower, ...shuffledPostTower];
+  const preTowerThreshold = Number.isFinite(towerTileX) ? towerTileX + 6 : Infinity;
+  const postTowerThreshold = Number.isFinite(towerTileX) ? towerTileX + 6 : -Infinity;
+  const minPreTowerEnemies = Number.isFinite(towerTileX)
+    ? clamp(Math.floor(count * 0.45), 2, Math.max(2, count - 1))
+    : 0;
+  const minPostTowerEnemies = Number.isFinite(towerTileX)
+    ? clamp(Math.ceil(count * 0.35), 2, Math.max(2, count - 1))
+    : 0;
+  let preTowerSpawned = 0;
+  let postTowerSpawned = 0;
+
+  const updateHalfCounters = (tileX) => {
+    if (tileX < preTowerThreshold) {
+      preTowerSpawned += 1;
+    } else if (tileX >= postTowerThreshold) {
+      postTowerSpawned += 1;
+    }
+  };
+
+  for (const lane of shuffledPreTower) {
+    if (enemies.length >= count || preTowerSpawned >= minPreTowerEnemies) break;
+    const laneLen = lane.end - lane.start + 1;
+    const spawnCount = laneLen >= profile.doubleSpawnLaneLength ? 2 : 1;
+    for (let n = 0; n < spawnCount && enemies.length < count && preTowerSpawned < minPreTowerEnemies; n += 1) {
+      let attempts = 0;
+      while (attempts < 16 && enemies.length < count && preTowerSpawned < minPreTowerEnemies) {
+        attempts += 1;
+        const tileX = randInt(rand, lane.start + 1, lane.end - 1);
+        if (!tileGrid[lane.y]?.[tileX]) continue;
+        const tooClose = enemies.some(
+          (enemy) =>
+            Math.abs(tileX * state.tileSize - enemy.x) < state.tileSize * 4 &&
+            Math.abs(lane.y * state.tileSize - (enemy.y + enemy.h)) < state.tileSize * 2,
+        );
+        if (tooClose) continue;
+
+        const enemyDef = candidates[randInt(rand, 0, candidates.length - 1)];
+        const hitbox = getEnemyHitboxSize(enemyDef);
+        const enemyW = hitbox.w;
+        const enemyH = hitbox.h;
+        const spawnX = tileX * state.tileSize + (state.tileSize - enemyW) * 0.5;
+        const patrolMin = lane.start * state.tileSize + 1;
+        const patrolMax = (lane.end + 1) * state.tileSize - enemyW - 1;
+        if (patrolMax - patrolMin < enemyW + 8) continue;
+
+        enemies.push({
+          def: enemyDef,
+          x: spawnX,
+          y: lane.y * state.tileSize - enemyH,
+          vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
+          vy: 0,
+          dir: rand() > 0.5 ? 1 : -1,
+          w: enemyW,
+          h: enemyH,
+          prevY: lane.y * state.tileSize - enemyH,
+          patrolMin,
+          patrolMax,
+          animTime: rand() * 3,
+          onGround: false,
+          alive: true,
+          battling: false,
+          defeatFadeActive: false,
+          defeatFadeElapsed: 0,
+          questionAttempts: 0,
+          verbData: null,
+        });
+        updateHalfCounters(tileX);
+        break;
+      }
+    }
+  }
 
   for (const lane of shuffledLanes) {
     if (enemies.length >= count) break;
@@ -1704,45 +1782,74 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
           questionAttempts: 0,
           verbData: null,
         });
+        updateHalfCounters(tileX);
         break;
       }
     }
   }
 
+  const trySpawnOnPathNode = (node) => {
+    if (node.kind !== "ground") return false;
+    if (!tileGrid[node.y]?.[node.x]) return false;
+    const enemyDef = candidates[randInt(rand, 0, candidates.length - 1)];
+    const hitbox = getEnemyHitboxSize(enemyDef);
+    const enemyW = hitbox.w;
+    const enemyH = hitbox.h;
+    const spawnX = node.x * state.tileSize + (state.tileSize - enemyW) * 0.5;
+    const tooClose = enemies.some(
+      (enemy) =>
+        Math.abs(spawnX - enemy.x) < state.tileSize * 4 &&
+        Math.abs(node.y * state.tileSize - (enemy.y + enemy.h)) < state.tileSize * 2,
+    );
+    if (tooClose) return false;
+    const patrolMin = Math.max(0, spawnX - state.tileSize * 3);
+    const patrolMax = Math.min(tileGrid[0].length * state.tileSize - enemyW, spawnX + state.tileSize * 3);
+    enemies.push({
+      def: enemyDef,
+      x: spawnX,
+      y: node.y * state.tileSize - enemyH,
+      vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
+      vy: 0,
+      dir: rand() > 0.5 ? 1 : -1,
+      w: enemyW,
+      h: enemyH,
+      prevY: node.y * state.tileSize - enemyH,
+      patrolMin,
+      patrolMax,
+      animTime: rand() * 3,
+      onGround: false,
+      alive: true,
+      battling: false,
+      defeatFadeActive: false,
+      defeatFadeElapsed: 0,
+      questionAttempts: 0,
+      verbData: null,
+    });
+    updateHalfCounters(node.x);
+    return true;
+  };
+
+  if (preTowerSpawned < minPreTowerEnemies && pathNodes?.length) {
+    const preTowerNodes = pathNodes.filter((node) => node.kind === "ground" && node.x < preTowerThreshold);
+    for (const node of preTowerNodes) {
+      if (enemies.length >= count || preTowerSpawned >= minPreTowerEnemies) break;
+      trySpawnOnPathNode(node);
+    }
+  }
+
+  if (postTowerSpawned < minPostTowerEnemies && pathNodes?.length) {
+    const postTowerNodes = pathNodes.filter((node) => node.kind === "ground" && node.x >= postTowerThreshold);
+    for (const node of postTowerNodes) {
+      if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
+      trySpawnOnPathNode(node);
+    }
+  }
+
   // Fallback: fill from path nodes.
-  if (enemies.length < profile.enemyMin && pathNodes?.length) {
+  if (enemies.length < count && pathNodes?.length) {
     for (const node of pathNodes) {
-      if (enemies.length >= profile.enemyMin) break;
-      if (node.kind !== "ground") continue;
-      if (!tileGrid[node.y]?.[node.x]) continue;
-      const enemyDef = candidates[randInt(rand, 0, candidates.length - 1)];
-      const hitbox = getEnemyHitboxSize(enemyDef);
-      const enemyW = hitbox.w;
-      const enemyH = hitbox.h;
-      const spawnX = node.x * state.tileSize + (state.tileSize - enemyW) * 0.5;
-      const patrolMin = Math.max(0, spawnX - state.tileSize * 3);
-      const patrolMax = Math.min(tileGrid[0].length * state.tileSize - enemyW, spawnX + state.tileSize * 3);
-      enemies.push({
-        def: enemyDef,
-        x: spawnX,
-        y: node.y * state.tileSize - enemyH,
-        vx: rand() > 0.5 ? ENEMY_MOVE_SPEED : -ENEMY_MOVE_SPEED,
-        vy: 0,
-        dir: rand() > 0.5 ? 1 : -1,
-        w: enemyW,
-        h: enemyH,
-        prevY: node.y * state.tileSize - enemyH,
-        patrolMin,
-        patrolMax,
-        animTime: rand() * 3,
-        onGround: false,
-        alive: true,
-        battling: false,
-        defeatFadeActive: false,
-        defeatFadeElapsed: 0,
-        questionAttempts: 0,
-        verbData: null,
-      });
+      if (enemies.length >= count) break;
+      trySpawnOnPathNode(node);
     }
   }
 
