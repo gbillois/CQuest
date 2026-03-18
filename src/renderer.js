@@ -167,6 +167,7 @@ export function render(timeSeconds) {
     drawFloatingMessage(state.message);
   }
   drawFloatingRewards(level);
+  drawGuardSpeech(level);
 
   if (!state.ready) {
     drawFloatingMessage("Loading...");
@@ -708,7 +709,7 @@ export function drawGuards(level) {
   const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
   for (const guard of level.guardSpawns) {
     if (guard.x + guard.w < camLeft || guard.x > camRight) continue;
-    const image = pickEnemyFrame(guard);
+    const image = imageCache.get(guard.def.sprite.idleS || guard.def.sprite.idleW);
     const drawW = guard.def.size.width * GUARD_SCALE;
     const drawH = guard.def.size.height * GUARD_SCALE;
     if (isImageRenderable(image)) {
@@ -719,6 +720,43 @@ export function drawGuards(level) {
       ctx.fillRect(guard.x, guard.y, guard.w, guard.h);
     }
   }
+}
+
+export function drawGuardSpeech(level) {
+  if (!level?.guardSpawns?.length) return;
+  const zoom = getWorldZoom();
+  const worldOffsetY = getWorldRenderOffsetY(level);
+  const padding = 8;
+  const lineHeight = 15;
+  const maxBoxW = Math.min(240, VIRTUAL_WIDTH - 40);
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 12px Trebuchet MS";
+  for (const guard of level.guardSpawns) {
+    if (!guard.inRange || !guard.speechText) continue;
+    const screenX = (guard.x + guard.w / 2 - state.cameraX) * zoom;
+    const screenY = (guard.y + worldOffsetY) * zoom;
+    if (screenX < -maxBoxW || screenX > VIRTUAL_WIDTH + maxBoxW) continue;
+    const lines = wrapText(ctx, guard.speechText, maxBoxW - padding * 2);
+    const boxW = Math.min(maxBoxW, Math.max(...lines.map((l) => ctx.measureText(l).width)) + padding * 2);
+    const boxH = lines.length * lineHeight + padding;
+    const boxX = clamp(screenX - boxW / 2, 10, VIRTUAL_WIDTH - boxW - 10);
+    const boxY = screenY - boxH - 8;
+    ctx.fillStyle = "rgba(255,255,255,0.93)";
+    ctx.strokeStyle = "rgba(40,40,60,0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#1a1a2e";
+    const textX = boxX + boxW / 2;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], textX, boxY + padding / 2 + lineHeight * (i + 0.75));
+    }
+  }
+  ctx.restore();
 }
 
 export function drawEnemyDrops(level) {

@@ -884,6 +884,7 @@ export async function loadGuards() {
       height: metadata.character?.size?.height || 56,
     },
     sprite: {
+      idleS: toAssetPath(base, rotations.south),
       idleE: toAssetPath(base, rotations.east || rotations.south),
       idleW: toAssetPath(base, rotations.west || rotations.south),
       walkE,
@@ -891,15 +892,13 @@ export async function loadGuards() {
     },
   };
 
-  const loaded = await tryLoadImage(def.sprite.idleE).catch(() => false)
+  const loaded = await tryLoadImage(def.sprite.idleS).catch(() => false)
+    || await tryLoadImage(def.sprite.idleE).catch(() => false)
     || await tryLoadImage(def.sprite.idleW).catch(() => false);
   state.guard = loaded ? def : null;
 
   if (state.guard) {
-    Promise.all([
-      ...walkE.map((p) => loadImage(p).catch(() => null)),
-      ...walkW.map((p) => loadImage(p).catch(() => null)),
-    ]);
+    loadImage(def.sprite.idleS).catch(() => null);
   }
 }
 

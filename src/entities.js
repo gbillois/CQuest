@@ -2,7 +2,7 @@ import {
   GAME, VIRTUAL_WIDTH, VIRTUAL_HEIGHT,
   ENEMY_MOVE_SPEED, ENEMY_DEFEAT_FADE_SECONDS, ENEMY_DROP_GRAVITY, ENEMY_DROP_MAX_FALL_SPEED, ENEMY_DROP_SIZE_RATIO,
   SKY_BIRD_UTURN_CHANCE_PER_SEC, SKY_BIRD_UTURN_MIN_INTERVAL,
-  GUARD_TRIGGER_RADIUS, GUARD_MESSAGE_TTL,
+  GUARD_TRIGGER_RADIUS,
   BONUS_POPUP_GRAVITY, BONUS_POPUP_MAX_FALL_SPEED, WORLD_SCALE,
   PLAYER_HIT_INVULN_SECONDS, PLAYER_HIT_STUN_SECONDS,
   PLAYER_HIT_KNOCKBACK_X, PLAYER_HIT_KNOCKBACK_Y, PLAYER_DEATH_DELAY_SECONDS, PLAYER_DEATH_LAUNCH_Y,
@@ -259,8 +259,6 @@ export function updateGuards(delta) {
   const player = state.player;
 
   for (const guard of level.guardSpawns) {
-    guard.animTime += delta;
-
     const dist = Math.abs((player.x + player.w / 2) - (guard.x + guard.w / 2));
     const inRange = dist < GUARD_TRIGGER_RADIUS;
 
@@ -278,19 +276,10 @@ export function updateGuards(delta) {
         const pool = isEndCastleUnlocked(level) ? GUARD_CASTLE_OPEN : GUARD_CASTLE_CLOSED;
         text = pool[Math.floor(Math.random() * pool.length)];
       }
-      state.floatingRewards.push({
-        text,
-        worldX: guard.x + guard.w / 2,
-        worldY: guard.y - 20,
-        rise: 0,
-        life: GUARD_MESSAGE_TTL,
-        ttl: GUARD_MESSAGE_TTL,
-        style: "speech",
-        maxRise: 18,
-        riseSpeed: 8,
-      });
+      guard.speechText = text;
     } else if (!inRange) {
       guard.inRange = false;
+      guard.speechText = null;
     }
   }
 }
