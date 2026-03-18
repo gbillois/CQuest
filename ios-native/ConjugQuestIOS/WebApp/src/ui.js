@@ -192,7 +192,7 @@ function applyLocaleToStaticUi() {
   setText("#closeSettingsBtn", "close");
   setText("#forcePwaUpdateBtn", "update");
   setText(".title-kicker", "titleKicker");
-  setText(".title-card > p:nth-of-type(2)", "titleSubtitle");
+  setText(".title-card > p:nth-of-type(3)", "titleSubtitle");
   setText("#startBtn", "startGame");
   setText("#openLeaderboardBtn", "leaderboardButton");
   setText("#openSettingsFromTitleBtn", "settings");
