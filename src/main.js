@@ -31,6 +31,7 @@ import {
 import {
   loadPersistentGold, normalizeWorldZoom, loadWorldZoom, saveWorldZoom,
   initializeHeroProgress, setRenderHeroShop, loadTileStyleMode, loadLeaderboard,
+  loadMobileButtonsOffset, loadMobileGameOffset,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
 
@@ -112,6 +113,8 @@ async function init() {
   state.tileStyleMode = loadTileStyleMode();
   state.worldZoom = normalizeWorldZoom(loadWorldZoom());
   state.leaderboard = loadLeaderboard();
+  state.mobileButtonsOffsetY = loadMobileButtonsOffset();
+  state.mobileGameOffsetY = loadMobileGameOffset();
   syncWorldZoomUi();
   state.pedagogy.activeGroups = getDefaultActiveGroups();
   state.duel = createConjugationDuelSystem({
@@ -415,18 +418,26 @@ function computeViewportHeight() {
   if (typeof window === "undefined") {
     return 0;
   }
-  const viewportHeight = window.visualViewport?.height;
-  const innerHeight = window.innerHeight;
-  if (!viewportHeight && !innerHeight) {
+  const heights = [window.visualViewport?.height, window.innerHeight]
+    .map((value) => Number(value) || 0)
+    .filter((value) => value > 0);
+  if (!heights.length) {
     return 0;
   }
-  if (!viewportHeight) {
-    return innerHeight;
+  return Math.min(...heights);
+}
+
+function computeViewportWidth() {
+  if (typeof window === "undefined") {
+    return 0;
   }
-  if (!innerHeight) {
-    return viewportHeight;
+  const widths = [window.visualViewport?.width, window.innerWidth]
+    .map((value) => Number(value) || 0)
+    .filter((value) => value > 0);
+  if (!widths.length) {
+    return 0;
   }
-  return Math.max(viewportHeight, innerHeight);
+  return Math.min(...widths);
 }
 
 function applyViewportCssVars() {
@@ -434,10 +445,14 @@ function applyViewportCssVars() {
     return;
   }
   const height = Math.round(computeViewportHeight());
+  const width = Math.round(computeViewportWidth());
   if (!height) {
     return;
   }
   document.documentElement.style.setProperty("--app-height", `${height}px`);
+  if (width) {
+    document.documentElement.style.setProperty("--app-width", `${width}px`);
+  }
 }
 
 function registerViewportCssVarSync() {

@@ -414,18 +414,13 @@ function computeViewportHeight() {
   if (typeof window === "undefined") {
     return 0;
   }
-  const viewportHeight = window.visualViewport?.height;
-  const innerHeight = window.innerHeight;
-  if (!viewportHeight && !innerHeight) {
+  const heights = [window.visualViewport?.height, window.innerHeight]
+    .map((value) => Number(value) || 0)
+    .filter((value) => value > 0);
+  if (!heights.length) {
     return 0;
   }
-  if (!viewportHeight) {
-    return innerHeight;
-  }
-  if (!innerHeight) {
-    return viewportHeight;
-  }
-  return Math.max(viewportHeight, innerHeight);
+  return Math.min(...heights);
 }
 
 function applyViewportCssVars() {
