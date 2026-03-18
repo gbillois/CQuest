@@ -1,5 +1,5 @@
 import {
-  VIRTUAL_WIDTH, VIRTUAL_HEIGHT, HERO_SCALE, ENEMY_SCALE, WORLD_SCALE,
+  VIRTUAL_WIDTH, VIRTUAL_HEIGHT, HERO_SCALE, ENEMY_SCALE, WORLD_SCALE, SKY_BIRD_SCALE,
   BIOME_BACKGROUNDS, BIOME_PARALLAX_BACKGROUNDS, BIOME_EMOJI,
   GROUND_THICKNESS_TILES, GROUND_TILE_OVERLAP_PX, GROUND_TILE_HORIZONTAL_OVERLAP_PX,
   GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO,
@@ -141,6 +141,7 @@ export function render(timeSeconds) {
     drawGroundDecorations(level, { foreground: false });
     drawDecorations(level);
     drawBonuses(level, timeSeconds);
+    drawSkyBirds(level);
     drawAnimals(level);
     drawEnemies(level);
     drawFireballs(level);
@@ -658,6 +659,23 @@ export function drawEnemies(level) {
       ctx.fillStyle = "#cf4b4b";
       ctx.fillRect(enemy.x, enemy.y + riseOffset, enemy.w, enemy.h);
       ctx.restore();
+    }
+  }
+}
+
+export function drawSkyBirds(level) {
+  if (!level.skyBirdSpawns?.length) return;
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
+  for (const bird of level.skyBirdSpawns) {
+    if (bird.x + bird.w < camLeft || bird.x > camRight) continue;
+    const image = pickEnemyFrame(bird);
+    const drawW = bird.def.size.width * SKY_BIRD_SCALE;
+    const drawH = bird.def.size.height * SKY_BIRD_SCALE;
+    if (isImageRenderable(image)) {
+      const rect = getEntitySpriteDrawRect(image, bird, drawW, drawH);
+      ctx.drawImage(image, rect.x, rect.y, drawW, drawH);
     }
   }
 }

@@ -597,6 +597,7 @@ export function scheduleBackgroundWarmup(config) {
     Promise.all(state.heroes.map((hero) => preloadHeroSprites(hero))).catch(() => null);
     Promise.all(state.enemies.map((enemy) => preloadEnemySprites(enemy))).catch(() => null);
     Promise.all(state.animals.map((animal) => preloadEnemySprites(animal))).catch(() => null);
+    Promise.all((state.skyBirds || []).map((bird) => preloadEnemySprites(bird))).catch(() => null);
   }, 0);
 }
 
