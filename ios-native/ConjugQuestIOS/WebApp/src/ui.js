@@ -18,6 +18,7 @@ import {
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
   loadParentalCode, saveParentalCode, resetStoredGameProgress,
   addLeaderboardEntry, isLeaderboardNameAllowed,
+  saveMobileButtonsOffset, saveMobileGameOffset,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
@@ -865,6 +866,8 @@ export function bindControls() {
   });
 
   ui.applySettingsBtn.addEventListener("click", () => {
+    saveMobileButtonsOffset(state.mobileButtonsOffsetY);
+    saveMobileGameOffset(state.mobileGameOffsetY);
     closeSettingsPanel();
   });
 
