@@ -889,7 +889,8 @@ export function pickEnemyFrame(enemy) {
 
   if (walkSet && walkSet.length) {
     const index = Math.floor(enemy.animTime * 9) % walkSet.length;
-    return imageCache.get(walkSet[index]);
+    const walkImage = imageCache.get(walkSet[index]);
+    if (walkImage) return walkImage;
   }
 
   return imageCache.get(idle);

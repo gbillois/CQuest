@@ -995,6 +995,9 @@ async function buildAnimalFromMetadata(dir, metadata) {
   if (!eastOk) animal.sprite.idleE = animal.sprite.idleW;
   if (!westOk) animal.sprite.idleW = animal.sprite.idleE;
 
+  // Preload walk frames in background so they are ready when the animal first renders.
+  Promise.all([...walkE, ...walkW].map((path) => loadImage(path).catch(() => null)));
+
   return animal;
 }
 
