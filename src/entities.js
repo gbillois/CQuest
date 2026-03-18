@@ -23,7 +23,7 @@ import {
 } from "./constants.js";
 import { clamp, aabb, circleIntersectsRect } from "./utils.js";
 import { state, ui, imageCache } from "./state.js";
-import { t } from "./i18n.js";
+import { getLocale, t } from "./i18n.js";
 import { resolveHorizontalCollisions, resolveVerticalCollisions, isSolidAtPoint, getNearbySolidRects, resolveBonusPopupVerticalCollision } from "./physics.js";
 import { isImageRenderable } from "./asset-loader.js";
 import { grantGold } from "./persistence.js";
@@ -147,19 +147,34 @@ export function updateAnimals(delta) {
     animal.prevY = animal.y;
     animal.animTime += delta;
 
+    const patrolMin = Number.isFinite(animal.patrolMin) ? animal.patrolMin : 0;
+    const patrolMax = Number.isFinite(animal.patrolMax) ? animal.patrolMax : (level.worldWidth - animal.w);
+    if (animal.x <= patrolMin) {
+      animal.x = patrolMin;
+      animal.dir = 1;
+    } else if (animal.x >= patrolMax) {
+      animal.x = patrolMax;
+      animal.dir = -1;
+    }
+
     let dir = animal.dir >= 0 ? 1 : -1;
     if (animal.onGround) {
-      const wallAhead = enemyHasObstacleAhead(animal, level, dir);
-      const supportAhead = enemyHasSupportAhead(animal, level, dir, 5);
-      if (wallAhead || !supportAhead) {
+      const nextX = animal.x + dir * Math.max(6, ENEMY_MOVE_SPEED * delta);
+      if ((dir < 0 && nextX <= patrolMin) || (dir > 0 && nextX >= patrolMax)) {
         dir *= -1;
+      } else {
+        const wallAhead = enemyHasObstacleAhead(animal, level, dir);
+        const supportAhead = enemyHasSupportAhead(animal, level, dir, 5);
+        if (wallAhead || !supportAhead) {
+          dir *= -1;
+        }
       }
     }
 
     animal.dir = dir;
     animal.vx = dir * ENEMY_MOVE_SPEED;
     const prevX = animal.x;
-    animal.x += animal.vx * delta;
+    animal.x = clamp(animal.x + animal.vx * delta, patrolMin, patrolMax);
     resolveHorizontalCollisions(animal, level);
 
     if (Math.abs(animal.x - prevX) < 0.05) {
@@ -171,9 +186,11 @@ export function updateAnimals(delta) {
       animal.dir *= -1;
     }
 
-    if (animal.x <= 0) {
+    if (animal.x <= patrolMin) {
+      animal.x = patrolMin;
       animal.dir = 1;
-    } else if (animal.x >= level.worldWidth - animal.w) {
+    } else if (animal.x >= patrolMax) {
+      animal.x = patrolMax;
       animal.dir = -1;
     }
 
@@ -214,44 +231,120 @@ export function updateSkyBirds(delta) {
 }
 
 // ─── Guard texts ───
-const GUARD_TOWER_TEXTS = {
-  forest: [
-    "The forest cheers for you, brave hero!",
-    "These ancient oaks bow before the finest champion!",
-    "The woodland spirits are with you today!",
-  ],
-  desert: [
-    "The desert sands remember the truly brave!",
-    "Even the scorpions bow before your courage!",
-    "The blazing sun shines brightest on a true hero!",
-  ],
-  mountain: [
-    "The peaks echo with your glory!",
-    "These rocky roads are no match for your resolve!",
-    "The summit itself salutes your determination!",
-  ],
-  snow: [
-    "Cold out here, but great to see you, hero!",
-    "The snowflakes dance in your honor, champion!",
-    "Your spirit warms even the most frozen peaks!",
-  ],
-  desolation: [
-    "Even in desolation, a true hero shines!",
-    "The shadows flee before your courage!",
-    "This grim land has never seen such a warrior!",
-  ],
+const GUARD_DIALOGS = {
+  en: {
+    tower: {
+      forest: [
+        "The forest cheers for you, brave hero!",
+        "These ancient oaks bow before the finest champion!",
+        "The woodland spirits are with you today!",
+      ],
+      desert: [
+        "The desert sands remember the truly brave!",
+        "Even the scorpions bow before your courage!",
+        "The blazing sun shines brightest on a true hero!",
+      ],
+      mountain: [
+        "The peaks echo with your glory!",
+        "These rocky roads are no match for your resolve!",
+        "The summit itself salutes your determination!",
+      ],
+      snow: [
+        "Cold out here, but great to see you, hero!",
+        "The snowflakes dance in your honor, champion!",
+        "Your spirit warms even the most frozen peaks!",
+      ],
+      desolation: [
+        "Even in desolation, a true hero shines!",
+        "The shadows flee before your courage!",
+        "This grim land has never seen such a warrior!",
+      ],
+      castle: [
+        "The royal road suits a hero like you!",
+        "The kingdom is watching your final approach!",
+        "Your courage carries you to the castle gates!",
+      ],
+      default: [
+        "A true hero is always welcome here!",
+        "Your courage gives hope to the whole realm!",
+        "Keep going, champion — glory is near!",
+      ],
+    },
+    towerTreasure: "A treasure awaits inside — if you can beat the challenge!",
+    castleClosed: [
+      "Halt! Beat more foes first to open the gate!",
+      "The gate stays sealed — more challenges remain!",
+      "Prove your worth, then return, hero!",
+    ],
+    castleOpen: [
+      "Congratulations! The next level awaits, champion!",
+      "You've done it! Walk through with pride!",
+      "All clear! Onward, great hero!",
+    ],
+  },
+  fr: {
+    tower: {
+      forest: [
+        "La forêt t'acclame, brave héros !",
+        "Les chênes anciens saluent ton courage !",
+        "Les esprits des bois veillent sur toi aujourd'hui !",
+      ],
+      desert: [
+        "Le désert se souvient des plus courageux !",
+        "Même les scorpions respectent ta bravoure !",
+        "Le soleil brûlant éclaire les vrais héros !",
+      ],
+      mountain: [
+        "Les sommets résonnent de ta gloire !",
+        "Ces sentiers rocheux ne te résisteront pas !",
+        "La montagne elle-même salue ta détermination !",
+      ],
+      snow: [
+        "Il fait froid ici, mais quel plaisir de te voir, héros !",
+        "Les flocons dansent en ton honneur, champion !",
+        "Ton courage réchauffe même les pics gelés !",
+      ],
+      desolation: [
+        "Même en désolation, un vrai héros rayonne !",
+        "Les ombres reculent devant ton courage !",
+        "Cette terre sinistre n'avait jamais vu pareil guerrier !",
+      ],
+      castle: [
+        "La route royale convient à un héros comme toi !",
+        "Le royaume observe ton approche du château !",
+        "Ton courage te mène jusqu'aux portes du château !",
+      ],
+      default: [
+        "Un vrai héros est toujours le bienvenu ici !",
+        "Ton courage redonne espoir à tout le royaume !",
+        "Continue, champion : la gloire est proche !",
+      ],
+    },
+    towerTreasure: "Un trésor t'attend à l'intérieur, si tu réussis l'épreuve !",
+    castleClosed: [
+      "Halte ! Bats encore des ennemis pour ouvrir la porte !",
+      "La porte reste scellée : d'autres épreuves t'attendent !",
+      "Prouve ta valeur, puis reviens, héros !",
+    ],
+    castleOpen: [
+      "Bravo ! Le niveau suivant t'attend, champion !",
+      "Tu l'as fait ! Entre avec fierté !",
+      "La voie est libre ! En avant, grand héros !",
+    ],
+  },
 };
-const GUARD_TOWER_TREASURE = "A treasure awaits inside — if you can beat the challenge!";
-const GUARD_CASTLE_CLOSED = [
-  "Halt! Beat more foes first to open the gate!",
-  "The gate stays sealed — more challenges remain!",
-  "Prove your worth, then return, hero!",
-];
-const GUARD_CASTLE_OPEN = [
-  "Congratulations! The next level awaits, champion!",
-  "You've done it! Walk through with pride!",
-  "All clear! Onward, great hero!",
-];
+
+function getGuardDialogSet() {
+  return GUARD_DIALOGS[getLocale()] || GUARD_DIALOGS.en;
+}
+
+function pickRandomGuardLine(lines, fallback) {
+  const pool = Array.isArray(lines) && lines.length ? lines : fallback;
+  if (!Array.isArray(pool) || !pool.length) {
+    return "";
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 export function updateGuards(delta) {
   const level = state.currentLevel;
@@ -264,17 +357,19 @@ export function updateGuards(delta) {
 
     if (inRange && !guard.inRange) {
       guard.inRange = true;
+      const dialogSet = getGuardDialogSet();
       let text;
       if (guard.type === "tower") {
-        const pool = GUARD_TOWER_TEXTS[level.biomeId] || GUARD_TOWER_TEXTS.forest;
-        text = pool[Math.floor(Math.random() * pool.length)];
+        const pool = dialogSet.tower?.[level.biomeId] || dialogSet.tower?.default || GUARD_DIALOGS.en.tower.default;
+        text = pickRandomGuardLine(pool, GUARD_DIALOGS.en.tower.default);
         const chestState = state.towerInterior?.chestState;
         if (chestState === "locked") {
-          text += " " + GUARD_TOWER_TREASURE;
+          text += ` ${dialogSet.towerTreasure || GUARD_DIALOGS.en.towerTreasure}`;
         }
       } else {
-        const pool = isEndCastleUnlocked(level) ? GUARD_CASTLE_OPEN : GUARD_CASTLE_CLOSED;
-        text = pool[Math.floor(Math.random() * pool.length)];
+        const castleUnlocked = isEndCastleUnlocked(level);
+        const pool = castleUnlocked ? dialogSet.castleOpen : dialogSet.castleClosed;
+        text = pickRandomGuardLine(pool, castleUnlocked ? GUARD_DIALOGS.en.castleOpen : GUARD_DIALOGS.en.castleClosed);
       }
       guard.speechText = text;
     } else if (!inRange) {
