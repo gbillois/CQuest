@@ -11,7 +11,11 @@ import {
   PLATFORM_STYLE_IDS, PLATFORM_TILE_PREFIX_BY_STYLE,
   PLATFORM_TILE_ROWS_BY_STYLE, PLATFORM_TILE_COLS_BY_STYLE, PLATFORM_TILE_INCLUDE_INDEX_BY_STYLE,
   FIXED_LEVEL_BIOME_ORDER, GENERATION_PROFILES,
-  BIOME_ANIMAL_IDS_BY_BIOME, BIOME_ENEMY_IDS_BY_BIOME,
+  BIOME_ANIMAL_IDS_BY_BIOME, BIOME_ENEMY_IDS_BY_BIOME, BIOME_SKY_BIRD_IDS,
+  SKY_BIRD_SCALE, SKY_BIRD_COUNT_MIN, SKY_BIRD_COUNT_MAX,
+  CROW_SPEED, CROW_SWOOP_AMPLITUDE, CROW_SWOOP_FREQUENCY,
+  SPARROW_SPEED, SPARROW_SWOOP_AMPLITUDE, SPARROW_SWOOP_FREQUENCY,
+  SKY_BIRD_UTURN_MIN_INTERVAL,
   getGenerationProfileSettings,
 } from "./constants.js";
 import { mulberry32, randInt, createRunSeed, clamp, setTile, buildWeightedBiomeList, weightedPick, weightedPickByKey } from "./utils.js";
@@ -935,6 +939,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
   const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid });
+  const skyBirdSpawns = buildSkyBirdSpawns({ biomeId, rand, groundY: baseGroundY, worldWidth: widthTiles * state.tileSize });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
     enemySpawns[i].verbData = levelVerbDatas[i] || (state.duel ? state.duel.randomVerbData() : null);
@@ -979,6 +984,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     initialEnemyCount: enemySpawns.length,
     defeatedEnemyCount: 0,
     animalSpawns,
+    skyBirdSpawns,
     structures,
     start,
     end,
@@ -1880,6 +1886,45 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   }
 
   return enemies;
+}
+
+function buildSkyBirdSpawns({ biomeId, rand, groundY, worldWidth }) {
+  const allowedIds = BIOME_SKY_BIRD_IDS[biomeId];
+  if (!allowedIds?.length) return [];
+  const pool = (state.skyBirds || []).filter((b) => allowedIds.includes(b.id));
+  if (!pool.length) return [];
+
+  const count = randInt(rand, SKY_BIRD_COUNT_MIN, SKY_BIRD_COUNT_MAX);
+  const skyTop = 2 * state.tileSize;
+  const skyBottom = (groundY - 6) * state.tileSize;
+  if (skyBottom <= skyTop) return [];
+
+  const birds = [];
+  for (let i = 0; i < count; i++) {
+    const def = pool[Math.floor(rand() * pool.length)];
+    const isCrow = def.id === "forest-crow";
+    const speed = isCrow ? CROW_SPEED : SPARROW_SPEED;
+    const swoopAmp = isCrow ? CROW_SWOOP_AMPLITUDE : SPARROW_SWOOP_AMPLITUDE;
+    const swoopFreq = isCrow ? CROW_SWOOP_FREQUENCY : SPARROW_SWOOP_FREQUENCY;
+    const baseY = skyTop + rand() * (skyBottom - skyTop);
+    const dir = rand() < 0.5 ? 1 : -1;
+    birds.push({
+      def,
+      x: rand() * worldWidth,
+      y: baseY,
+      dir,
+      baseY,
+      swoopPhase: rand() * Math.PI * 2,
+      swoopAmp,
+      swoopFreq,
+      speed,
+      uTurnCooldown: SKY_BIRD_UTURN_MIN_INTERVAL * rand(),
+      animTime: rand() * 3,
+      w: def.size.width * SKY_BIRD_SCALE,
+      h: def.size.height * SKY_BIRD_SCALE,
+    });
+  }
+  return birds;
 }
 
 function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {

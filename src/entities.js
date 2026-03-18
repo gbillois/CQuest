@@ -1,6 +1,7 @@
 import {
   GAME, VIRTUAL_WIDTH, VIRTUAL_HEIGHT,
   ENEMY_MOVE_SPEED, ENEMY_DEFEAT_FADE_SECONDS, ENEMY_DROP_GRAVITY, ENEMY_DROP_MAX_FALL_SPEED, ENEMY_DROP_SIZE_RATIO,
+  SKY_BIRD_UTURN_CHANCE_PER_SEC, SKY_BIRD_UTURN_MIN_INTERVAL,
   BONUS_POPUP_GRAVITY, BONUS_POPUP_MAX_FALL_SPEED, WORLD_SCALE,
   PLAYER_HIT_INVULN_SECONDS, PLAYER_HIT_STUN_SECONDS,
   PLAYER_HIT_KNOCKBACK_X, PLAYER_HIT_KNOCKBACK_Y, PLAYER_DEATH_DELAY_SECONDS, PLAYER_DEATH_LAUNCH_Y,
@@ -178,6 +179,36 @@ export function updateAnimals(delta) {
     animal.vy = Math.min(animal.vy + GAME.gravity * delta, GAME.maxFallVelocity);
     animal.y += animal.vy * delta;
     resolveVerticalCollisions(animal, level);
+  }
+}
+
+export function updateSkyBirds(delta) {
+  const level = state.currentLevel;
+  if (!level?.skyBirdSpawns?.length) return;
+
+  for (const bird of level.skyBirdSpawns) {
+    bird.animTime += delta;
+
+    // Random u-turn
+    bird.uTurnCooldown = Math.max(0, bird.uTurnCooldown - delta);
+    if (bird.uTurnCooldown <= 0 && Math.random() < SKY_BIRD_UTURN_CHANCE_PER_SEC * delta) {
+      bird.dir *= -1;
+      bird.uTurnCooldown = SKY_BIRD_UTURN_MIN_INTERVAL;
+    }
+
+    // Horizontal movement
+    bird.x += bird.dir * bird.speed * delta;
+
+    // Wrap around level edges (disappear and reappear on opposite side)
+    if (bird.dir > 0 && bird.x > level.worldWidth + bird.w) {
+      bird.x = -bird.w;
+    } else if (bird.dir < 0 && bird.x < -bird.w * 2) {
+      bird.x = level.worldWidth + bird.w;
+    }
+
+    // Sinusoidal swoop
+    bird.swoopPhase += bird.swoopFreq * Math.PI * 2 * delta;
+    bird.y = bird.baseY + Math.sin(bird.swoopPhase) * bird.swoopAmp;
   }
 }
 

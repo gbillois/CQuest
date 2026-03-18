@@ -2,7 +2,7 @@
 // Handles all image/asset loading for ConjugQuest.
 
 import {
-  KNOWN_HERO_DIRS, KNOWN_ENEMY_DIRS, KNOWN_ANIMAL_DIRS, IMAGE_LOAD_TIMEOUT_MS, ASSET_PROBE_TIMEOUT_MS,
+  KNOWN_HERO_DIRS, KNOWN_ENEMY_DIRS, KNOWN_ANIMAL_DIRS, KNOWN_SKY_BIRD_DIRS, IMAGE_LOAD_TIMEOUT_MS, ASSET_PROBE_TIMEOUT_MS,
   MAGE_FIREBALL_ICON, BIOME_PARALLAX_BACKGROUNDS, BOSS_DRAGON_ATTACK_SW_FRAMES,
   BOSS_FALLBACK_DRAGON_FRAME, GROUND_THICKNESS_TILES,
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
@@ -861,6 +861,24 @@ export function ensureEmergencyRoster() {
       },
     });
   }
+}
+
+export async function loadSkyBirds() {
+  const birds = [];
+  const birdDirs = await resolveRosterDirsFromManifest("animals", KNOWN_SKY_BIRD_DIRS);
+
+  await Promise.all(
+    birdDirs.map(async (dir) => {
+      const metadataPath = `./game_assets/animals/${dir}/metadata.json`;
+      const metadata = await fetchJson(metadataPath).catch(() => null);
+      const bird = metadata ? await buildAnimalFromMetadata(dir, metadata) : await buildEnemyFromConvention_animals(dir);
+      if (!bird) return;
+      bird.isSkyBird = true;
+      birds.push(bird);
+    }),
+  );
+
+  state.skyBirds = birds;
 }
 
 export async function loadAnimals() {

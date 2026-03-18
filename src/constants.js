@@ -97,17 +97,17 @@ export const KNOWN_ENEMY_DIRS = [
   "mountain-snake", "snow-yeti", "snow-zombie", "snow-fox", "desolation-wolf",
 ];
 export const KNOWN_ANIMAL_DIRS = [
-  "forest-goat", "forest-sheep",
+  "forest-goat", "forest-sheep", "forest-rabbit",
   "desert-camel", "desert-fennec",
   "mountain-marmot", "mountain-ibex",
-  "snow-reindeer", "snow-otter",
+  "snow-reindeer", "snow-otter", "snow-rabbit",
   "desolation-frog", "desolation-earthworm",
 ];
 export const BIOME_ANIMAL_IDS_BY_BIOME = {
-  forest: ["forest-goat", "forest-sheep"],
+  forest: ["forest-goat", "forest-sheep", "forest-rabbit"],
   desert: ["desert-camel", "desert-fennec"],
   mountain: ["mountain-marmot", "mountain-ibex"],
-  snow: ["snow-reindeer", "snow-otter"],
+  snow: ["snow-reindeer", "snow-otter", "snow-rabbit"],
   desolation: ["desolation-frog", "desolation-earthworm"],
 };
 export const BIOME_ENEMY_IDS_BY_BIOME = {
@@ -119,6 +119,24 @@ export const BIOME_ENEMY_IDS_BY_BIOME = {
 };
 export const ANIMAL_BOUNCE_VELOCITY = -520;
 export const FIXED_LEVEL_BIOME_ORDER = ["forest", "desert", "mountain", "snow", "desolation"];
+
+// ─── Sky birds ───
+export const KNOWN_SKY_BIRD_DIRS = ["forest-crow", "forest-sparrow"];
+export const BIOME_SKY_BIRD_IDS = { forest: ["forest-crow", "forest-sparrow"] };
+export const SKY_BIRD_SCALE = 1.5;
+export const SKY_BIRD_COUNT_MIN = 3;
+export const SKY_BIRD_COUNT_MAX = 5;
+// Crow: slower, wide lazy swoop
+export const CROW_SPEED = 85;
+export const CROW_SWOOP_AMPLITUDE = 48;
+export const CROW_SWOOP_FREQUENCY = 0.3;
+// Sparrow: faster, tight quick swoop
+export const SPARROW_SPEED = 155;
+export const SPARROW_SWOOP_AMPLITUDE = 20;
+export const SPARROW_SWOOP_FREQUENCY = 1.1;
+// U-turn behaviour
+export const SKY_BIRD_UTURN_MIN_INTERVAL = 5;
+export const SKY_BIRD_UTURN_CHANCE_PER_SEC = 0.1;
 
 // ─── Biome visuals ───
 export const BIOME_BACKGROUNDS = {
