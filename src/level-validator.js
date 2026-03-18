@@ -68,57 +68,111 @@ export function checkTraversability(level) {
   const heightTiles = level.heightTiles;
   const maxJump = getMaxJumpTiles();
   const maxHeight = getMaxJumpHeightTiles();
+  const playerSize = getPlayerDimensions();
+  const tileSize = state.tileSize || 64;
+  const playerHeightTiles = Math.max(1, Math.ceil((playerSize.h || PLAYER_HITBOX_HEIGHT) / tileSize));
 
   const startTileX = Math.floor(level.start.x / (state.tileSize || 64));
   const endTileX = Math.floor(level.end.x / (state.tileSize || 64));
 
-  // Build surface map: for each column, find the highest solid tile.
+  // Build surface map: for each column, find the highest standable solid tile
+  // with enough headroom for the player's hitbox.
   const surfaceY = new Array(widthTiles).fill(-1);
   for (let x = 0; x < widthTiles; x++) {
     for (let y = 0; y <= groundY + 3; y++) {
-      if (hasSolidAt(grid, x, y, heightTiles)) {
+      if (hasSolidAt(grid, x, y, heightTiles) && hasPlayerHeadroom(grid, x, y, playerHeightTiles, heightTiles)) {
         surfaceY[x] = y;
         break;
       }
     }
   }
 
-  let currentX = startTileX;
-  let gapStart = -1;
+  const scanDirection = (startX, endX, step, directionLabel) => {
+    let currentX = startX;
+    let gapStart = -1;
 
-  while (currentX < endTileX) {
-    if (surfaceY[currentX] >= 0) {
-      if (gapStart >= 0) gapStart = -1;
-      currentX++;
-      continue;
-    }
-    if (gapStart < 0) gapStart = currentX;
+    while ((step > 0 && currentX < endX) || (step < 0 && currentX > endX)) {
+      const nextX = currentX + step;
+      const currentSurface = surfaceY[currentX];
+      const nextSurface = surfaceY[nextX];
 
-    let foundLanding = false;
-    for (let ahead = 1; ahead <= maxJump + 1; ahead++) {
-      const landX = gapStart + ahead;
-      if (landX >= widthTiles) break;
-      if (surfaceY[landX] >= 0) {
-        const jumpFromY = surfaceY[gapStart - 1] >= 0 ? surfaceY[gapStart - 1] : groundY;
-        const landOnY = surfaceY[landX];
-        if (jumpFromY - landOnY > maxHeight) {
-          issues.push(`Gap at x=${gapStart}-${landX}: landing ${jumpFromY - landOnY} tiles above takeoff (max ${maxHeight})`);
+      if (currentSurface >= 0 && nextSurface >= 0) {
+        // Stepping up requires jump capability and overhead space for ascent.
+        if (nextSurface < currentSurface) {
+          const rise = currentSurface - nextSurface;
+          if (rise > maxHeight) {
+            issues.push(`${directionLabel}: step-up at x=${currentX}->${nextX} needs ${rise} tiles (max ${maxHeight})`);
+          } else if (!hasJumpHeadroom(grid, currentX, currentSurface, rise, playerHeightTiles, heightTiles)) {
+            issues.push(`${directionLabel}: blocked jump arc near x=${currentX}->${nextX} (insufficient headroom)`);
+          }
         }
-        currentX = landX;
-        foundLanding = true;
+
+        if (gapStart >= 0) {
+          gapStart = -1;
+        }
+        currentX = nextX;
+        continue;
+      }
+
+      if (gapStart < 0) {
+        gapStart = nextX;
+      }
+
+      let foundLanding = false;
+      for (let ahead = 1; ahead <= maxJump + 1; ahead++) {
+        const landX = gapStart + ahead * step;
+        if (landX < 0 || landX >= widthTiles) break;
+        if (surfaceY[landX] >= 0) {
+          const jumpFromY = surfaceY[currentX] >= 0 ? surfaceY[currentX] : groundY;
+          const landOnY = surfaceY[landX];
+          if (jumpFromY - landOnY > maxHeight) {
+            issues.push(`${directionLabel}: gap at x=${Math.min(gapStart, landX)}-${Math.max(gapStart, landX)} landing ${jumpFromY - landOnY} tiles above takeoff (max ${maxHeight})`);
+          }
+          currentX = landX;
+          foundLanding = true;
+          gapStart = -1;
+          break;
+        }
+      }
+
+      if (!foundLanding) {
+        issues.push(`${directionLabel}: impassable gap near tile x=${gapStart} (>${maxJump} tiles wide)`);
+        currentX = gapStart + step * (maxJump + 1);
         gapStart = -1;
-        break;
       }
     }
+  };
 
-    if (!foundLanding) {
-      issues.push(`Impassable gap starting at tile x=${gapStart} (>${maxJump} tiles wide)`);
-      currentX = gapStart + maxJump + 2;
-      gapStart = -1;
-    }
-  }
+  scanDirection(startTileX, endTileX, 1, "forward");
+  scanDirection(endTileX, startTileX, -1, "backward");
 
   return { traversable: issues.length === 0, issues };
+}
+
+function hasPlayerHeadroom(grid, x, surfaceY, playerHeightTiles, heightTiles) {
+  for (let clearY = surfaceY - 1; clearY >= surfaceY - playerHeightTiles; clearY -= 1) {
+    if (clearY < 0 || clearY >= heightTiles) {
+      return false;
+    }
+    if (isSolidTile(grid[clearY]?.[x]) && !isOneWayPlatformTile(grid[clearY]?.[x])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function hasJumpHeadroom(grid, x, surfaceY, riseTiles, playerHeightTiles, heightTiles) {
+  const maxCheck = Math.max(1, riseTiles + 1);
+  for (let dy = 1; dy <= maxCheck; dy += 1) {
+    const row = surfaceY - playerHeightTiles - dy;
+    if (row < 0 || row >= heightTiles) {
+      return false;
+    }
+    if (isSolidTile(grid[row]?.[x]) && !isOneWayPlatformTile(grid[row]?.[x])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // ─── Level Quality Scoring (Phase 5 Composite) ───

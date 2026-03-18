@@ -230,8 +230,8 @@ function applyLocaleToStaticUi() {
   setText("#resetGameCancelBtn", "confirmNo");
   setText("#resetGameConfirmBtn", "confirmYes");
   setText("#parentalCodeModalTitle", "parentalCode");
-  setText("#parentalCodeCancelBtn", "confirmNo");
-  setText("#parentalCodeConfirmBtn", "confirmYes");
+  setText("#parentalCodeCancelBtn", "dialogCancel");
+  setText("#parentalCodeConfirmBtn", "dialogOk");
   setText("#errorListLabel", "errorsMade");
   setText("#gameModePanelTitle", "gameMode");
   setText("#settingsGameModeLabel", "gameMode");
