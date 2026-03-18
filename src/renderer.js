@@ -1,5 +1,5 @@
 import {
-  VIRTUAL_WIDTH, VIRTUAL_HEIGHT, HERO_SCALE, ENEMY_SCALE, WORLD_SCALE, SKY_BIRD_SCALE,
+  VIRTUAL_WIDTH, VIRTUAL_HEIGHT, HERO_SCALE, ENEMY_SCALE, WORLD_SCALE, SKY_BIRD_SCALE, GUARD_SCALE,
   BIOME_BACKGROUNDS, BIOME_PARALLAX_BACKGROUNDS, BIOME_EMOJI,
   GROUND_THICKNESS_TILES, GROUND_TILE_OVERLAP_PX, GROUND_TILE_HORIZONTAL_OVERLAP_PX,
   GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO,
@@ -143,6 +143,7 @@ export function render(timeSeconds) {
     drawBonuses(level, timeSeconds);
     drawSkyBirds(level);
     drawAnimals(level);
+    drawGuards(level);
     drawEnemies(level);
     drawFireballs(level);
     drawEnemyDrops(level);
@@ -696,6 +697,26 @@ export function drawAnimals(level) {
     } else {
       ctx.fillStyle = "#6abf69";
       ctx.fillRect(animal.x, animal.y, animal.w, animal.h);
+    }
+  }
+}
+
+export function drawGuards(level) {
+  if (!level.guardSpawns?.length) return;
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
+  for (const guard of level.guardSpawns) {
+    if (guard.x + guard.w < camLeft || guard.x > camRight) continue;
+    const image = pickEnemyFrame(guard);
+    const drawW = guard.def.size.width * GUARD_SCALE;
+    const drawH = guard.def.size.height * GUARD_SCALE;
+    if (isImageRenderable(image)) {
+      const rect = getEntitySpriteDrawRect(image, guard, drawW, drawH);
+      ctx.drawImage(image, rect.x, rect.y, drawW, drawH);
+    } else {
+      ctx.fillStyle = "#8b5e3c";
+      ctx.fillRect(guard.x, guard.y, guard.w, guard.h);
     }
   }
 }
@@ -1364,7 +1385,9 @@ export function updateFloatingRewards(delta) {
   }
   for (const reward of state.floatingRewards) {
     reward.life = Math.max(0, reward.life - delta);
-    reward.rise = Math.min(44, (reward.rise || 0) + delta * 42);
+    const maxRise = reward.maxRise ?? 44;
+    const riseSpeed = reward.riseSpeed ?? 42;
+    reward.rise = Math.min(maxRise, (reward.rise || 0) + delta * riseSpeed);
   }
   state.floatingRewards = state.floatingRewards.filter((reward) => reward.life > 0);
 }
@@ -1389,12 +1412,32 @@ export function drawFloatingRewards(level) {
     }
 
     ctx.globalAlpha = alpha;
-    ctx.font = "700 13px Trebuchet MS";
-    ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
-    ctx.strokeStyle = "rgba(6, 8, 14, 0.9)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(reward.text, screenX, screenY);
-    ctx.fillText(reward.text, screenX, screenY);
+    if (reward.style === "speech") {
+      ctx.font = "bold 12px Trebuchet MS";
+      const padding = 8;
+      const boxW = Math.min(VIRTUAL_WIDTH - 20, ctx.measureText(reward.text).width + padding * 2);
+      const boxH = 22;
+      const boxX = screenX - boxW / 2;
+      const boxY = screenY - boxH / 2;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.strokeStyle = "rgba(40,40,60,0.85)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 5);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#1a1a2e";
+      ctx.strokeStyle = "transparent";
+      ctx.strokeText(reward.text, screenX, screenY);
+      ctx.fillText(reward.text, screenX, screenY);
+    } else {
+      ctx.font = "700 13px Trebuchet MS";
+      ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
+      ctx.strokeStyle = "rgba(6, 8, 14, 0.9)";
+      ctx.lineWidth = 3;
+      ctx.strokeText(reward.text, screenX, screenY);
+      ctx.fillText(reward.text, screenX, screenY);
+    }
   }
   ctx.restore();
 }

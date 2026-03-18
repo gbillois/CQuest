@@ -864,6 +864,45 @@ export function ensureEmergencyRoster() {
   }
 }
 
+export async function loadGuards() {
+  const metadataPath = `./game_assets/guards/royal-guard/metadata.json`;
+  const metadata = await fetchJson(metadataPath).catch(() => null);
+  if (!metadata) { state.guard = null; return; }
+
+  const animations = metadata.frames?.animations || {};
+  const idleSet = animations["breathing-idle"] || animations["walk-6-frames"] || animations.walking || {};
+  const rotations = metadata.frames?.rotations || {};
+  const base = `./game_assets/guards/royal-guard`;
+
+  const walkE = normalizeUniqueAssetPaths((idleSet.east || []).map((f) => toAssetPath(base, f)));
+  const walkW = normalizeUniqueAssetPaths((idleSet.west || []).map((f) => toAssetPath(base, f)));
+
+  const def = {
+    id: "royal-guard",
+    size: {
+      width: metadata.character?.size?.width || 56,
+      height: metadata.character?.size?.height || 56,
+    },
+    sprite: {
+      idleE: toAssetPath(base, rotations.east || rotations.south),
+      idleW: toAssetPath(base, rotations.west || rotations.south),
+      walkE,
+      walkW,
+    },
+  };
+
+  const loaded = await tryLoadImage(def.sprite.idleE).catch(() => false)
+    || await tryLoadImage(def.sprite.idleW).catch(() => false);
+  state.guard = loaded ? def : null;
+
+  if (state.guard) {
+    Promise.all([
+      ...walkE.map((p) => loadImage(p).catch(() => null)),
+      ...walkW.map((p) => loadImage(p).catch(() => null)),
+    ]);
+  }
+}
+
 export async function loadSkyBirds() {
   const birds = [];
   const birdDirs = await resolveRosterDirsFromManifest("animals", KNOWN_SKY_BIRD_DIRS);

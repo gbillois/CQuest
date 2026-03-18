@@ -2,6 +2,7 @@ import {
   GAME, VIRTUAL_WIDTH, VIRTUAL_HEIGHT,
   ENEMY_MOVE_SPEED, ENEMY_DEFEAT_FADE_SECONDS, ENEMY_DROP_GRAVITY, ENEMY_DROP_MAX_FALL_SPEED, ENEMY_DROP_SIZE_RATIO,
   SKY_BIRD_UTURN_CHANCE_PER_SEC, SKY_BIRD_UTURN_MIN_INTERVAL,
+  GUARD_TRIGGER_RADIUS, GUARD_MESSAGE_TTL,
   BONUS_POPUP_GRAVITY, BONUS_POPUP_MAX_FALL_SPEED, WORLD_SCALE,
   PLAYER_HIT_INVULN_SECONDS, PLAYER_HIT_STUN_SECONDS,
   PLAYER_HIT_KNOCKBACK_X, PLAYER_HIT_KNOCKBACK_Y, PLAYER_DEATH_DELAY_SECONDS, PLAYER_DEATH_LAUNCH_Y,
@@ -209,6 +210,88 @@ export function updateSkyBirds(delta) {
     // Sinusoidal swoop
     bird.swoopPhase += bird.swoopFreq * Math.PI * 2 * delta;
     bird.y = bird.baseY + Math.sin(bird.swoopPhase) * bird.swoopAmp;
+  }
+}
+
+// ─── Guard texts ───
+const GUARD_TOWER_TEXTS = {
+  forest: [
+    "The forest cheers for you, brave hero!",
+    "These ancient oaks bow before the finest champion!",
+    "The woodland spirits are with you today!",
+  ],
+  desert: [
+    "The desert sands remember the truly brave!",
+    "Even the scorpions bow before your courage!",
+    "The blazing sun shines brightest on a true hero!",
+  ],
+  mountain: [
+    "The peaks echo with your glory!",
+    "These rocky roads are no match for your resolve!",
+    "The summit itself salutes your determination!",
+  ],
+  snow: [
+    "Cold out here, but great to see you, hero!",
+    "The snowflakes dance in your honor, champion!",
+    "Your spirit warms even the most frozen peaks!",
+  ],
+  desolation: [
+    "Even in desolation, a true hero shines!",
+    "The shadows flee before your courage!",
+    "This grim land has never seen such a warrior!",
+  ],
+};
+const GUARD_TOWER_TREASURE = "A treasure awaits inside — if you can beat the challenge!";
+const GUARD_CASTLE_CLOSED = [
+  "Halt! Beat more foes first to open the gate!",
+  "The gate stays sealed — more challenges remain!",
+  "Prove your worth, then return, hero!",
+];
+const GUARD_CASTLE_OPEN = [
+  "Congratulations! The next level awaits, champion!",
+  "You've done it! Walk through with pride!",
+  "All clear! Onward, great hero!",
+];
+
+export function updateGuards(delta) {
+  const level = state.currentLevel;
+  if (!level?.guardSpawns?.length) return;
+  const player = state.player;
+
+  for (const guard of level.guardSpawns) {
+    guard.animTime += delta;
+
+    const dist = Math.abs((player.x + player.w / 2) - (guard.x + guard.w / 2));
+    const inRange = dist < GUARD_TRIGGER_RADIUS;
+
+    if (inRange && !guard.inRange) {
+      guard.inRange = true;
+      let text;
+      if (guard.type === "tower") {
+        const pool = GUARD_TOWER_TEXTS[level.biomeId] || GUARD_TOWER_TEXTS.forest;
+        text = pool[Math.floor(Math.random() * pool.length)];
+        const chestState = state.towerInterior?.chestState;
+        if (chestState === "locked") {
+          text += " " + GUARD_TOWER_TREASURE;
+        }
+      } else {
+        const pool = isEndCastleUnlocked(level) ? GUARD_CASTLE_OPEN : GUARD_CASTLE_CLOSED;
+        text = pool[Math.floor(Math.random() * pool.length)];
+      }
+      state.floatingRewards.push({
+        text,
+        worldX: guard.x + guard.w / 2,
+        worldY: guard.y - 20,
+        rise: 0,
+        life: GUARD_MESSAGE_TTL,
+        ttl: GUARD_MESSAGE_TTL,
+        style: "speech",
+        maxRise: 18,
+        riseSpeed: 8,
+      });
+    } else if (!inRange) {
+      guard.inRange = false;
+    }
   }
 }
 

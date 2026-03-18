@@ -940,6 +940,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   });
   const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid });
   const skyBirdSpawns = buildSkyBirdSpawns({ biomeId, rand, groundY: baseGroundY, worldWidth: widthTiles * state.tileSize });
+  const guardSpawns = buildGuardSpawns({ groundY: baseGroundY, towerTileX, castleTileX, worldWidth: widthTiles * state.tileSize });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
   for (let i = 0; i < enemySpawns.length; i += 1) {
     enemySpawns[i].verbData = levelVerbDatas[i] || (state.duel ? state.duel.randomVerbData() : null);
@@ -985,6 +986,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     defeatedEnemyCount: 0,
     animalSpawns,
     skyBirdSpawns,
+    guardSpawns,
     structures,
     start,
     end,
@@ -1886,6 +1888,55 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
   }
 
   return enemies;
+}
+
+function buildGuardSpawns({ groundY, towerTileX, castleTileX, worldWidth }) {
+  const def = state.guard;
+  if (!def) return [];
+
+  const ts = state.tileSize;
+  const guardW = 40;
+  const guardH = 100;
+  const groundPx = groundY * ts;
+  const towerW = 116;
+  const castleW = Math.round(220 * 1.5); // CASTLE_SCALE = 1.5
+  const guards = [];
+
+  // Tower guard — 2 tiles left of the tower's left edge, facing west toward approaching player
+  const towerLeft = Math.max(0, towerTileX * ts - towerW / 2);
+  const towerGuardX = towerLeft - 2 * ts - guardW;
+  if (towerGuardX > 2 * ts) {
+    guards.push({
+      def,
+      x: towerGuardX,
+      y: groundPx - guardH,
+      w: guardW,
+      h: guardH,
+      dir: -1,
+      type: "tower",
+      inRange: false,
+      animTime: Math.random() * 3,
+    });
+  }
+
+  // Castle guard — 2 tiles left of the castle's left edge, facing west
+  const castleLeft = Math.max(0, castleTileX * ts - castleW / 2);
+  const castleGuardX = castleLeft - 2 * ts - guardW;
+  if (castleGuardX > 2 * ts && castleGuardX < worldWidth - guardW) {
+    guards.push({
+      def,
+      x: castleGuardX,
+      y: groundPx - guardH,
+      w: guardW,
+      h: guardH,
+      dir: -1,
+      type: "castle",
+      inRange: false,
+      animTime: Math.random() * 3,
+    });
+  }
+
+  return guards;
 }
 
 function buildSkyBirdSpawns({ biomeId, rand, groundY, worldWidth }) {

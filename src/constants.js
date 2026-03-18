@@ -120,6 +120,11 @@ export const BIOME_ENEMY_IDS_BY_BIOME = {
 export const ANIMAL_BOUNCE_VELOCITY = -520;
 export const FIXED_LEVEL_BIOME_ORDER = ["forest", "desert", "mountain", "snow", "desolation"];
 
+// ─── Guards ───
+export const GUARD_TRIGGER_RADIUS = 200;
+export const GUARD_SCALE = 1.5;
+export const GUARD_MESSAGE_TTL = 4.0;
+
 // ─── Sky birds ───
 export const KNOWN_SKY_BIRD_DIRS = ["forest-crow", "forest-sparrow"];
 export const BIOME_SKY_BIRD_IDS = { forest: ["forest-crow", "forest-sparrow"] };
