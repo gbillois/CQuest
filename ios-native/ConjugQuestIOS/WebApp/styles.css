@@ -74,6 +74,22 @@ body {
   image-rendering: pixelated;
 }
 
+.ios-auto-badge {
+  position: absolute;
+  top: max(10px, calc(env(safe-area-inset-top) + 2px));
+  left: max(12px, calc(env(safe-area-inset-left) + 4px));
+  z-index: 90;
+  color: #9dd6ff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
 .hud {
   --hud-row-size: 56px;
   position: absolute;
