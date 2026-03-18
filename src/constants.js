@@ -127,7 +127,7 @@ export const GUARD_MESSAGE_TTL = 4.0;
 
 // ─── Sky birds ───
 export const KNOWN_SKY_BIRD_DIRS = ["forest-crow", "forest-sparrow"];
-export const BIOME_SKY_BIRD_IDS = { forest: ["forest-crow", "forest-sparrow"] };
+export const BIOME_SKY_BIRD_IDS = {}; // birds hidden — sprites not ready
 export const SKY_BIRD_SCALE = 1.5;
 export const SKY_BIRD_COUNT_MIN = 3;
 export const SKY_BIRD_COUNT_MAX = 5;
