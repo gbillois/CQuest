@@ -1993,9 +1993,9 @@ function buildAnimalSpawns({ biomeId, rand, lanes, tileGrid }) {
 
   const animals = [];
   const candidateSource = preferredCandidates.length ? preferredCandidates : baseCandidates;
-  const candidates = candidateSource.length <= 2
+  const candidates = candidateSource.length <= 3
     ? candidateSource.slice()
-    : candidateSource.slice().sort(() => rand() - 0.5).slice(0, 2);
+    : candidateSource.slice().sort(() => rand() - 0.5).slice(0, 3);
   const requiredAnimalIds = new Set(candidates.map((animal) => animal.id));
   const spawnedAnimalIds = new Set();
   const rawTargetCount = randInt(rand, 6, 8);

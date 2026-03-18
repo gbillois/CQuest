@@ -9949,6 +9949,222 @@
         }
       }
     },
+    "forest-crow": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/forest-crow/rotations/east.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 9,
+            "w": 14,
+            "h": 32
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/forest-crow/rotations/north.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 8,
+            "w": 18,
+            "h": 33
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/forest-crow/rotations/south.png",
+          "content_bbox": {
+            "x": 15,
+            "y": 9,
+            "w": 18,
+            "h": 32
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/forest-crow/rotations/west.png",
+          "content_bbox": {
+            "x": 16,
+            "y": 9,
+            "w": 14,
+            "h": 32
+          }
+        }
+      },
+      "animations": {
+        "walking-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 9,
+                "w": 14,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 9,
+                "w": 15,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 16,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 9,
+                "w": 14,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 9,
+                "w": 15,
+                "h": 31
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 9,
+                "w": 15,
+                "h": 31
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 17,
+                "y": 8,
+                "w": 14,
+                "h": 33
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 16,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 16,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 16,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 15,
+                "y": 9,
+                "w": 18,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 17,
+                "h": 32
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-crow/animations/walking-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 16,
+                "y": 9,
+                "w": 17,
+                "h": 32
+              }
+            }
+          ]
+        }
+      }
+    },
     "forest-goat": {
       "canvas_size": {
         "w": 48,
@@ -10221,6 +10437,278 @@
         }
       }
     },
+    "forest-rabbit": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/forest-rabbit/rotations/east.png",
+          "content_bbox": {
+            "x": 7,
+            "y": 10,
+            "w": 30,
+            "h": 25
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/forest-rabbit/rotations/north.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 9,
+            "w": 12,
+            "h": 25
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/forest-rabbit/rotations/south.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 10,
+            "w": 12,
+            "h": 25
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/forest-rabbit/rotations/west.png",
+          "content_bbox": {
+            "x": 12,
+            "y": 10,
+            "w": 29,
+            "h": 24
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 11,
+                "w": 29,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 13,
+                "w": 26,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 14,
+                "w": 27,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 7,
+                "y": 12,
+                "w": 28,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 6,
+                "y": 10,
+                "w": 29,
+                "h": 25
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 14,
+                "w": 10,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 12,
+                "w": 10,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 16,
+                "w": 10,
+                "h": 17
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 12,
+                "w": 10,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 11,
+                "w": 10,
+                "h": 22
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 11,
+                "w": 10,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 12,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 11,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 12,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 10,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 10,
+                "w": 11,
+                "h": 24
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 13,
+                "w": 28,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 12,
+                "w": 28,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 13,
+                "w": 25,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 13,
+                "y": 13,
+                "w": 22,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 13,
+                "y": 12,
+                "w": 27,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-rabbit/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 13,
+                "y": 11,
+                "w": 29,
+                "h": 21
+              }
+            }
+          ]
+        }
+      }
+    },
     "forest-sheep": {
       "canvas_size": {
         "w": 48,
@@ -10487,6 +10975,222 @@
                 "y": 11,
                 "w": 29,
                 "h": 22
+              }
+            }
+          ]
+        }
+      }
+    },
+    "forest-sparrow": {
+      "canvas_size": {
+        "w": 32,
+        "h": 32
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/forest-sparrow/rotations/east.png",
+          "content_bbox": {
+            "x": 12,
+            "y": 5,
+            "w": 9,
+            "h": 23
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/forest-sparrow/rotations/north.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 5,
+            "w": 12,
+            "h": 23
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/forest-sparrow/rotations/south.png",
+          "content_bbox": {
+            "x": 10,
+            "y": 5,
+            "w": 12,
+            "h": 22
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/forest-sparrow/rotations/west.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 5,
+            "w": 9,
+            "h": 23
+          }
+        }
+      },
+      "animations": {
+        "walking-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 5,
+                "w": 9,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 5,
+                "w": 11,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 5,
+                "w": 9,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 5,
+                "w": 12,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 23
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 10,
+                "h": 22
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 9,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 5,
+                "w": 11,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 12,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 9,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 11,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/forest-sparrow/animations/walking-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 5,
+                "w": 12,
+                "h": 23
               }
             }
           ]
@@ -11247,6 +11951,278 @@
                 "y": 10,
                 "w": 22,
                 "h": 12
+              }
+            }
+          ]
+        }
+      }
+    },
+    "snow-rabbit": {
+      "canvas_size": {
+        "w": 48,
+        "h": 48
+      },
+      "rotations": {
+        "east": {
+          "path": "game_assets/animals/snow-rabbit/rotations/east.png",
+          "content_bbox": {
+            "x": 8,
+            "y": 9,
+            "w": 29,
+            "h": 26
+          }
+        },
+        "north": {
+          "path": "game_assets/animals/snow-rabbit/rotations/north.png",
+          "content_bbox": {
+            "x": 18,
+            "y": 10,
+            "w": 13,
+            "h": 24
+          }
+        },
+        "south": {
+          "path": "game_assets/animals/snow-rabbit/rotations/south.png",
+          "content_bbox": {
+            "x": 17,
+            "y": 10,
+            "w": 14,
+            "h": 25
+          }
+        },
+        "west": {
+          "path": "game_assets/animals/snow-rabbit/rotations/west.png",
+          "content_bbox": {
+            "x": 11,
+            "y": 9,
+            "w": 29,
+            "h": 25
+          }
+        }
+      },
+      "animations": {
+        "walk-6-frames": {
+          "east": [
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_000.png",
+              "content_bbox": {
+                "x": 5,
+                "y": 11,
+                "w": 32,
+                "h": 18
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_001.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 11,
+                "w": 30,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_002.png",
+              "content_bbox": {
+                "x": 9,
+                "y": 10,
+                "w": 27,
+                "h": 23
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_003.png",
+              "content_bbox": {
+                "x": 10,
+                "y": 11,
+                "w": 26,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_004.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 27,
+                "h": 24
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/east/frame_005.png",
+              "content_bbox": {
+                "x": 8,
+                "y": 10,
+                "w": 28,
+                "h": 22
+              }
+            }
+          ],
+          "north": [
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_000.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 13,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 13,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 13,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_003.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 13,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 13,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/north/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 11,
+                "w": 13,
+                "h": 23
+              }
+            }
+          ],
+          "south": [
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_000.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 13,
+                "w": 10,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_001.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 12,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_002.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 13,
+                "w": 12,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_003.png",
+              "content_bbox": {
+                "x": 19,
+                "y": 14,
+                "w": 11,
+                "h": 20
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_004.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 12,
+                "w": 12,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/south/frame_005.png",
+              "content_bbox": {
+                "x": 18,
+                "y": 10,
+                "w": 12,
+                "h": 21
+              }
+            }
+          ],
+          "west": [
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_000.png",
+              "content_bbox": {
+                "x": 11,
+                "y": 12,
+                "w": 32,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_001.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 12,
+                "w": 31,
+                "h": 19
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_002.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 12,
+                "w": 24,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_003.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 13,
+                "w": 26,
+                "h": 21
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_004.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 11,
+                "w": 29,
+                "h": 22
+              }
+            },
+            {
+              "path": "game_assets/animals/snow-rabbit/animations/walk-6-frames/west/frame_005.png",
+              "content_bbox": {
+                "x": 12,
+                "y": 9,
+                "w": 30,
+                "h": 24
               }
             }
           ]
@@ -13951,40 +14927,40 @@
       "path": "game_assets/backgrounds/desert-background.png",
       "name": "desert-background",
       "canvas_size": {
-        "w": 1536,
-        "h": 1024
+        "w": 1024,
+        "h": 682
       }
     },
     {
       "path": "game_assets/backgrounds/desolation-background.png",
       "name": "desolation-background",
       "canvas_size": {
-        "w": 1536,
-        "h": 1024
+        "w": 1024,
+        "h": 682
       }
     },
     {
       "path": "game_assets/backgrounds/forest-background.png",
       "name": "forest-background",
       "canvas_size": {
-        "w": 1536,
-        "h": 1024
+        "w": 1024,
+        "h": 682
       }
     },
     {
       "path": "game_assets/backgrounds/moutain-background.png",
       "name": "moutain-background",
       "canvas_size": {
-        "w": 1536,
-        "h": 1024
+        "w": 1024,
+        "h": 682
       }
     },
     {
       "path": "game_assets/backgrounds/snow-background.png",
       "name": "snow-background",
       "canvas_size": {
-        "w": 1536,
-        "h": 1024
+        "w": 1024,
+        "h": 682
       }
     }
   ]

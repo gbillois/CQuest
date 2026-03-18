@@ -905,7 +905,7 @@ export async function loadGuards() {
 
 export async function loadSkyBirds() {
   const birds = [];
-  const birdDirs = await resolveRosterDirsFromManifest("animals", KNOWN_SKY_BIRD_DIRS);
+  const birdDirs = await resolveRosterDirsFromManifest("skyBirds", KNOWN_SKY_BIRD_DIRS);
 
   await Promise.all(
     birdDirs.map(async (dir) => {
@@ -923,7 +923,8 @@ export async function loadSkyBirds() {
 
 export async function loadAnimals() {
   const animals = [];
-  const animalDirs = await resolveRosterDirsFromManifest("animals", KNOWN_ANIMAL_DIRS);
+  const animalDirs = (await resolveRosterDirsFromManifest("animals", KNOWN_ANIMAL_DIRS))
+    .filter((dir) => !KNOWN_SKY_BIRD_DIRS.includes(dir));
 
   await Promise.all(
     animalDirs.map(async (dir) => {

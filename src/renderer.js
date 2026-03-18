@@ -1379,6 +1379,23 @@ function drawDebugOverlay() {
 
 /* ── UI rendering ── */
 
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const test = line ? line + " " + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 export function updateFloatingRewards(delta) {
   if (!state.floatingRewards?.length) {
     return;
@@ -1414,12 +1431,15 @@ export function drawFloatingRewards(level) {
     ctx.globalAlpha = alpha;
     if (reward.style === "speech") {
       ctx.font = "bold 12px Trebuchet MS";
+      const maxBoxW = Math.min(240, VIRTUAL_WIDTH - 40);
       const padding = 8;
-      const boxW = Math.min(VIRTUAL_WIDTH - 20, ctx.measureText(reward.text).width + padding * 2);
-      const boxH = 22;
-      const boxX = screenX - boxW / 2;
-      const boxY = screenY - boxH / 2;
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      const lineHeight = 15;
+      const lines = wrapText(ctx, reward.text, maxBoxW - padding * 2);
+      const boxW = Math.min(maxBoxW, Math.max(...lines.map((l) => ctx.measureText(l).width)) + padding * 2);
+      const boxH = lines.length * lineHeight + padding;
+      const boxX = clamp(screenX - boxW / 2, 10, VIRTUAL_WIDTH - boxW - 10);
+      const boxY = screenY - boxH - 4;
+      ctx.fillStyle = "rgba(255,255,255,0.93)";
       ctx.strokeStyle = "rgba(40,40,60,0.85)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -1427,9 +1447,11 @@ export function drawFloatingRewards(level) {
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = "#1a1a2e";
-      ctx.strokeStyle = "transparent";
-      ctx.strokeText(reward.text, screenX, screenY);
-      ctx.fillText(reward.text, screenX, screenY);
+      const textX = boxX + boxW / 2;
+      for (let i = 0; i < lines.length; i++) {
+        const textY = boxY + padding / 2 + lineHeight * (i + 0.75);
+        ctx.fillText(lines[i], textX, textY);
+      }
     } else {
       ctx.font = "700 13px Trebuchet MS";
       ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
