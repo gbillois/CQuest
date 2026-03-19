@@ -115,9 +115,9 @@ body {
 .hud {
   --hud-row-size: 56px;
   position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
   min-height: var(--hud-row-size);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) var(--hud-row-size) var(--hud-row-size);

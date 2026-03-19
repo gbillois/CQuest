@@ -414,13 +414,7 @@ function computeViewportHeight() {
   if (typeof window === "undefined") {
     return 0;
   }
-  const heights = [window.visualViewport?.height, window.innerHeight]
-    .map((value) => Number(value) || 0)
-    .filter((value) => value > 0);
-  if (!heights.length) {
-    return 0;
-  }
-  return Math.min(...heights);
+  return Number(window.innerHeight) || 0;
 }
 
 function applyViewportCssVars() {
