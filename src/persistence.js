@@ -179,10 +179,10 @@ export function saveMobileButtonsOffset(value) {
 export function loadMobileGameOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 150;
+    if (!Number.isFinite(raw)) return 200;
     return clamp(Math.round(raw), 0, 200);
   } catch {
-    return 150;
+    return 200;
   }
 }
 
