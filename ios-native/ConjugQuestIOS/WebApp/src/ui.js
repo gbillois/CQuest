@@ -520,8 +520,8 @@ export function applyMobileVisualDebugOffsets() {
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
-  document.body.style.setProperty("--mobile-safe-bottom-pad", `${mobileViewport ? buttonsOffset : 0}px`);
-  document.body.style.setProperty("--mobile-game-gap", `${mobileViewport ? gameOffset : 0}px`);
+  document.body.style.setProperty("--mobile-buttons-bottom", `${mobileViewport ? buttonsOffset : 0}px`);
+  document.body.style.setProperty("--mobile-game-area-bottom", `${mobileViewport ? gameOffset : 0}px`);
   if (ui.debugButtonsOffsetSlider) {
     ui.debugButtonsOffsetSlider.value = String(buttonsOffset);
   }

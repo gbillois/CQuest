@@ -18,8 +18,8 @@
   --touch-controls-top-padding: 12px;
   --touch-controls-zone-height: calc(var(--touch-controls-size) + var(--touch-controls-top-padding) + var(--touch-controls-bottom-padding));
   --controls-safe-bottom-gap: max(20px, env(safe-area-inset-bottom));
-  --mobile-safe-bottom-pad: 0px;
-  --mobile-game-gap: 0px;
+  --mobile-game-area-bottom: 150px;
+  --mobile-buttons-bottom: 0px;
   --question-panel-bottom-clearance: calc(var(--touch-controls-zone-height) + 16px);
 }
 
@@ -54,8 +54,8 @@ body {
   padding: 8px;
   overflow: hidden;
   overscroll-behavior: none;
-  --mobile-safe-bottom-pad: 0px;
-  --mobile-game-gap: 0px;
+  --mobile-game-area-bottom: 150px;
+  --mobile-buttons-bottom: 0px;
 }
 
 .app {
@@ -1033,12 +1033,13 @@ body {
     border-width: 0;
     border-radius: 0;
     box-shadow: none;
-    grid-template-rows: 1fr auto;
-    padding-bottom: var(--mobile-safe-bottom-pad, 0px);
-    row-gap: var(--mobile-game-gap, 0px);
+    grid-template-rows: 1fr;
   }
 
   .game-viewport {
+    position: absolute;
+    inset: 0 0 var(--mobile-game-area-bottom) 0;
+    min-height: 0;
     display: flex;
     align-items: flex-end;
   }
@@ -1050,7 +1051,10 @@ body {
   }
 
   .controls-zone {
-    position: relative;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--mobile-buttons-bottom);
     z-index: 40;
     padding:
       var(--touch-controls-top-padding)
@@ -1079,7 +1083,7 @@ body {
 
   .question-panel {
     top: calc(env(safe-area-inset-top) + 84px);
-    bottom: calc(var(--mobile-safe-bottom-pad, 0px) + var(--mobile-game-gap, 0px) + var(--question-panel-bottom-clearance));
+    bottom: calc(var(--mobile-game-area-bottom) + 16px);
     transform: translateX(-50%);
     width: min(94%, 430px);
     max-height: none;
