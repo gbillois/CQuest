@@ -1001,8 +1001,8 @@ body {
 }
 
 @media (max-width: 900px), (pointer: coarse) {
-  body.mobile-debug-adjust #gameCanvas {
-    /* Positive offset moves canvas UP (shows more of the world above) */
+  body.mobile-debug-adjust .game-viewport {
+    /* Positive offset moves the entire game zone UP on screen */
     transform: translateY(calc(var(--mobile-game-offset, 0px) * -1));
   }
 }
