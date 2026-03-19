@@ -27,8 +27,8 @@ struct GameWebView: UIViewRepresentable {
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.isOpaque = false
-        webView.backgroundColor = .black
-        webView.scrollView.backgroundColor = .black
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
 
         loadGame(in: webView)
         return webView
