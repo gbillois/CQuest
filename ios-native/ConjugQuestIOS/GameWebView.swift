@@ -2,8 +2,10 @@ import SwiftUI
 import WebKit
 
 struct GameWebView: UIViewRepresentable {
+    let onOpenWarpZone: () -> Void
+
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onOpenWarpZone: onOpenWarpZone)
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -14,6 +16,7 @@ struct GameWebView: UIViewRepresentable {
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
         config.setURLSchemeHandler(context.coordinator.bundleSchemeHandler, forURLScheme: "app")
+        config.userContentController.add(context.coordinator, name: Coordinator.warpZoneMessageHandlerName)
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
@@ -36,6 +39,10 @@ struct GameWebView: UIViewRepresentable {
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
         // No-op. The game is stateful and self-managed in JS once loaded.
+    }
+
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+        uiView.configuration.userContentController.removeScriptMessageHandler(forName: Coordinator.warpZoneMessageHandlerName)
     }
 
     private func loadGame(in webView: WKWebView) {
@@ -105,8 +112,15 @@ struct GameWebView: UIViewRepresentable {
         """
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+        static let warpZoneMessageHandlerName = "warpZone"
+
         let bundleSchemeHandler = BundleSchemeHandler()
+        private let onOpenWarpZone: () -> Void
+
+        init(onOpenWarpZone: @escaping () -> Void) {
+            self.onOpenWarpZone = onOpenWarpZone
+        }
 
         func webView(
             _ webView: WKWebView,
@@ -122,6 +136,19 @@ struct GameWebView: UIViewRepresentable {
             withError error: Error
         ) {
             print("[ConjugQuestIOS] Provisional navigation failed:", error.localizedDescription)
+        }
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard message.name == Self.warpZoneMessageHandlerName else {
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.onOpenWarpZone()
+            }
         }
     }
 }
