@@ -169,7 +169,7 @@ export const state = {
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
   mobileButtonsOffsetY: 43,
-  mobileGameOffsetY: 150,
+  mobileGameOffsetY: 200,
   generationProfile: "normal",
   tileStyleMode: "new",
   worldZoom: WORLD_SCALE,
