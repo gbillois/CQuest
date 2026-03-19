@@ -1002,7 +1002,8 @@ body {
 
 @media (max-width: 900px), (pointer: coarse) {
   body.mobile-debug-adjust #gameCanvas {
-    transform: translateY(var(--mobile-game-offset, 0px));
+    /* Positive offset moves canvas UP (shows more of the world above) */
+    transform: translateY(calc(var(--mobile-game-offset, 0px) * -1));
   }
 }
 

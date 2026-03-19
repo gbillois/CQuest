@@ -162,7 +162,7 @@ export function loadMobileButtonsOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
     if (!Number.isFinite(raw)) return 0;
-    return clamp(Math.round(raw), 0, 150);
+    return clamp(Math.round(raw), -50, 200);
   } catch {
     return 0;
   }
@@ -170,7 +170,7 @@ export function loadMobileButtonsOffset() {
 
 export function saveMobileButtonsOffset(value) {
   try {
-    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, 150)));
+    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), -50, 200)));
   } catch {
     // Ignore storage issues.
   }
