@@ -586,7 +586,7 @@ export function isMobileViewport() {
 
 export function applyMobileVisualDebugOffsets() {
   const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 150);
-  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 0);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, 0, 200);
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
@@ -810,7 +810,7 @@ export function bindControls() {
     applyMobileVisualDebugOffsets();
   });
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 0);
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, 0, 200);
     applyMobileVisualDebugOffsets();
   });
   ui.settingsButtonsOffsetSlider?.addEventListener("input", () => {
@@ -818,7 +818,7 @@ export function bindControls() {
     applyMobileVisualDebugOffsets();
   });
   ui.settingsGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, -200, 0);
+    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, 0, 200);
     applyMobileVisualDebugOffsets();
   });
   ui.debugScaleSlider?.addEventListener("input", () => {
