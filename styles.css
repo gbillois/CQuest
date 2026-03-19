@@ -51,7 +51,6 @@ body {
   padding: 8px;
   overflow: hidden;
   overscroll-behavior: none;
-  --mobile-controls-lift: 0px;
   --mobile-controls-debug-offset: 0px;
   --mobile-game-offset: 0px;
 }
@@ -1009,7 +1008,6 @@ body {
 
 @media (max-width: 900px), (pointer: coarse) {
   body {
-    --mobile-controls-lift: 0px;
     padding: 0;
   }
 
@@ -1044,7 +1042,7 @@ body {
       var(--touch-controls-bottom-padding);
     border-top: none;
     background: linear-gradient(180deg, rgba(28, 53, 86, 0), rgba(34, 76, 138, 0.22) 26%, rgba(34, 76, 138, 0.4) 100%);
-    transform: translateY(calc((var(--mobile-controls-lift) + var(--mobile-controls-debug-offset, 0px)) * -1));
+    transform: translateY(calc(var(--mobile-controls-debug-offset, 0px) * -1));
     pointer-events: none;
   }
 
@@ -1151,6 +1149,41 @@ body {
       border-radius: 14px;
       pointer-events: auto;
     }
+  }
+}
+
+/* ─── Phone portrait: ergonomic button placement ────────────────────────────
+   On narrow screens (phones), position controls so their centre sits at 1/3
+   of the viewport height from the bottom — the ergonomic thumb-reach zone.
+   On tablets / desktop the controls stay at the very bottom (default above).
+
+   --touch-controls-bottom-padding is overridden to 20 px here so that the
+   safe-area inset is handled entirely by the `bottom` property of
+   .controls-zone, avoiding any double-counting.
+   ──────────────────────────────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  :root {
+    /* Strip the env() from the internal bottom-padding; safe area is
+       handled by the `bottom` position of the controls zone instead. */
+    --touch-controls-bottom-padding: 20px;
+
+    /* Question panel must clear the top edge of the relocated controls zone.
+       Controls centre = 33.33 vh from bottom
+       Controls top    = 33.33 vh + zone-height/2 from bottom        */
+    --question-panel-bottom-clearance: calc(
+      33.33vh + var(--touch-controls-zone-height) / 2 + 16px
+    );
+  }
+
+  .controls-zone {
+    /* Place the centre of the controls at 1/3 from the bottom.
+       bottom = 33.33 vh  −  zone-height / 2
+       The max() ensures at least env(safe-area-inset-bottom)+20 px clearance
+       (e.g. when the safe area is large — landscape, or very small screens). */
+    bottom: max(
+      calc(env(safe-area-inset-bottom) + 20px),
+      calc(33.33vh - var(--touch-controls-zone-height) / 2)
+    );
   }
 }
 

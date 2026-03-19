@@ -161,10 +161,10 @@ export function saveParentalCode(value) {
 export function loadMobileButtonsOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 43;
+    if (!Number.isFinite(raw)) return 0;
     return clamp(Math.round(raw), 0, 150);
   } catch {
-    return 43;
+    return 0;
   }
 }
 
@@ -179,10 +179,10 @@ export function saveMobileButtonsOffset(value) {
 export function loadMobileGameOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 150;
+    if (!Number.isFinite(raw)) return 0;
     return clamp(Math.round(raw), 0, 200);
   } catch {
-    return 150;
+    return 0;
   }
 }
 
