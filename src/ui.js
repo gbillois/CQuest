@@ -581,7 +581,7 @@ export function isMobileViewport() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return false;
   }
-  return window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
+  return window.matchMedia("(max-width: 767px)").matches;
 }
 
 export function applyMobileVisualDebugOffsets() {
@@ -592,7 +592,6 @@ export function applyMobileVisualDebugOffsets() {
   state.mobileGameOffsetY = gameOffset;
   document.body.style.setProperty("--mobile-controls-debug-offset", `${mobileViewport ? buttonsOffset : 0}px`);
   document.body.style.setProperty("--mobile-game-offset", `${mobileViewport ? gameOffset : 0}px`);
-  document.body.classList.toggle("mobile-debug-adjust", mobileViewport && gameOffset !== 0);
   if (ui.debugButtonsOffsetSlider) {
     ui.debugButtonsOffsetSlider.value = String(buttonsOffset);
   }
