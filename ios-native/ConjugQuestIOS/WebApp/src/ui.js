@@ -196,6 +196,7 @@ function applyLocaleToStaticUi() {
   setText("#startBtn", "startGame");
   setText("#openLeaderboardBtn", "leaderboardButton");
   setText("#openSettingsFromTitleBtn", "settings");
+  setText("#openWarpZoneBtn", "warpZone");
   setText("#leaderboardTitle", "leaderboard");
   setText("#closeLeaderboardBtn", "close");
   setText("#pauseModal h2", "pause");
@@ -587,6 +588,16 @@ export function endVisualDebugLongPress() {
   cancelVisualDebugLongPress();
 }
 
+function openWarpZone() {
+  const nativeWarpZoneHandler = window.webkit?.messageHandlers?.warpZone;
+  if (nativeWarpZoneHandler?.postMessage) {
+    nativeWarpZoneHandler.postMessage({ action: "open" });
+    return;
+  }
+
+  window.alert("Hello");
+}
+
 function attachLongPressListeners(element, startHandler, endHandler) {
   if (!element) {
     return;
@@ -874,6 +885,7 @@ export function bindControls() {
   ui.openLeaderboardBtn?.addEventListener("click", openLeaderboardModal);
   ui.closeLeaderboardBtn?.addEventListener("click", closeLeaderboardModal);
   ui.openSettingsFromTitleBtn?.addEventListener("click", openSettingsPanel);
+  ui.openWarpZoneBtn?.addEventListener("click", openWarpZone);
   ui.resumeBtn?.addEventListener("click", closePauseMenu);
   ui.openSettingsFromPauseBtn?.addEventListener("click", () => {
     openSettingsPanel();

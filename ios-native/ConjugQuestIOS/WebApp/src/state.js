@@ -91,6 +91,7 @@ export const ui = {
   startBtn: document.getElementById("startBtn"),
   openLeaderboardBtn: document.getElementById("openLeaderboardBtn"),
   openSettingsFromTitleBtn: document.getElementById("openSettingsFromTitleBtn"),
+  openWarpZoneBtn: document.getElementById("openWarpZoneBtn"),
   leaderboardModal: document.getElementById("leaderboardModal"),
   leaderboardTitle: document.getElementById("leaderboardTitle"),
   leaderboardList: document.getElementById("leaderboardList"),
