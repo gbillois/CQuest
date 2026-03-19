@@ -511,18 +511,17 @@ export function isMobileViewport() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return false;
   }
-  return window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
+  return window.matchMedia("(max-width: 767px)").matches;
 }
 
 export function applyMobileVisualDebugOffsets() {
   const buttonsOffset = clamp(Number(state.mobileButtonsOffsetY) || 0, 0, 150);
-  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, -200, 0);
+  const gameOffset = clamp(Number(state.mobileGameOffsetY) || 0, 0, 200);
   const mobileViewport = isMobileViewport();
   state.mobileButtonsOffsetY = buttonsOffset;
   state.mobileGameOffsetY = gameOffset;
   document.body.style.setProperty("--mobile-controls-debug-offset", `${mobileViewport ? buttonsOffset : 0}px`);
   document.body.style.setProperty("--mobile-game-offset", `${mobileViewport ? gameOffset : 0}px`);
-  document.body.classList.toggle("mobile-debug-adjust", mobileViewport && gameOffset !== 0);
   if (ui.debugButtonsOffsetSlider) {
     ui.debugButtonsOffsetSlider.value = String(buttonsOffset);
   }
@@ -740,7 +739,7 @@ export function bindControls() {
     applyMobileVisualDebugOffsets();
   });
   ui.debugGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, -200, 0);
+    state.mobileGameOffsetY = clamp(Number(ui.debugGameOffsetSlider.value) || 0, 0, 200);
     applyMobileVisualDebugOffsets();
   });
   ui.settingsButtonsOffsetSlider?.addEventListener("input", () => {
@@ -748,7 +747,7 @@ export function bindControls() {
     applyMobileVisualDebugOffsets();
   });
   ui.settingsGameOffsetSlider?.addEventListener("input", () => {
-    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, -200, 0);
+    state.mobileGameOffsetY = clamp(Number(ui.settingsGameOffsetSlider.value) || 0, 0, 200);
     applyMobileVisualDebugOffsets();
   });
   ui.debugScaleSlider?.addEventListener("input", () => {

@@ -17,6 +17,11 @@
   --touch-controls-bottom-padding: calc(20px + env(safe-area-inset-bottom));
   --touch-controls-top-padding: 12px;
   --touch-controls-zone-height: calc(var(--touch-controls-size) + var(--touch-controls-top-padding) + var(--touch-controls-bottom-padding));
+  --controls-safe-bottom-gap: max(20px, env(safe-area-inset-bottom));
+  --mobile-controls-bottom-base: 150px;
+  --mobile-game-bottom-base: 200px;
+  --mobile-controls-bottom-offset: calc(var(--mobile-controls-bottom-base) + var(--mobile-controls-debug-offset, 0px));
+  --mobile-game-bottom-offset: calc(var(--mobile-game-bottom-base) + var(--mobile-game-offset, 0px));
   --question-panel-bottom-clearance: calc(var(--touch-controls-zone-height) + 16px);
 }
 
@@ -51,7 +56,6 @@ body {
   padding: 8px;
   overflow: hidden;
   overscroll-behavior: none;
-  --mobile-controls-lift: 0px;
   --mobile-controls-debug-offset: 0px;
   --mobile-game-offset: 0px;
 }
@@ -1001,15 +1005,8 @@ body {
   word-break: break-word;
 }
 
-@media (max-width: 900px), (pointer: coarse) {
-  body.mobile-debug-adjust #gameCanvas {
-    transform: translateY(var(--mobile-game-offset, 0px));
-  }
-}
-
-@media (max-width: 900px), (pointer: coarse) {
+@media (max-width: 767px) {
   body {
-    --mobile-controls-lift: 0px;
     padding: 0;
   }
 
@@ -1026,17 +1023,20 @@ body {
     border-width: 0;
     border-radius: 0;
     box-shadow: none;
+    grid-template-rows: 1fr;
   }
 
   .game-viewport {
-    height: 100%;
+    position: absolute;
+    inset: 0 0 var(--mobile-game-bottom-offset) 0;
+    min-height: 0;
   }
 
   .controls-zone {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: var(--mobile-controls-bottom-offset);
     z-index: 40;
     padding:
       var(--touch-controls-top-padding)
@@ -1044,7 +1044,6 @@ body {
       var(--touch-controls-bottom-padding);
     border-top: none;
     background: linear-gradient(180deg, rgba(28, 53, 86, 0), rgba(34, 76, 138, 0.22) 26%, rgba(34, 76, 138, 0.4) 100%);
-    transform: translateY(calc((var(--mobile-controls-lift) + var(--mobile-controls-debug-offset, 0px)) * -1));
     pointer-events: none;
   }
 
@@ -1056,6 +1055,7 @@ body {
     width: min(22vw, var(--touch-controls-size));
     max-height: none;
     pointer-events: auto;
+    opacity: 0.7;
   }
 
   #jumpBtn,
@@ -1065,7 +1065,7 @@ body {
 
   .question-panel {
     top: calc(env(safe-area-inset-top) + 84px);
-    bottom: calc(var(--question-panel-bottom-clearance) - var(--mobile-controls-debug-offset, 0px));
+    bottom: calc(var(--mobile-game-bottom-offset) + 16px);
     transform: translateX(-50%);
     width: min(94%, 430px);
     max-height: none;
@@ -1088,18 +1088,25 @@ body {
     align-self: center;
   }
 
-  .touch-btn {
-    opacity: 0.7;
-  }
-
   .icon-button {
     opacity: 1;
-  }
-
-  .icon-button {
     margin-top: 0;
   }
+}
 
+@media (min-width: 768px) {
+  .app {
+    padding-bottom: var(--controls-safe-bottom-gap);
+  }
+
+  .game-shell {
+    height: min(900px, calc(var(--viewport-safe-height) - var(--controls-safe-bottom-gap)));
+    max-height: min(900px, calc(var(--viewport-safe-height) - var(--controls-safe-bottom-gap)));
+  }
+
+  .controls-zone {
+    padding-bottom: calc(20px + var(--controls-safe-bottom-gap));
+  }
 }
 
 .hidden,
@@ -1130,7 +1137,7 @@ body {
 }
 
 @supports (-webkit-touch-callout: none) {
-  @media (max-width: 900px), (pointer: coarse) {
+  @media (max-width: 767px) {
     .touch-hit-zone {
       position: absolute;
       left: var(--touch-controls-padding-x);

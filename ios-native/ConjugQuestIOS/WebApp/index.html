@@ -129,7 +129,7 @@
 
             <div class="pedagogy-block">
               <label for="settingsGameOffsetSlider">Position verticale de la zone de jeu</label>
-              <input id="settingsGameOffsetSlider" type="range" min="-200" max="0" step="1" value="-130" />
+              <input id="settingsGameOffsetSlider" type="range" min="0" max="200" step="1" value="200" />
               <div class="slider-hint-row" aria-hidden="true">
                 <span id="mobileGameOffsetHigher">Plus haut</span>
                 <span id="mobileGameOffsetLower">Plus bas</span>
@@ -265,8 +265,8 @@
 
           <label for="debugGameOffsetSlider">Offset vertical zone de jeu</label>
           <div class="debug-slider-row">
-            <input id="debugGameOffsetSlider" type="range" min="-200" max="0" step="1" value="0" />
-            <strong id="debugGameOffsetValue">0px</strong>
+            <input id="debugGameOffsetSlider" type="range" min="0" max="200" step="1" value="200" />
+            <strong id="debugGameOffsetValue">200px</strong>
           </div>
 
           <label for="debugScaleSlider">Échelle monde (BASE_UNIT)</label>
