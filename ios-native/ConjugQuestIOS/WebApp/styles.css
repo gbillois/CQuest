@@ -17,10 +17,8 @@
   --touch-controls-top-padding: 12px;
   --touch-controls-zone-height: calc(var(--touch-controls-size) + var(--touch-controls-top-padding) + var(--touch-controls-bottom-padding));
   --controls-safe-bottom-gap: max(20px, env(safe-area-inset-bottom));
-  --mobile-controls-bottom-base: 100px;
-  --mobile-game-bottom-base: 150px;
-  --mobile-controls-bottom-offset: calc(var(--mobile-controls-bottom-base) + var(--mobile-controls-debug-offset, 0px));
-  --mobile-game-bottom-offset: calc(var(--mobile-game-bottom-base) + var(--mobile-game-offset, 0px));
+  --mobile-safe-bottom-pad: 0px;
+  --mobile-game-gap: 0px;
   --question-panel-bottom-clearance: calc(var(--touch-controls-zone-height) + 16px);
 }
 
@@ -52,8 +50,8 @@ body {
   min-height: var(--app-height);
   overflow: hidden;
   overscroll-behavior: none;
-  --mobile-controls-debug-offset: 0px;
-  --mobile-game-offset: 0px;
+  --mobile-safe-bottom-pad: 0px;
+  --mobile-game-gap: 0px;
 }
 
 .app {
@@ -887,20 +885,24 @@ body {
 
 @media (max-width: 767px) {
   .game-shell {
-    grid-template-rows: 1fr;
+    grid-template-rows: 1fr auto;
+    padding-bottom: var(--mobile-safe-bottom-pad, 0px);
+    row-gap: var(--mobile-game-gap, 0px);
   }
 
   .game-viewport {
-    position: absolute;
-    inset: 0 0 var(--mobile-game-bottom-offset) 0;
-    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  #gameCanvas {
+    width: 100%;
+    height: auto;
+    max-height: none;
   }
 
   .controls-zone {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: var(--mobile-controls-bottom-offset);
+    position: relative;
     z-index: 40;
     padding:
       var(--touch-controls-top-padding)
@@ -924,7 +926,7 @@ body {
 
   .question-panel {
     top: calc(env(safe-area-inset-top) + 84px);
-    bottom: calc(var(--mobile-game-bottom-offset) + 16px);
+    bottom: calc(var(--mobile-safe-bottom-pad, 0px) + var(--mobile-game-gap, 0px) + var(--question-panel-bottom-clearance));
     transform: translateX(-50%);
     max-height: none;
     padding-bottom: 18px;
