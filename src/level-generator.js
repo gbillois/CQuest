@@ -1877,6 +1877,17 @@ function buildEnemySpawns({ biomeId, rand, pathNodes, levelIndex, tileGrid, grou
     }
   }
 
+  // Second pass: force a healthy amount of enemies after the tower.
+  for (const lane of shuffledPostTower) {
+    if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
+    const laneLen = lane.end - lane.start + 1;
+    const laneSlots = laneLen >= profile.doubleSpawnLaneLength ? 2 : 1;
+    for (let n = 0; n < laneSlots; n += 1) {
+      if (enemies.length >= count || postTowerSpawned >= minPostTowerEnemies) break;
+      trySpawnOnLane(lane);
+    }
+  }
+
   for (const lane of shuffledLanes) {
     if (enemies.length >= count) break;
     const laneLen = lane.end - lane.start + 1;
