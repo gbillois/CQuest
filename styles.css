@@ -18,8 +18,6 @@
   --touch-controls-top-padding: 12px;
   --touch-controls-zone-height: calc(var(--touch-controls-size) + var(--touch-controls-top-padding) + var(--touch-controls-bottom-padding));
   --controls-safe-bottom-gap: max(20px, env(safe-area-inset-bottom));
-  --mobile-game-area-bottom: 150px;
-  --mobile-buttons-bottom: 0px;
   --question-panel-bottom-clearance: calc(var(--touch-controls-zone-height) + 16px);
 }
 
@@ -54,8 +52,6 @@ body {
   padding: 8px;
   overflow: hidden;
   overscroll-behavior: none;
-  --mobile-game-area-bottom: 150px;
-  --mobile-buttons-bottom: 0px;
 }
 
 .app {

@@ -154,10 +154,10 @@
           </div>
           <div class="settings-secondary-row">
             <button id="forcePwaUpdateBtn" class="secondary">Mise à jour</button>
-            <button id="changeParentalCodeBtn" class="secondary">Changer le code</button>
           </div>
           <div class="settings-danger-row">
             <button id="resetGameBtn" class="secondary">Remise à zéro</button>
+            <button id="clearLocalStorageBtn" class="secondary">Vider le localStorage</button>
           </div>
 </aside>
 
@@ -228,22 +228,7 @@
           </div>
         </section>
 
-        <section id="parentalCodeModal" class="menu-modal hidden" aria-modal="true" role="dialog" aria-labelledby="parentalCodeModalTitle">
-          <div class="menu-card parental-code-card">
-            <h2 id="parentalCodeModalTitle">Code parental</h2>
-            <p id="parentalCodeModalText">Entrez le code parental.</p>
-            <div id="parentalCodeInputRow" class="parental-code-input-row">
-              <input id="parentalCodeInput" type="password" autocomplete="off" maxlength="64" />
-              <button id="toggleParentalCodeVisibilityBtn" type="button" class="secondary-btn parental-eye-btn" aria-label="Afficher le code">👁️</button>
-            </div>
-            <div class="menu-actions">
-              <button id="parentalCodeCancelBtn" class="warn-btn" type="button">Annuler</button>
-              <button id="parentalCodeConfirmBtn" type="button">Valider</button>
-            </div>
-          </div>
-        </section>
-
-        <section id="cheatModal" class="menu-modal hidden">
+<section id="cheatModal" class="menu-modal hidden">
           <div class="menu-card cheat-card">
             <h2>Tips &amp; Tricks</h2>
             <label for="cheatLevelSelect">Select level</label>

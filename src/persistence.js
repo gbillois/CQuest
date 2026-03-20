@@ -4,7 +4,6 @@ import {
   HERO_SELECTED_STORAGE_KEY,
   WORLD_ZOOM_STORAGE_KEY,
   TILE_STYLE_MODE_STORAGE_KEY,
-  PARENTAL_CODE_STORAGE_KEY,
   ERROR_DB_STORAGE_KEY,
   LEADERBOARD_STORAGE_KEY,
   MOBILE_BUTTONS_OFFSET_STORAGE_KEY,
@@ -133,38 +132,13 @@ export function saveTileStyleMode(value) {
 }
 
 
-export function loadParentalCode() {
-  try {
-    const raw = String(localStorage.getItem(PARENTAL_CODE_STORAGE_KEY) || "").trim();
-    if (!raw || raw.length > 64) {
-      return "";
-    }
-    return raw;
-  } catch {
-    return "";
-  }
-}
-
-export function saveParentalCode(value) {
-  try {
-    const code = String(value || "").trim();
-    if (!code || code.length > 64) {
-      return false;
-    }
-    localStorage.setItem(PARENTAL_CODE_STORAGE_KEY, code);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function loadMobileButtonsOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 0;
+    if (!Number.isFinite(raw)) return 150;
     return clamp(Math.round(raw), 0, 150);
   } catch {
-    return 0;
+    return 150;
   }
 }
 
@@ -179,10 +153,10 @@ export function saveMobileButtonsOffset(value) {
 export function loadMobileGameOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 150;
+    if (!Number.isFinite(raw)) return 200;
     return clamp(Math.round(raw), 0, 200);
   } catch {
-    return 150;
+    return 200;
   }
 }
 
@@ -241,7 +215,6 @@ export function resetStoredGameProgress() {
     localStorage.removeItem(PERSISTENT_CURRENCY_KEY);
     localStorage.removeItem(HERO_UNLOCK_STORAGE_KEY);
     localStorage.removeItem(HERO_SELECTED_STORAGE_KEY);
-    localStorage.removeItem(PARENTAL_CODE_STORAGE_KEY);
     localStorage.removeItem(WORLD_ZOOM_STORAGE_KEY);
     localStorage.removeItem(ERROR_DB_STORAGE_KEY);
     localStorage.removeItem(LEADERBOARD_STORAGE_KEY);
