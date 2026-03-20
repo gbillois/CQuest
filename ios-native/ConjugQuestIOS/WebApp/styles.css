@@ -657,7 +657,7 @@ body {
   inset: 0;
   z-index: 60;
   display: grid;
-  place-items: stretch;
+  place-items: center;
   padding:
     max(18px, calc(env(safe-area-inset-top) + 18px))
     max(18px, calc(env(safe-area-inset-right) + 18px))
@@ -669,7 +669,7 @@ body {
 
 .title-card {
   width: min(100%, 420px);
-  min-height: 100%;
+  min-height: auto;
   border-radius: 20px;
   padding: clamp(18px, 4vw, 28px) 16px;
   background: rgba(10, 16, 38, 0.84);
