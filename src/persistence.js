@@ -137,9 +137,9 @@ export function saveTileStyleMode(value) {
 
 export function loadMobileButtonsOffset() {
   try {
-    const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return DEFAULT_MOBILE_BUTTONS_OFFSET;
-    return clamp(Math.round(raw), 0, DEFAULT_MOBILE_BUTTONS_OFFSET);
+    const raw = localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY);
+    if (raw === null || !Number.isFinite(Number(raw))) return DEFAULT_MOBILE_BUTTONS_OFFSET;
+    return clamp(Math.round(Number(raw)), 0, DEFAULT_MOBILE_BUTTONS_OFFSET);
   } catch {
     return DEFAULT_MOBILE_BUTTONS_OFFSET;
   }
@@ -155,9 +155,9 @@ export function saveMobileButtonsOffset(value) {
 
 export function loadMobileGameOffset() {
   try {
-    const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return DEFAULT_MOBILE_GAME_OFFSET;
-    return clamp(Math.round(raw), 0, DEFAULT_MOBILE_GAME_OFFSET);
+    const raw = localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY);
+    if (raw === null || !Number.isFinite(Number(raw))) return DEFAULT_MOBILE_GAME_OFFSET;
+    return clamp(Math.round(Number(raw)), 0, DEFAULT_MOBILE_GAME_OFFSET);
   } catch {
     return DEFAULT_MOBILE_GAME_OFFSET;
   }
