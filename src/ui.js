@@ -16,7 +16,7 @@ import {
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
-  loadParentalCode, saveParentalCode, resetStoredGameProgress,
+  resetStoredGameProgress,
   addLeaderboardEntry, isLeaderboardNameAllowed,
   saveMobileButtonsOffset, saveMobileGameOffset,
   savePedagogyGroups, savePedagogyTenses,
@@ -70,136 +70,6 @@ function applyWorldZoom(value) {
 }
 
 
-function setParentalCodeInputVisibility(visible) {
-  if (!ui.parentalCodeInput || !ui.toggleParentalCodeVisibilityBtn) {
-    return;
-  }
-  ui.parentalCodeInput.type = visible ? "text" : "password";
-  ui.toggleParentalCodeVisibilityBtn.textContent = visible ? "🙈" : "👁️";
-  ui.toggleParentalCodeVisibilityBtn.setAttribute("aria-label", visible ? t("hideCode") : t("showCode"));
-}
-
-async function askParentalCode({ isFirstSetup = false, messageKey = null } = {}) {
-  const title = isFirstSetup
-    ? t("parentalPromptSetup")
-    : t(messageKey || "parentalPromptEnter");
-
-  if (!ui.parentalCodeModal || !ui.parentalCodeInput || !ui.parentalCodeConfirmBtn || !ui.parentalCodeCancelBtn) {
-    const answer = window.prompt(title, "");
-    if (answer === null) {
-      return null;
-    }
-    return String(answer).trim();
-  }
-
-  ui.parentalCodeModalTitle.textContent = t("parentalCode");
-  ui.parentalCodeModalText.textContent = title;
-  ui.parentalCodeInput.value = "";
-  setParentalCodeInputVisibility(false);
-  ui.parentalCodeModal.classList.remove("hidden");
-  ui.parentalCodeInput.focus();
-
-  return new Promise((resolve) => {
-    let closed = false;
-    const close = (result) => {
-      if (closed) return;
-      closed = true;
-      ui.parentalCodeModal.classList.add("hidden");
-      ui.parentalCodeConfirmBtn.removeEventListener("click", onConfirm);
-      ui.parentalCodeCancelBtn.removeEventListener("click", onCancel);
-      ui.parentalCodeInput.removeEventListener("keydown", onInputKeydown);
-      resolve(result);
-    };
-    const onConfirm = () => close(String(ui.parentalCodeInput.value || "").trim());
-    const onCancel = () => close(null);
-    const onInputKeydown = (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        onConfirm();
-      }
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onCancel();
-      }
-    };
-
-    ui.parentalCodeConfirmBtn.addEventListener("click", onConfirm);
-    ui.parentalCodeCancelBtn.addEventListener("click", onCancel);
-    ui.parentalCodeInput.addEventListener("keydown", onInputKeydown);
-  });
-}
-
-async function ensureParentalCodeConfigured() {
-  const existing = loadParentalCode();
-  if (existing) {
-    return existing;
-  }
-  const createdCode = await askParentalCode({ isFirstSetup: true });
-  if (createdCode === null) {
-    return null;
-  }
-  if (!createdCode) {
-    window.alert(t("parentalCodeEmpty"));
-    return null;
-  }
-  if (!saveParentalCode(createdCode)) {
-    window.alert(t("parentalCodeSaveError"));
-    return null;
-  }
-  window.alert(t("parentalCodeSaved"));
-  return createdCode;
-}
-
-async function requireParentalCodeAccess() {
-  const currentCode = await ensureParentalCodeConfigured();
-  if (!currentCode) {
-    return false;
-  }
-  const entered = await askParentalCode();
-  if (entered === null) {
-    return false;
-  }
-  if (entered !== currentCode) {
-    window.alert(t("wrongParentalCode"));
-    return false;
-  }
-  return true;
-}
-
-async function changeParentalCode() {
-  const currentCode = loadParentalCode();
-  if (!currentCode) {
-    const configured = await ensureParentalCodeConfigured();
-    if (!configured) {
-      return;
-    }
-  } else {
-    const entered = await askParentalCode({ messageKey: "parentalEnterCurrent" });
-    if (entered === null) {
-      return;
-    }
-    if (entered !== currentCode) {
-      window.alert(t("wrongParentalCode"));
-      return;
-    }
-  }
-
-  const newCode = await askParentalCode({ messageKey: "parentalPromptNew" });
-  if (newCode === null) {
-    return;
-  }
-  if (!String(newCode).trim()) {
-    window.alert(t("parentalCodeEmpty"));
-    return;
-  }
-  if (!saveParentalCode(newCode)) {
-    window.alert(t("parentalCodeNewSaveError"));
-    return;
-  }
-  window.alert(t("parentalCodeUpdated"));
-}
-
-
 function applyLocaleToStaticUi() {
   document.documentElement.lang = getLocale();
   const setText = (selector, key) => {
@@ -229,9 +99,6 @@ function applyLocaleToStaticUi() {
   setText("#resetGameConfirmText", "resetGameWarning");
   setText("#resetGameCancelBtn", "confirmNo");
   setText("#resetGameConfirmBtn", "confirmYes");
-  setText("#parentalCodeModalTitle", "parentalCode");
-  setText("#parentalCodeCancelBtn", "dialogCancel");
-  setText("#parentalCodeConfirmBtn", "dialogOk");
   setText("#errorListLabel", "errorsMade");
   setText("#gameModePanelTitle", "gameMode");
   setText("#settingsGameModeLabel", "gameMode");
@@ -244,7 +111,6 @@ function applyLocaleToStaticUi() {
   setText("#mobileButtonsOffsetLower", "sliderLower");
   setText("#mobileGameOffsetHigher", "sliderHigher");
   setText("#mobileGameOffsetLower", "sliderLower");
-  setText("#changeParentalCodeBtn", "changeCode");
   setText("#applySettingsBtn", "apply");
   setText("#closeSettingsBtn", "close");
   setText("#forcePwaUpdateBtn", "update");
@@ -285,9 +151,6 @@ function applyLocaleToStaticUi() {
   setText("#finalVictoryPanel p:nth-of-type(1)", "dragonDefeated");
   setText("#finalVictoryPanel p:nth-of-type(2)", "championStatus");
   setText("#backToTitleFromVictoryBtn", "titleScreen");
-  if (ui.toggleParentalCodeVisibilityBtn) {
-    ui.toggleParentalCodeVisibilityBtn.setAttribute("aria-label", t("showCode"));
-  }
 }
 
 function renderLeaderboard() {
@@ -952,13 +815,11 @@ export function bindControls() {
     closeSettingsPanel();
   });
 
-  ui.changeParentalCodeBtn?.addEventListener("click", () => {
-    void changeParentalCode();
-  });
-  ui.toggleParentalCodeVisibilityBtn?.addEventListener("click", () => {
-    const isVisible = ui.parentalCodeInput?.type === "text";
-    setParentalCodeInputVisibility(!isVisible);
-    ui.parentalCodeInput?.focus();
+  ui.clearLocalStorageBtn?.addEventListener("click", () => {
+    if (window.confirm(t("resetGameConfirm"))) {
+      localStorage.clear();
+      window.location.reload();
+    }
   });
   ui.forcePwaUpdateBtn?.addEventListener("click", forcePwaUpdate);
 
@@ -1013,7 +874,7 @@ export function bindControls() {
           startGameFromMenu();
           return;
         }
-        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")) || (ui.leaderboardModal && !ui.leaderboardModal.classList.contains("hidden")) || (ui.parentalCodeModal && !ui.parentalCodeModal.classList.contains("hidden")))) {
+        if (key === "escape" && (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.cheatModal && !ui.cheatModal.classList.contains("hidden")) || (ui.leaderboardModal && !ui.leaderboardModal.classList.contains("hidden")))) {
           event.preventDefault();
           closeOverlayPanels();
         }
@@ -1021,7 +882,7 @@ export function bindControls() {
       }
       if (key === "escape") {
         event.preventDefault();
-        if (!ui.settingsPanel.hidden || !ui.shopPanel.hidden || (ui.parentalCodeModal && !ui.parentalCodeModal.classList.contains("hidden"))) {
+        if (!ui.settingsPanel.hidden || !ui.shopPanel.hidden) {
           closeOverlayPanels();
           return;
         }
@@ -1150,7 +1011,6 @@ export function openShopPanel() {
   ui.settingsPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.leaderboardModal?.classList.add("hidden");
-  ui.parentalCodeModal?.classList.add("hidden");
   ui.shopPanel.hidden = false;
   state.paused = true;
 }
@@ -1171,15 +1031,11 @@ export async function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
     return;
   }
-  if (!await requireParentalCodeAccess()) {
-    return;
-  }
   syncWorldZoomUi();
   applyMobileVisualDebugOffsets();
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.leaderboardModal?.classList.add("hidden");
-  ui.parentalCodeModal?.classList.add("hidden");
   ui.settingsPanel.hidden = false;
   state.paused = true;
 }
@@ -1201,7 +1057,6 @@ export function closeOverlayPanels() {
   closeShopPanel();
   closeCheatModal();
   closeLeaderboardModal();
-  ui.parentalCodeModal?.classList.add("hidden");
 }
 
 export function openPauseMenu() {
@@ -1213,7 +1068,6 @@ export function openPauseMenu() {
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.leaderboardModal?.classList.add("hidden");
-  ui.parentalCodeModal?.classList.add("hidden");
   ui.pauseModal.classList.remove("hidden");
   state.paused = true;
 }
@@ -1252,7 +1106,6 @@ export function startGameFromMenu() {
   ui.shopPanel.hidden = true;
   ui.cheatModal?.classList.add("hidden");
   ui.leaderboardModal?.classList.add("hidden");
-  ui.parentalCodeModal?.classList.add("hidden");
   if (state.pendingBossStart) {
     _startBossMode({ sourceLevelIndex: _getBossPrepLevelIndex() });
     return;
@@ -1277,7 +1130,6 @@ export function showTitleScreen() {
   ui.pauseModal?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.leaderboardModal?.classList.add("hidden");
-  ui.parentalCodeModal?.classList.add("hidden");
   ui.titleScreen?.classList.remove("hidden");
   updateHudInfo();
   renderLeaderboard();

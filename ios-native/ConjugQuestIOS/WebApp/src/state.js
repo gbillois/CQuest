@@ -68,7 +68,7 @@ export const ui = {
   resetGameConfirmBtn: document.getElementById("resetGameConfirmBtn"),
   errorListLabel: document.getElementById("errorListLabel"),
   errorList: document.getElementById("errorList"),
-  changeParentalCodeBtn: document.getElementById("changeParentalCodeBtn"),
+  clearLocalStorageBtn: document.getElementById("clearLocalStorageBtn"),
   applySettingsBtn: document.getElementById("applySettingsBtn"),
   forcePwaUpdateBtn: document.getElementById("forcePwaUpdateBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),

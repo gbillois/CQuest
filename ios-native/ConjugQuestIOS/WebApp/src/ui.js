@@ -16,7 +16,7 @@ import {
   grantGold, initializeHeroProgress, syncHeroActionButtonVisibility,
   loadPersistentGold, loadWorldZoom, saveWorldZoom, normalizeWorldZoom,
   getSelectedHeroId, normalizeTileStyleMode, saveTileStyleMode,
-  loadParentalCode, saveParentalCode, resetStoredGameProgress,
+  resetStoredGameProgress,
   addLeaderboardEntry, isLeaderboardNameAllowed,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
@@ -68,88 +68,6 @@ function applyWorldZoom(value) {
 }
 
 
-function askParentalCode({ isFirstSetup = false } = {}) {
-  const title = isFirstSetup
-    ? t("parentalPromptSetup")
-    : t("parentalPromptEnter");
-  const answer = window.prompt(title, "");
-  if (answer === null) {
-    return null;
-  }
-  return String(answer).trim();
-}
-
-function ensureParentalCodeConfigured() {
-  const existing = loadParentalCode();
-  if (existing) {
-    return existing;
-  }
-  const createdCode = askParentalCode({ isFirstSetup: true });
-  if (createdCode === null) {
-    return null;
-  }
-  if (!createdCode) {
-    window.alert(t("parentalCodeEmpty"));
-    return null;
-  }
-  if (!saveParentalCode(createdCode)) {
-    window.alert(t("parentalCodeSaveError"));
-    return null;
-  }
-  window.alert(t("parentalCodeSaved"));
-  return createdCode;
-}
-
-function requireParentalCodeAccess() {
-  const currentCode = ensureParentalCodeConfigured();
-  if (!currentCode) {
-    return false;
-  }
-  const entered = askParentalCode();
-  if (entered === null) {
-    return false;
-  }
-  if (entered !== currentCode) {
-    window.alert(t("wrongParentalCode"));
-    return false;
-  }
-  return true;
-}
-
-function changeParentalCode() {
-  const currentCode = loadParentalCode();
-  if (!currentCode) {
-    const configured = ensureParentalCodeConfigured();
-    if (!configured) {
-      return;
-    }
-  } else {
-    const entered = window.prompt(t("parentalEnterCurrent"), "");
-    if (entered === null) {
-      return;
-    }
-    if (String(entered).trim() !== currentCode) {
-      window.alert(t("wrongParentalCode"));
-      return;
-    }
-  }
-
-  const newCode = window.prompt(t("parentalPromptNew"), "");
-  if (newCode === null) {
-    return;
-  }
-  if (!String(newCode).trim()) {
-    window.alert(t("parentalCodeEmpty"));
-    return;
-  }
-  if (!saveParentalCode(newCode)) {
-    window.alert(t("parentalCodeNewSaveError"));
-    return;
-  }
-  window.alert(t("parentalCodeUpdated"));
-}
-
-
 function applyLocaleToStaticUi() {
   document.documentElement.lang = getLocale();
   const setText = (selector, key) => {
@@ -187,7 +105,6 @@ function applyLocaleToStaticUi() {
   setText("#mobileButtonsOffsetLower", "sliderLower");
   setText("#mobileGameOffsetHigher", "sliderHigher");
   setText("#mobileGameOffsetLower", "sliderLower");
-  setText("#changeParentalCodeBtn", "changeCode");
   setText("#applySettingsBtn", "apply");
   setText("#closeSettingsBtn", "close");
   setText("#forcePwaUpdateBtn", "update");
@@ -878,7 +795,12 @@ export function bindControls() {
     closeSettingsPanel();
   });
 
-  ui.changeParentalCodeBtn?.addEventListener("click", changeParentalCode);
+  ui.clearLocalStorageBtn?.addEventListener("click", () => {
+    if (window.confirm(t("resetGameConfirm"))) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  });
   ui.forcePwaUpdateBtn?.addEventListener("click", forcePwaUpdate);
 
   ui.startBtn?.addEventListener("click", startGameFromMenu);
@@ -1081,9 +1003,6 @@ export function closeShopPanel() {
 
 export function openSettingsPanel() {
   if (!state.ready || !ui.settingsPanel) {
-    return;
-  }
-  if (!requireParentalCodeAccess()) {
     return;
   }
   syncWorldZoomUi();
