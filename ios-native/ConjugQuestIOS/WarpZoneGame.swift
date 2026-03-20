@@ -74,6 +74,9 @@ final class WarpZoneGameViewModel: ObservableObject {
 }
 
 struct WarpZoneGameView: View {
+    private let controlsBottomOffset: CGFloat = 150
+    private let gameAreaBottomOffset: CGFloat = 200
+
     @Binding var isPresented: Bool
     @StateObject private var viewModel = WarpZoneGameViewModel()
     @State private var spriteScene = WarpZoneScene(size: CGSize(width: 768, height: 1366))
@@ -82,6 +85,7 @@ struct WarpZoneGameView: View {
         ZStack {
             SpriteView(scene: spriteScene)
                 .ignoresSafeArea()
+                .padding(.bottom, gameAreaBottomOffset)
                 .onAppear {
                     spriteScene.scaleMode = .resizeFill
                     spriteScene.bind(to: viewModel)
@@ -97,7 +101,7 @@ struct WarpZoneGameView: View {
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
-            .padding(.bottom, 18)
+            .padding(.bottom, controlsBottomOffset)
 
             if let question = viewModel.currentQuestion {
                 questionOverlay(question)
