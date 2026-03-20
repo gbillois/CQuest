@@ -271,23 +271,6 @@ body {
   font-size: 1rem;
 }
 
-#shopPanel {
-  padding-top: 56px;
-}
-
-.shop-close-top {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(56%, 210px);
-}
-
-.shop-close-top #closeShopBtn {
-  width: 100%;
-}
-
-
 .hero-shop {
   margin-top: 10px;
   padding-top: 10px;
@@ -480,6 +463,11 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 14px;
+}
+
+.panel-actions-center {
+  grid-template-columns: minmax(0, 210px);
+  justify-content: center;
 }
 
 .pedagogy {

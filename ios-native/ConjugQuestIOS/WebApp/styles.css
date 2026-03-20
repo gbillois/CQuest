@@ -441,6 +441,11 @@ body {
   margin-top: 14px;
 }
 
+.panel-actions-center {
+  grid-template-columns: minmax(0, 210px);
+  justify-content: center;
+}
+
 .pedagogy {
   margin-top: 10px;
   padding-top: 8px;
