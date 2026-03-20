@@ -447,6 +447,21 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
+.device-mode-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 10, 24, 0.5);
+}
+
+.device-mode-indicator strong {
+  color: #ffe17e;
+}
+
 .check-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

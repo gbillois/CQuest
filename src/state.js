@@ -72,6 +72,8 @@ export const ui = {
   applySettingsBtn: document.getElementById("applySettingsBtn"),
   forcePwaUpdateBtn: document.getElementById("forcePwaUpdateBtn"),
   closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+  settingsDeviceModeLabel: document.getElementById("settingsDeviceModeLabel"),
+  settingsDeviceModeValue: document.getElementById("settingsDeviceModeValue"),
   settingsGameModeSelect: document.getElementById("settingsGameModeSelect"),
   settingsButtonsOffsetSlider: document.getElementById("settingsButtonsOffsetSlider"),
   settingsGameOffsetSlider: document.getElementById("settingsGameOffsetSlider"),

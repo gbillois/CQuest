@@ -453,6 +453,7 @@ function applyViewportCssVars() {
   if (width) {
     document.documentElement.style.setProperty("--app-width", `${width}px`);
   }
+  applyMobileVisualDebugOffsets();
 }
 
 function registerViewportCssVarSync() {

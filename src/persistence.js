@@ -22,6 +22,9 @@ import { clamp } from "./utils.js";
 // Late-binding reference to renderHeroShop (set by main.js to avoid circular deps).
 let _renderHeroShop = null;
 
+const DEFAULT_MOBILE_BUTTONS_OFFSET = 150;
+const DEFAULT_MOBILE_GAME_OFFSET = 200;
+
 export function setRenderHeroShop(fn) {
   _renderHeroShop = fn;
 }
@@ -135,16 +138,16 @@ export function saveTileStyleMode(value) {
 export function loadMobileButtonsOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 150;
-    return clamp(Math.round(raw), 0, 150);
+    if (!Number.isFinite(raw)) return DEFAULT_MOBILE_BUTTONS_OFFSET;
+    return clamp(Math.round(raw), 0, DEFAULT_MOBILE_BUTTONS_OFFSET);
   } catch {
-    return 150;
+    return DEFAULT_MOBILE_BUTTONS_OFFSET;
   }
 }
 
 export function saveMobileButtonsOffset(value) {
   try {
-    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, 150)));
+    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, DEFAULT_MOBILE_BUTTONS_OFFSET)));
   } catch {
     // Ignore storage issues.
   }
@@ -153,16 +156,16 @@ export function saveMobileButtonsOffset(value) {
 export function loadMobileGameOffset() {
   try {
     const raw = Number(localStorage.getItem(MOBILE_GAME_OFFSET_STORAGE_KEY));
-    if (!Number.isFinite(raw)) return 200;
-    return clamp(Math.round(raw), 0, 200);
+    if (!Number.isFinite(raw)) return DEFAULT_MOBILE_GAME_OFFSET;
+    return clamp(Math.round(raw), 0, DEFAULT_MOBILE_GAME_OFFSET);
   } catch {
-    return 200;
+    return DEFAULT_MOBILE_GAME_OFFSET;
   }
 }
 
 export function saveMobileGameOffset(value) {
   try {
-    localStorage.setItem(MOBILE_GAME_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, 200)));
+    localStorage.setItem(MOBILE_GAME_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, DEFAULT_MOBILE_GAME_OFFSET)));
   } catch {
     // Ignore storage issues.
   }

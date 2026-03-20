@@ -70,6 +70,37 @@ function applyWorldZoom(value) {
 }
 
 
+function getViewportMode() {
+  if (typeof window === "undefined") {
+    return "desktop";
+  }
+  const viewportWidth = Math.min(
+    Number(window.visualViewport?.width) || Number.POSITIVE_INFINITY,
+    Number(window.innerWidth) || Number.POSITIVE_INFINITY,
+  );
+  const width = Number.isFinite(viewportWidth) ? viewportWidth : 0;
+  if (width <= 767) {
+    return "mobile";
+  }
+  if (width <= 1024) {
+    return "tablet";
+  }
+  return "desktop";
+}
+
+function syncViewportModeUi() {
+  if (!ui.settingsDeviceModeValue) {
+    return;
+  }
+  const mode = getViewportMode();
+  const modeLabels = {
+    mobile: t("deviceModeMobile"),
+    tablet: t("deviceModeTablet"),
+    desktop: t("deviceModeDesktop"),
+  };
+  ui.settingsDeviceModeValue.textContent = modeLabels[mode] || modeLabels.desktop;
+}
+
 function applyLocaleToStaticUi() {
   document.documentElement.lang = getLocale();
   const setText = (selector, key) => {
@@ -105,6 +136,7 @@ function applyLocaleToStaticUi() {
   setText("#settingsGameModeNormalOption", "gameModeNormal");
   setText("#settingsGameModeEasyOption", "gameModeEasy");
   setText("#mobileLayoutPanel h2", "mobileLayoutSettings");
+  setText("#settingsDeviceModeLabel", "deviceMode");
   setText('label[for="settingsButtonsOffsetSlider"]', "settingsButtonsOffset");
   setText('label[for="settingsGameOffsetSlider"]', "settingsGameOffset");
   setText("#mobileButtonsOffsetHigher", "sliderHigher");
@@ -151,6 +183,7 @@ function applyLocaleToStaticUi() {
   setText("#finalVictoryPanel p:nth-of-type(1)", "dragonDefeated");
   setText("#finalVictoryPanel p:nth-of-type(2)", "championStatus");
   setText("#backToTitleFromVictoryBtn", "titleScreen");
+  syncViewportModeUi();
 }
 
 function renderLeaderboard() {
@@ -441,10 +474,7 @@ export function endCheatMenuLongPress() {
 /* ── Visual debug ── */
 
 export function isMobileViewport() {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-    return false;
-  }
-  return window.matchMedia("(max-width: 767px)").matches;
+  return getViewportMode() === "mobile";
 }
 
 export function applyMobileVisualDebugOffsets() {
@@ -473,6 +503,7 @@ export function applyMobileVisualDebugOffsets() {
   if (ui.settingsGameOffsetSlider) {
     ui.settingsGameOffsetSlider.value = String(gameOffset);
   }
+  syncViewportModeUi();
 }
 
 export function openVisualDebugPanel() {
