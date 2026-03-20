@@ -432,6 +432,7 @@ function applyViewportCssVars() {
     return;
   }
   document.documentElement.style.setProperty("--app-height", `${height}px`);
+  applyMobileVisualDebugOffsets();
 }
 
 function registerViewportCssVarSync() {
