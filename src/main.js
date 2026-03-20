@@ -453,7 +453,10 @@ function applyViewportCssVars() {
   if (width) {
     document.documentElement.style.setProperty("--app-width", `${width}px`);
   }
-  applyMobileVisualDebugOffsets();
+  const buttonsOffset = Math.min(Math.max(Number(state.mobileButtonsOffsetY) || 0, 0), 150);
+  const gameOffset = Math.min(Math.max(Number(state.mobileGameOffsetY) || 0, 0), 200);
+  document.body.style.setProperty("--mobile-buttons-bottom", `${buttonsOffset}px`);
+  document.body.style.setProperty("--mobile-game-area-bottom", `${gameOffset}px`);
 }
 
 function registerViewportCssVarSync() {
