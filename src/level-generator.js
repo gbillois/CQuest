@@ -938,7 +938,14 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
     biomeId, rand, pathNodes: finalPathNodes, levelIndex: index,
     tileGrid, groundY: baseGroundY, lanes: enemyLanes, generation, towerTileX, heightTiles,
   });
-  const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: enemyLanes, tileGrid, towerTileX, castleTileX });
+  const towerAnimalLanes = Number.isFinite(towerTileX)
+    ? collectGroundLanes(tileGrid, baseGroundY, towerTileX - 8, towerTileX + 6, [], heightTiles)
+    : [];
+  const castleAnimalLanes = Number.isFinite(castleTileX)
+    ? collectGroundLanes(tileGrid, baseGroundY, castleTileX - 12, castleTileX - 3, [], heightTiles)
+    : [];
+  const animalLanes = [...towerAnimalLanes, ...castleAnimalLanes];
+  const animalSpawns = buildAnimalSpawns({ biomeId, rand, lanes: animalLanes, tileGrid, towerTileX, castleTileX });
   const skyBirdSpawns = buildSkyBirdSpawns({ biomeId, rand, groundY: baseGroundY, worldWidth: widthTiles * state.tileSize });
   const guardSpawns = buildGuardSpawns({ groundY: baseGroundY, towerTileX, castleTileX, worldWidth: widthTiles * state.tileSize });
   const levelVerbDatas = state.duel ? state.duel.generateLevelVerbDatas(enemySpawns.length) : [];
