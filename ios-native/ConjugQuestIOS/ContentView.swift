@@ -9,34 +9,8 @@ struct ContentView: View {
         })
         .ignoresSafeArea()
         .background(Color.black)
-        .sheet(isPresented: $isWarpZonePresented) {
-            WarpZoneView(isPresented: $isWarpZonePresented)
+        .fullScreenCover(isPresented: $isWarpZonePresented) {
+            WarpZoneGameView(isPresented: $isWarpZonePresented)
         }
-    }
-}
-
-private struct WarpZoneView: View {
-    @Binding var isPresented: Bool
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Spacer()
-                Text("Hello")
-                    .font(.system(size: 34, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .multilineTextAlignment(.center)
-                Button("retour") {
-                    isPresented = false
-                }
-                .buttonStyle(.borderedProminent)
-                Spacer()
-            }
-            .padding(24)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground))
-            .navigationBarBackButtonHidden(true)
-        }
-        .presentationDetents([.medium])
     }
 }
