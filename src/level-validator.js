@@ -30,10 +30,13 @@ function getPlayerDimensions() {
   const hero = state.heroes?.[state.selectedHeroIndex];
   if (hero) {
     const hitboxOverride = getHeroHitboxOverride(hero.id);
-    if (hitboxOverride) {
-      return hitboxOverride;
-    }
     const mbox = getManifestHitbox(hero.sprite?.idleSE, HERO_SCALE);
+    if (hitboxOverride) {
+      return {
+        w: hitboxOverride.w || mbox?.w || PLAYER_HITBOX_WIDTH,
+        h: hitboxOverride.h || mbox?.h || PLAYER_HITBOX_HEIGHT,
+      };
+    }
     if (mbox) return mbox;
   }
   return { w: PLAYER_HITBOX_WIDTH, h: PLAYER_HITBOX_HEIGHT };
