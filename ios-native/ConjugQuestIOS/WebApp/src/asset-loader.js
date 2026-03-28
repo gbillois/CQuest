@@ -2,7 +2,7 @@
 // Handles all image/asset loading for ConjugQuest.
 
 import {
-  KNOWN_HERO_DIRS, KNOWN_ENEMY_DIRS, IMAGE_LOAD_TIMEOUT_MS, ASSET_PROBE_TIMEOUT_MS,
+  KNOWN_HERO_DIRS, KNOWN_ENEMY_DIRS, KNOWN_ANIMAL_DIRS, KNOWN_SKY_BIRD_DIRS, IMAGE_LOAD_TIMEOUT_MS, ASSET_PROBE_TIMEOUT_MS,
   MAGE_FIREBALL_ICON, BIOME_PARALLAX_BACKGROUNDS, BOSS_DRAGON_ATTACK_SW_FRAMES,
   BOSS_FALLBACK_DRAGON_FRAME, GROUND_THICKNESS_TILES,
   MIN_PLAYER_JUMP_HEIGHT_TILES, GAME,
@@ -19,9 +19,38 @@ import { state, ui, imageCache, imagePromiseCache } from "./state.js";
 // updateHudInfo lives in the rendering/UI layer which may not yet be extracted.
 // Register it via setUpdateHudInfo() so loadConfig can call it.
 let _updateHudInfo = null;
+let _spriteManifestCache = null;
 
 export function setUpdateHudInfo(fn) {
   _updateHudInfo = fn;
+}
+
+async function getSpriteManifestJson() {
+  if (_spriteManifestCache) {
+    return _spriteManifestCache;
+  }
+  try {
+    _spriteManifestCache = await fetchJson("./sprite-manifest.json");
+    return _spriteManifestCache;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveRosterDirsFromManifest(sectionName, fallbackDirs = []) {
+  const base = Array.isArray(fallbackDirs) ? fallbackDirs.slice() : [];
+  const manifest = await getSpriteManifestJson();
+  const section = manifest?.[sectionName];
+  if (!section || typeof section !== "object" || Array.isArray(section)) {
+    return base;
+  }
+  const merged = new Set(base);
+  for (const key of Object.keys(section)) {
+    if (key) {
+      merged.add(key);
+    }
+  }
+  return Array.from(merged);
 }
 
 // ─── Core image helpers ───
@@ -297,8 +326,35 @@ export async function buildHeroFromConvention(dir) {
 // ─── Enemy builders ───
 
 export async function buildEnemyFromMetadata(dir, metadata) {
-  const walkingSet = metadata.frames?.animations?.["walking-6-frames"] || {};
+  const animations = metadata.frames?.animations || {};
+  const walkingSet = animations["walking-6-frames"] || animations["walk-6-frames"] || animations.walking || {};
   const rotations = metadata.frames?.rotations || {};
+  const base = `./game_assets/enemies/${dir}`;
+  let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
+  let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
+
+  if (!walkE.length) {
+    walkE = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/animations/walking/east/frame_`,
+        `game_assets/enemies/${dir}/walk/east/frame_`,
+      ],
+      6,
+    );
+  }
+  if (!walkW.length) {
+    walkW = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/animations/walking/west/frame_`,
+        `game_assets/enemies/${dir}/walk/west/frame_`,
+      ],
+      6,
+    );
+  }
 
   const enemy = {
     id: dir,
@@ -309,10 +365,10 @@ export async function buildEnemyFromMetadata(dir, metadata) {
       height: metadata.character?.size?.height || 48,
     },
     sprite: {
-      idleE: toAssetPath(`./game_assets/enemies/${dir}`, rotations.east || rotations.south),
-      idleW: toAssetPath(`./game_assets/enemies/${dir}`, rotations.west || rotations.south),
-      walkE: normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
-      walkW: normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(`./game_assets/enemies/${dir}`, file))),
+      idleE: toAssetPath(base, rotations.east || rotations.south),
+      idleW: toAssetPath(base, rotations.west || rotations.south),
+      walkE,
+      walkW,
     },
   };
 
@@ -352,6 +408,7 @@ export async function buildEnemyFromConvention(dir) {
   const walkE = await collectFramePathsFromPrefixes(
     [
       `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
+      `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
       `game_assets/enemies/${dir}/walk/east/frame_`,
     ],
     6,
@@ -359,6 +416,7 @@ export async function buildEnemyFromConvention(dir) {
   const walkW = await collectFramePathsFromPrefixes(
     [
       `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
+      `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
       `game_assets/enemies/${dir}/walk/west/frame_`,
     ],
     6,
@@ -531,6 +589,17 @@ export async function preloadBossAssets() {
 // ─── Background warmup ───
 
 export function scheduleBackgroundWarmup(config) {
+  // Load current level's background immediately so it's ready when the player starts.
+  const firstBiome = state.levels?.[0]?.biome;
+  if (firstBiome) {
+    const bgPath = BIOME_PARALLAX_BACKGROUNDS[firstBiome];
+    if (bgPath) {
+      loadImage(bgPath).catch(() => null);
+    }
+  }
+
+  // Defer bulk loading of all remaining assets by 3 s so the title screen renders
+  // and the browser is idle before consuming bandwidth on non-critical sprites.
   window.setTimeout(() => {
     preloadEnemiesForLevel(0).catch(() => null);
     preloadConfigAssetImages(config).catch(() => null);
@@ -538,7 +607,9 @@ export function scheduleBackgroundWarmup(config) {
     preloadBossAssets().catch(() => null);
     Promise.all(state.heroes.map((hero) => preloadHeroSprites(hero))).catch(() => null);
     Promise.all(state.enemies.map((enemy) => preloadEnemySprites(enemy))).catch(() => null);
-  }, 0);
+    Promise.all(state.animals.map((animal) => preloadEnemySprites(animal))).catch(() => null);
+    Promise.all((state.skyBirds || []).map((bird) => preloadEnemySprites(bird))).catch(() => null);
+  }, 3000);
 }
 
 // ─── UI assets ───
@@ -749,9 +820,10 @@ export async function loadHeroes() {
 
 export async function loadEnemies() {
   const enemies = [];
+  const enemyDirs = await resolveRosterDirsFromManifest("enemies", KNOWN_ENEMY_DIRS);
 
   await Promise.all(
-    KNOWN_ENEMY_DIRS.map(async (dir) => {
+    enemyDirs.map(async (dir) => {
       const metadataPath = `./game_assets/enemies/${dir}/metadata.json`;
       const metadata = await fetchJson(metadataPath).catch(() => null);
 
@@ -801,6 +873,189 @@ export function ensureEmergencyRoster() {
       },
     });
   }
+}
+
+export async function loadGuards() {
+  const metadataPath = `./game_assets/guards/royal-guard/metadata.json`;
+  const metadata = await fetchJson(metadataPath).catch(() => null);
+  if (!metadata) { state.guard = null; return; }
+
+  const animations = metadata.frames?.animations || {};
+  const idleSet = animations["breathing-idle"] || animations["walk-6-frames"] || animations.walking || {};
+  const rotations = metadata.frames?.rotations || {};
+  const base = `./game_assets/guards/royal-guard`;
+
+  const walkE = normalizeUniqueAssetPaths((idleSet.east || []).map((f) => toAssetPath(base, f)));
+  const walkW = normalizeUniqueAssetPaths((idleSet.west || []).map((f) => toAssetPath(base, f)));
+
+  const def = {
+    id: "royal-guard",
+    size: {
+      width: metadata.character?.size?.width || 56,
+      height: metadata.character?.size?.height || 56,
+    },
+    sprite: {
+      idleS: toAssetPath(base, rotations.south),
+      idleE: toAssetPath(base, rotations.east || rotations.south),
+      idleW: toAssetPath(base, rotations.west || rotations.south),
+      walkE,
+      walkW,
+    },
+  };
+
+  const loaded = await tryLoadImage(def.sprite.idleS).catch(() => false)
+    || await tryLoadImage(def.sprite.idleE).catch(() => false)
+    || await tryLoadImage(def.sprite.idleW).catch(() => false);
+  state.guard = loaded ? def : null;
+
+  if (state.guard) {
+    loadImage(def.sprite.idleS).catch(() => null);
+  }
+}
+
+export async function loadSkyBirds() {
+  const birds = [];
+  const birdDirs = await resolveRosterDirsFromManifest("skyBirds", KNOWN_SKY_BIRD_DIRS);
+
+  await Promise.all(
+    birdDirs.map(async (dir) => {
+      const metadataPath = `./game_assets/animals/${dir}/metadata.json`;
+      const metadata = await fetchJson(metadataPath).catch(() => null);
+      const bird = metadata ? await buildAnimalFromMetadata(dir, metadata) : await buildEnemyFromConvention_animals(dir);
+      if (!bird) return;
+      bird.isSkyBird = true;
+      birds.push(bird);
+    }),
+  );
+
+  state.skyBirds = birds;
+}
+
+export async function loadAnimals() {
+  const animals = [];
+  const animalDirs = (await resolveRosterDirsFromManifest("animals", KNOWN_ANIMAL_DIRS))
+    .filter((dir) => !KNOWN_SKY_BIRD_DIRS.includes(dir));
+
+  await Promise.all(
+    animalDirs.map(async (dir) => {
+      const metadataPath = `./game_assets/animals/${dir}/metadata.json`;
+      const metadata = await fetchJson(metadataPath).catch(() => null);
+
+      const animal = metadata ? await buildAnimalFromMetadata(dir, metadata) : await buildEnemyFromConvention_animals(dir);
+      if (!animal) {
+        return;
+      }
+      animal.isAnimal = true;
+      animals.push(animal);
+    }),
+  );
+
+  state.animals = animals;
+}
+
+async function buildAnimalFromMetadata(dir, metadata) {
+  const animations = metadata.frames?.animations || {};
+  const walkingSet = animations["walking-6-frames"] || animations["walk-6-frames"] || animations.walking || {};
+  const rotations = metadata.frames?.rotations || {};
+  const base = `./game_assets/animals/${dir}`;
+  let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
+  let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
+
+  if (!walkE.length) {
+    walkE = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/animations/walking/east/frame_`,
+        `game_assets/animals/${dir}/walk/east/frame_`,
+      ],
+      6,
+    );
+  }
+  if (!walkW.length) {
+    walkW = await collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/animations/walking/west/frame_`,
+        `game_assets/animals/${dir}/walk/west/frame_`,
+      ],
+      6,
+    );
+  }
+
+  const animal = {
+    id: dir,
+    name: metadata.character?.name || dir,
+    biomeHint: dir.split("-")[0],
+    size: {
+      width: metadata.character?.size?.width || 48,
+      height: metadata.character?.size?.height || 48,
+    },
+    sprite: {
+      idleE: toAssetPath(base, rotations.east || rotations.south),
+      idleW: toAssetPath(base, rotations.west || rotations.south),
+      walkE,
+      walkW,
+    },
+  };
+
+  const eastOk = await tryLoadImage(animal.sprite.idleE);
+  const westOk = await tryLoadImage(animal.sprite.idleW);
+  if (!eastOk && !westOk) return null;
+  if (!eastOk) animal.sprite.idleE = animal.sprite.idleW;
+  if (!westOk) animal.sprite.idleW = animal.sprite.idleE;
+
+  return animal;
+}
+
+async function buildEnemyFromConvention_animals(dir) {
+  const idleE = `game_assets/animals/${dir}/rotations/east.png`;
+  const idleW = `game_assets/animals/${dir}/rotations/west.png`;
+  const idleS = `game_assets/animals/${dir}/rotations/south.png`;
+
+  let chosenIdleE = idleE;
+  let chosenIdleW = idleW;
+
+  if (!(await tryLoadImage(chosenIdleE))) {
+    chosenIdleE = (await tryLoadImage(idleS)) ? idleS : idleW;
+  }
+  if (!(await tryLoadImage(chosenIdleW))) {
+    chosenIdleW = (await tryLoadImage(idleS)) ? idleS : chosenIdleE;
+  }
+  if (!(await tryLoadImage(chosenIdleE)) && !(await tryLoadImage(chosenIdleW))) {
+    return null;
+  }
+
+  const walkE = await collectFramePathsFromPrefixes(
+    [
+      `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
+      `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
+      `game_assets/animals/${dir}/walk/east/frame_`,
+    ],
+    6,
+  );
+  const walkW = await collectFramePathsFromPrefixes(
+    [
+      `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
+      `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
+      `game_assets/animals/${dir}/walk/west/frame_`,
+    ],
+    6,
+  );
+
+  return {
+    id: dir,
+    name: dir,
+    biomeHint: dir.split("-")[0],
+    size: { width: 48, height: 48 },
+    sprite: {
+      idleE: normalizeAssetPath(chosenIdleE),
+      idleW: normalizeAssetPath(chosenIdleW),
+      walkE,
+      walkW,
+    },
+  };
 }
 
 export function enforceMinimumJumpHeight() {

@@ -589,6 +589,17 @@ export async function preloadBossAssets() {
 // ─── Background warmup ───
 
 export function scheduleBackgroundWarmup(config) {
+  // Load current level's background immediately so it's ready when the player starts.
+  const firstBiome = state.levels?.[0]?.biome;
+  if (firstBiome) {
+    const bgPath = BIOME_PARALLAX_BACKGROUNDS[firstBiome];
+    if (bgPath) {
+      loadImage(bgPath).catch(() => null);
+    }
+  }
+
+  // Defer bulk loading of all remaining assets by 3 s so the title screen renders
+  // and the browser is idle before consuming bandwidth on non-critical sprites.
   window.setTimeout(() => {
     preloadEnemiesForLevel(0).catch(() => null);
     preloadConfigAssetImages(config).catch(() => null);
@@ -598,7 +609,7 @@ export function scheduleBackgroundWarmup(config) {
     Promise.all(state.enemies.map((enemy) => preloadEnemySprites(enemy))).catch(() => null);
     Promise.all(state.animals.map((animal) => preloadEnemySprites(animal))).catch(() => null);
     Promise.all((state.skyBirds || []).map((bird) => preloadEnemySprites(bird))).catch(() => null);
-  }, 0);
+  }, 3000);
 }
 
 // ─── UI assets ───
