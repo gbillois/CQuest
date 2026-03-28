@@ -1,10 +1,10 @@
 // ─── Imports ───
-import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIPLIER, JUMP_BUFFER_WINDOW_SECONDS } from "./constants.js";
+import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIPLIER, JUMP_BUFFER_WINDOW_SECONDS, BIOME_PARALLAX_BACKGROUNDS } from "./constants.js";
 import { createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
 import {
   loadConfig, setupUiAssets, buildBiomeIndex, loadHeroes, loadEnemies, loadAnimals, loadSkyBirds, loadGuards,
-  ensureEmergencyRoster, enforceMinimumJumpHeight, preloadLevelAssetImages,
+  ensureEmergencyRoster, enforceMinimumJumpHeight, loadImage, preloadLevelAssetImages,
   preloadSelectedHeroSprites, scheduleBackgroundWarmup, setUpdateHudInfo,
 } from "./asset-loader.js";
 import { generateLevelsFromConfig } from "./level-generator.js";
@@ -215,20 +215,25 @@ async function init() {
   };
 
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
+  // Load heroes first (initializeHeroProgress depends on them), then load
+  // enemies, animals, sky-birds and guards in parallel — they are independent.
   await loadHeroes();
   initializeHeroProgress();
-  await loadEnemies();
-  await loadAnimals();
-  await loadSkyBirds();
-  await loadGuards();
+  await Promise.all([loadEnemies(), loadAnimals(), loadSkyBirds(), loadGuards()]);
   ensureEmergencyRoster();
 
   logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
 
   generateLevelsFromConfig(config);
   logInfo("init", `Generated ${state.levels.length} levels`);
-  await preloadLevelAssetImages(state.levels[0]);
-  await preloadSelectedHeroSprites();
+  // Preload level-0 tiles and its background image in parallel so the first
+  // level renders fully (no gradient fallback) as soon as the game starts.
+  const firstBgPath = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biome];
+  await Promise.all([
+    preloadLevelAssetImages(state.levels[0]),
+    preloadSelectedHeroSprites(),
+    firstBgPath ? loadImage(firstBgPath).catch(() => null) : Promise.resolve(),
+  ]);
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();
