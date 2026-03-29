@@ -611,7 +611,7 @@ body {
   background: linear-gradient(180deg, rgba(8, 14, 32, 0.96), rgba(10, 16, 38, 0.96));
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   gap: 2px;
 }
 
@@ -1116,6 +1116,14 @@ body {
     align-self: end;
   }
 
+  .panel {
+    top: calc(env(safe-area-inset-top) + 16px);
+    bottom: calc(env(safe-area-inset-bottom) + 16px);
+    transform: translateX(-50%);
+    width: min(94%, 420px);
+    max-height: none;
+   }
+
   .question-panel {
     top: 50%;
     bottom: auto;
@@ -1124,14 +1132,6 @@ body {
     max-height: calc(100% - 140px);
     padding: 10px 14px;
   }
-
-  .panel {
-    top: calc(env(safe-area-inset-top) + 16px);
-    bottom: calc(env(safe-area-inset-bottom) + 16px);
-    transform: translateX(-50%);
-    width: min(94%, 420px);
-    max-height: none;
-   }
 
   .menu-modal {
     place-items: stretch center;
