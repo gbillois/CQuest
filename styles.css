@@ -601,18 +601,18 @@ body {
   top: 50%;
   bottom: auto;
   transform: translate(-50%, -50%);
-  width: min(94%, 430px);
+  width: min(90%, 400px);
   max-height: calc(100% - 200px);
   overflow-y: auto;
   z-index: 72;
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 10px 14px;
   text-align: center;
   background: linear-gradient(180deg, rgba(8, 14, 32, 0.96), rgba(10, 16, 38, 0.96));
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 
@@ -620,8 +620,8 @@ body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: end;
-  gap: 4px;
-  margin: 0 0 8px;
+  gap: 2px;
+  margin: 0 0 2px;
 }
 
 .question-actor {
@@ -639,18 +639,18 @@ body {
 }
 
 .question-actor-sprite {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 4px 2px rgba(0, 0, 0, 0.35));
 }
 
 .question-ask-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #ffe17e;
   line-height: 1;
-  transform: translateY(-4px);
+  transform: translateY(-2px);
 }
 
 .question-actor-enemy .question-actor-sprite {
@@ -664,16 +664,16 @@ body {
 }
 
 .question-group {
-  margin: 0 0 6px;
-  font-size: 0.72rem;
+  margin: 0 0 2px;
+  font-size: 0.65rem;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: rgba(210, 230, 255, 0.85);
 }
 
 .question-tense {
-  margin: 0 0 10px;
-  font-size: 1.05rem;
+  margin: 0 0 4px;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
   color: #ffe17e;
   font-weight: 800;
@@ -681,16 +681,16 @@ body {
 
 
 .question-countdown {
-  margin: 0 0 10px;
-  font-size: 0.95rem;
+  margin: 0 0 4px;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #ffd56a;
 }
 
 .question-prompt {
-  margin: 0 0 12px;
-  font-size: 1rem;
-  line-height: 1.65;
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .question-prompt .verb {
@@ -715,15 +715,16 @@ body {
 .answer-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 6px;
 }
 
 .answer-btn {
   text-align: center;
   border: 2px solid rgba(129, 177, 255, 0.7);
   border-radius: 8px;
-  min-height: 52px;
+  min-height: 42px;
   color: #f7fbff;
+  font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   background: rgba(72, 114, 204, 0.22);
@@ -1119,9 +1120,9 @@ body {
     top: 50%;
     bottom: auto;
     transform: translate(-50%, -50%);
-    width: min(94%, 430px);
-    max-height: calc(100% - 120px);
-    padding: 14px 16px;
+    width: min(90%, 400px);
+    max-height: calc(100% - 140px);
+    padding: 10px 14px;
   }
 
   .panel {
