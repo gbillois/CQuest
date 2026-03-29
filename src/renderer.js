@@ -22,6 +22,10 @@ const TILE_SIDE_TRANSITION_ALPHA = 0.28;
 const DESOLATION_GROUND_DARKEN_ALPHA = 0.5;
 const DESOLATION_MOUNTAIN_DARKEN_ALPHA = 0.42;
 
+/* ── Cached background gradient (only changes on biome switch) ── */
+let _cachedGradientKey = null;
+let _cachedGradient = null;
+
 /* ── late-bound hooks (set by main module) ── */
 let _syncWorldZoomUi = null;
 let _saveWorldZoom = null;
@@ -117,10 +121,14 @@ export function render(timeSeconds) {
   const level = state.currentLevel;
   const [bgTop, bgBottom] = BIOME_BACKGROUNDS[level.biomeId] || ["#1f2431", "#324764"];
 
-  const grad = ctx.createLinearGradient(0, 0, 0, VIRTUAL_HEIGHT);
-  grad.addColorStop(0, bgTop);
-  grad.addColorStop(1, bgBottom);
-  ctx.fillStyle = grad;
+  const gradKey = `${bgTop}|${bgBottom}`;
+  if (gradKey !== _cachedGradientKey) {
+    _cachedGradient = ctx.createLinearGradient(0, 0, 0, VIRTUAL_HEIGHT);
+    _cachedGradient.addColorStop(0, bgTop);
+    _cachedGradient.addColorStop(1, bgBottom);
+    _cachedGradientKey = gradKey;
+  }
+  ctx.fillStyle = _cachedGradient;
   ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
   drawParallaxBackground(level);
 
@@ -549,9 +557,16 @@ export function drawDecorations(level) {
 export function drawGroundDecorations(level, { foreground = false } = {}) {
   const tileSize = state.tileSize;
   const isDesolation = level.biomeId === "desolation";
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - tileSize;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + tileSize;
   for (const decor of level.groundDecorations || []) {
     const renderBehindPlayer = decor.renderBehindPlayer !== false;
     if (foreground ? renderBehindPlayer : !renderBehindPlayer) {
+      continue;
+    }
+    const x = decor.xTile * tileSize;
+    if (x + tileSize < camLeft || x > camRight) {
       continue;
     }
     const image = imageCache.get(decor.path);
@@ -572,7 +587,6 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
         continue;
       }
     }
-    const x = decor.xTile * tileSize;
     const groundTileY = Number.isFinite(decor.yTile) ? decor.yTile + 1 : level.groundY;
     const groundTile = level.tileGrid[groundTileY]?.[decor.xTile] || null;
     const groundRect = groundTile ? getSolidTileCollisionRect(groundTile, decor.xTile, groundTileY) : null;
@@ -602,7 +616,11 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
 }
 
 export function drawBonuses(level, timeSeconds) {
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
   for (const block of level.bonuses) {
+    if (block.x + block.w < camLeft || block.x > camRight) continue;
     const blockSpritePath = block.used && block.usedPath ? block.usedPath : block.path;
     const blockImage = imageCache.get(blockSpritePath);
     const blockY = block.y + block.bumpOffset;
@@ -760,7 +778,11 @@ export function drawGuardSpeech(level) {
 }
 
 export function drawEnemyDrops(level) {
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
   for (const drop of level.enemyDrops || []) {
+    if (drop.x + drop.w < camLeft || drop.x > camRight) continue;
     const image = imageCache.get(drop.rewardPath);
     if (isImageRenderable(image)) {
       ctx.drawImage(image, drop.x, drop.y, drop.w, drop.h);

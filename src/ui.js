@@ -1352,15 +1352,26 @@ export function cloneLevel(level) {
 
 /* ── HUD ── */
 
+let _prevScore = null;
+let _prevHearts = null;
+let _prevCoins = null;
+
 export function updateHudInfo() {
-  if (ui.hudScoreValue) {
-    ui.hudScoreValue.textContent = `${Math.max(0, Math.floor(state.score || 0))}`;
+  const score = Math.max(0, Math.floor(state.score || 0));
+  const hearts = Math.max(0, Math.floor(state.hearts || 0));
+  const coins = Math.max(0, Math.floor(state.coins || 0));
+
+  if (ui.hudScoreValue && score !== _prevScore) {
+    ui.hudScoreValue.textContent = `${score}`;
+    _prevScore = score;
   }
-  if (ui.hudLives) {
-    ui.hudLives.textContent = formatHeartMeter(Math.max(0, Math.floor(state.hearts || 0)), MAX_HEARTS);
+  if (ui.hudLives && hearts !== _prevHearts) {
+    ui.hudLives.textContent = formatHeartMeter(hearts, MAX_HEARTS);
+    _prevHearts = hearts;
   }
-  if (ui.hudGoldValue) {
-    ui.hudGoldValue.textContent = `${Math.max(0, Math.floor(state.coins || 0))}`;
+  if (ui.hudGoldValue && coins !== _prevCoins) {
+    ui.hudGoldValue.textContent = `${coins}`;
+    _prevCoins = coins;
   }
 }
 
