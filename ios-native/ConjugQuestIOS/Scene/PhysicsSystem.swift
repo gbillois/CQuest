@@ -82,7 +82,6 @@ enum PhysicsSystem {
 
         // Check one-way platforms (only collide from above)
         for rect in oneWayRects {
-            let entityBottom = entityY + entityH
             let prevBottom = previousY + entityH
 
             // Only collide if:
