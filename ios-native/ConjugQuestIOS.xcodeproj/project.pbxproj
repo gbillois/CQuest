@@ -26,6 +26,8 @@
 		AA00000D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* SettingsView.swift */; };
 		AA00000E /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* ShopView.swift */; };
 		AA00000F /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* LeaderboardView.swift */; };
+		AA000020 /* PlayerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000021 /* PlayerNode.swift */; };
+		AA000022 /* PhysicsSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000023 /* PhysicsSystem.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +51,8 @@
 		AA00001D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA00001E /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
 		AA00001F /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
+		AA000021 /* PlayerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNode.swift; sourceTree = "<group>"; };
+		AA000023 /* PhysicsSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsSystem.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +128,8 @@
 				AA000013 /* AssetManager.swift */,
 				AA000014 /* GameViewModel.swift */,
 				AA000015 /* GameScene.swift */,
+				AA000021 /* PlayerNode.swift */,
+				AA000023 /* PhysicsSystem.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -214,6 +220,8 @@
 				AA00000D /* SettingsView.swift in Sources */,
 				AA00000E /* ShopView.swift in Sources */,
 				AA00000F /* LeaderboardView.swift in Sources */,
+				AA000020 /* PlayerNode.swift in Sources */,
+				AA000022 /* PhysicsSystem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
