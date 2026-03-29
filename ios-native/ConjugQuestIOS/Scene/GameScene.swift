@@ -2,41 +2,39 @@ import Foundation
 import SpriteKit
 
 /// Main game scene — owns all gameplay: physics, camera, entities, rendering.
-/// Uses a 432x768 virtual canvas with .aspectFill scaling so SpriteKit
-/// handles adaptation to any screen size without distortion.
+/// Uses a 432x768 virtual canvas with .aspectFill scaling.
 ///
-/// Coordinate system: We use Y-down internally (matching HTML game) for all
-/// game logic (worldX, worldY, collision). SpriteKit Y-up is only used for
-/// final node positioning via worldToScene().
+/// Coordinate system: Y-down internally (matching HTML game).
+/// SpriteKit Y-up only used for final node positioning via worldToScene().
 class GameScene: SKScene {
 
-    // MARK: - View Model (bridge to SwiftUI)
+    // MARK: - View Model
     private var viewModel: GameViewModel?
 
     // MARK: - Camera
     private let cameraNode = SKCameraNode()
-    private var gameCameraX: CGFloat = 0  // World X of camera (Y-down coords)
+    private var gameCameraX: CGFloat = 0
 
-    // MARK: - World
-    private let tileSize: CGFloat = 64
-    private var worldWidthTiles: Int = 120
-    private var worldHeightTiles: Int = 36
-    private var worldWidth: CGFloat { CGFloat(worldWidthTiles) * tileSize }
-    private var worldHeight: CGFloat { CGFloat(worldHeightTiles) * tileSize }
+    // MARK: - Levels
+    private var levels: [Level] = []
+    private var currentLevelIndex: Int = 0
+    private var currentLevel: Level?
 
-    // MARK: - Ground
-    /// Ground surface Y in Y-down world coords.
-    /// In HTML game: ground is at ~row 28 of 36, so groundSurfaceY ≈ 28*tileSize.
-    /// For the initial flat level, we use a simpler value matching the HTML canvas.
-    private var groundSurfaceY: CGFloat = 0
-    private let groundNode = SKNode()
+    // MARK: - Scene Layers
     private let backgroundNode = SKNode()
+    private let groundNode = SKNode()
+    private let platformNode = SKNode()
     private let entityNode = SKNode()
 
-    // MARK: - Ground Collision
+    // MARK: - Parallax
+    private lazy var parallaxBg = ParallaxBackground(parentNode: backgroundNode)
+
+    // MARK: - Collision Data (built from level)
     private var groundCollisionRects: [CGRect] = []
     private var platformCollisionRects: [CGRect] = []
-    private var groundHoles: [(start: Int, end: Int)] = []
+
+    // MARK: - End Goal
+    private var endGoalNode: SKSpriteNode?
 
     // MARK: - Player
     private var player = PlayerNode()
@@ -44,27 +42,24 @@ class GameScene: SKScene {
 
     // MARK: - Timing
     private var lastUpdateTime: TimeInterval = 0
-
-    // MARK: - Current Biome
-    private var currentBiome: String = "forest"
+    private var runTime: CGFloat = 0
 
     // MARK: - Coordinate Conversion
-    /// Convert Y-down world coords to SpriteKit scene coords.
-    /// Scene has anchor (0.5, 0.5), so center is (0, 0).
-    /// World (0, 0) = top-left in Y-down = scene (-worldWidth/2, virtualHeight/2) in Y-up.
+
     private func worldToScene(x: CGFloat, y: CGFloat) -> CGPoint {
-        CGPoint(
-            x: x - worldWidth / 2,
+        guard let level = currentLevel else {
+            return CGPoint(x: x, y: -y)
+        }
+        return CGPoint(
+            x: x - level.worldWidth / 2,
             y: GameConstants.virtualHeight / 2 - y
         )
     }
 
-    /// Convert SpriteKit scene coords to Y-down world coords.
-    private func sceneToWorld(point: CGPoint) -> (x: CGFloat, y: CGFloat) {
-        (
-            x: point.x + worldWidth / 2,
-            y: GameConstants.virtualHeight / 2 - point.y
-        )
+    private func worldToSceneFunc() -> (CGFloat, CGFloat) -> CGPoint {
+        { [weak self] x, y in
+            self?.worldToScene(x: x, y: y) ?? CGPoint(x: x, y: -y)
+        }
     }
 
     // MARK: - Setup
@@ -78,73 +73,208 @@ class GameScene: SKScene {
         backgroundColor = .black
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
 
-        // Camera
         addChild(cameraNode)
         camera = cameraNode
 
-        // Layer nodes
         backgroundNode.zPosition = -100
         addChild(backgroundNode)
 
         groundNode.zPosition = 0
         addChild(groundNode)
 
+        platformNode.zPosition = 2
+        addChild(platformNode)
+
         entityNode.zPosition = 10
         addChild(entityNode)
 
-        // Player
         entityNode.addChild(player)
 
-        // Build initial level
-        buildLevel(biome: "forest")
+        // Generate all levels
+        levels = LevelGenerator.generateLevels()
+        loadLevel(index: 0)
     }
 
-    // MARK: - Level Building
+    // MARK: - Load Level
 
-    func buildLevel(biome: String) {
-        currentBiome = biome
+    func loadLevel(index: Int) {
+        currentLevelIndex = index
+        guard index < levels.count else { return }
+        currentLevel = levels[index]
+        guard let level = currentLevel else { return }
+
+        // Clear visuals
         groundNode.removeAllChildren()
+        platformNode.removeAllChildren()
         backgroundNode.removeAllChildren()
-        groundHoles = []
-        platformCollisionRects = []
+        endGoalNode?.removeFromParent()
+        endGoalNode = nil
+        parallaxBg.removeAll()
 
-        // Ground surface in Y-down: near the bottom of the visible area.
-        // HTML game: virtual height = 768, ground at roughly Y = 768 - 4*64 = 512
-        // (4 tiles of ground thickness from the bottom).
-        groundSurfaceY = GameConstants.virtualHeight - CGFloat(GameConstants.groundThicknessTiles) * tileSize
-
-        // Build collision rects for ground
-        groundCollisionRects = PhysicsSystem.buildGroundRects(
-            groundSurfaceY: groundSurfaceY,
-            tileSize: tileSize,
-            worldWidthTiles: worldWidthTiles,
-            holes: groundHoles
-        )
+        // Build collision data
+        buildCollisionData(level: level)
 
         // Draw visuals
-        drawBackground(biome: biome)
-        drawGround(biome: biome)
-        drawParallaxBackground(biome: biome)
+        drawBackground(level: level)
+        drawParallax(level: level)
+        drawGroundTiles(level: level)
+        drawPlatformTiles(level: level)
+        drawEndGoal(level: level)
 
         // Spawn player
-        spawnPlayer()
+        spawnPlayer(level: level)
 
-        // Reset camera
+        // Snap camera
         gameCameraX = player.worldX
         updateCamera(delta: 1.0 / 60.0, snap: true)
 
         Task { @MainActor in
-            viewModel?.currentBiome = biome
+            viewModel?.currentBiome = level.biomeId
+            viewModel?.currentLevelIndex = index
         }
+    }
+
+    // MARK: - Build Collision Data
+
+    private func buildCollisionData(level: Level) {
+        let holes = level.holes.map { (start: $0.start, end: $0.end) }
+
+        groundCollisionRects = PhysicsSystem.buildGroundRects(
+            groundSurfaceY: level.groundSurfaceY,
+            tileSize: level.tileSize,
+            worldWidthTiles: level.widthTiles,
+            holes: holes
+        )
+
+        // Platform collision rects (one-way)
+        platformCollisionRects = level.platformRails.map { rail in
+            let x = CGFloat(rail.startX) * level.tileSize
+            let y = CGFloat(rail.y) * level.tileSize
+            let w = CGFloat(rail.endX - rail.startX) * level.tileSize
+            return CGRect(x: x, y: y, width: w, height: level.tileSize * 0.5)
+        }
+    }
+
+    // MARK: - Draw Background
+
+    private func drawBackground(level: Level) {
+        guard let biome = BiomeData.all[level.biomeId] else { return }
+        let topColor = UIColor(hex: biome.backgroundTop)
+        let bottomColor = UIColor(hex: biome.backgroundBottom)
+
+        let gradientSize = CGSize(width: GameConstants.virtualWidth, height: GameConstants.virtualHeight)
+        let renderer = UIGraphicsImageRenderer(size: gradientSize)
+        let image = renderer.image { ctx in
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            let colors = [topColor.cgColor, bottomColor.cgColor] as CFArray
+            if let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: [0, 1]) {
+                ctx.cgContext.drawLinearGradient(
+                    gradient,
+                    start: .zero,
+                    end: CGPoint(x: 0, y: gradientSize.height),
+                    options: []
+                )
+            }
+        }
+
+        let tex = SKTexture(image: image)
+        tex.filteringMode = .nearest
+        let tilesNeeded = Int(ceil(level.worldWidth / GameConstants.virtualWidth)) + 1
+        for i in 0..<tilesNeeded {
+            let bg = SKSpriteNode(texture: tex, size: gradientSize)
+            bg.anchorPoint = CGPoint(x: 0, y: 1)
+            bg.position = worldToScene(x: CGFloat(i) * GameConstants.virtualWidth, y: 0)
+            bg.zPosition = -100
+            backgroundNode.addChild(bg)
+        }
+    }
+
+    private func drawParallax(level: Level) {
+        parallaxBg.setup(
+            biomeId: level.biomeId,
+            worldWidth: level.worldWidth,
+            worldToScene: worldToSceneFunc()
+        )
+    }
+
+    // MARK: - Draw Ground Tiles
+
+    private func drawGroundTiles(level: Level) {
+        let holeSet = Set(level.holes.flatMap { $0.start..<$0.end })
+
+        for row in 0..<level.heightTiles {
+            for col in 0..<level.widthTiles {
+                guard let tile = level.tileGrid[row][col],
+                      tile.groundSolid,
+                      !holeSet.contains(col) || row < (level.heightTiles - GameConstants.groundThicknessTiles)
+                else { continue }
+
+                if let tex = AssetManager.shared.texture(for: tile.path) {
+                    let sprite = SKSpriteNode(texture: tex, size: CGSize(width: level.tileSize + 2, height: level.tileSize + 2))
+                    sprite.anchorPoint = CGPoint(x: 0, y: 1)
+                    sprite.position = worldToScene(x: CGFloat(col) * level.tileSize, y: CGFloat(row) * level.tileSize)
+                    sprite.zPosition = 1
+                    groundNode.addChild(sprite)
+                } else {
+                    // Fallback colored tile
+                    let sprite = SKSpriteNode(color: UIColor(red: 0.3, green: 0.5, blue: 0.3, alpha: 1), size: CGSize(width: level.tileSize, height: level.tileSize))
+                    sprite.anchorPoint = CGPoint(x: 0, y: 1)
+                    sprite.position = worldToScene(x: CGFloat(col) * level.tileSize, y: CGFloat(row) * level.tileSize)
+                    sprite.zPosition = 1
+                    groundNode.addChild(sprite)
+                }
+            }
+        }
+    }
+
+    // MARK: - Draw Platform Tiles
+
+    private func drawPlatformTiles(level: Level) {
+        for rail in level.platformRails {
+            for col in rail.startX..<rail.endX {
+                guard col >= 0, col < level.widthTiles else { continue }
+                let texPath = "game_assets/platforms/wood/woodhalf_tile_r01_c02_01.png"
+                let tex = AssetManager.shared.texture(for: texPath)
+                let sprite: SKSpriteNode
+                if let tex = tex {
+                    sprite = SKSpriteNode(texture: tex, size: CGSize(width: level.tileSize + 2, height: level.tileSize * 0.5))
+                } else {
+                    sprite = SKSpriteNode(color: .brown, size: CGSize(width: level.tileSize, height: level.tileSize * 0.5))
+                }
+                sprite.anchorPoint = CGPoint(x: 0, y: 1)
+                sprite.position = worldToScene(x: CGFloat(col) * level.tileSize, y: CGFloat(rail.y) * level.tileSize)
+                sprite.zPosition = 2
+                platformNode.addChild(sprite)
+            }
+        }
+    }
+
+    // MARK: - Draw End Goal
+
+    private func drawEndGoal(level: Level) {
+        let goalSize = CGSize(width: level.endWidth, height: level.endHeight)
+        let goal = SKSpriteNode(color: .yellow.withAlphaComponent(0.6), size: goalSize)
+        goal.anchorPoint = CGPoint(x: 0.5, y: 1)
+        goal.position = worldToScene(x: level.endX + level.endWidth / 2, y: level.endY)
+        goal.zPosition = 5
+
+        // Add a label
+        let label = SKLabelNode(text: "🏰")
+        label.fontSize = 48
+        label.verticalAlignmentMode = .center
+        label.position = CGPoint(x: 0, y: -goalSize.height / 2)
+        goal.addChild(label)
+
+        entityNode.addChild(goal)
+        endGoalNode = goal
     }
 
     // MARK: - Player Spawn
 
-    private func spawnPlayer() {
-        player.loadHero(id: "paladin")
-        // Spawn at start of level, on the ground
-        player.worldX = tileSize * 3  // 3 tiles from left
-        player.worldY = groundSurfaceY - player.hitboxHeight  // On top of ground
+    private func spawnPlayer(level: Level) {
+        player.loadHero(id: "paladin") // TODO: use selected hero from AppState
+        player.worldX = level.startX
+        player.worldY = level.groundSurfaceY - player.hitboxHeight
         player.vx = 0
         player.vy = 0
         player.onGround = true
@@ -156,112 +286,11 @@ class GameScene: SKScene {
     }
 
     private func updatePlayerSpritePosition() {
-        // Convert hitbox center to scene position
         let centerX = player.worldX + player.hitboxWidth / 2
-        let centerY = player.worldY + player.hitboxHeight / 2
-        let scenePos = worldToScene(x: centerX, y: centerY)
+        let feetY = player.worldY + player.hitboxHeight
+        // Position sprite so its feet align with hitbox bottom
+        let scenePos = worldToScene(x: centerX, y: feetY - player.spriteDrawSize.height / 2)
         player.position = scenePos
-    }
-
-    // MARK: - Background
-
-    private func drawBackground(biome: String) {
-        guard let colors = GameConstants.biomeBackgroundColors[biome] else { return }
-        let topColor = UIColor(hex: colors.top)
-        let bottomColor = UIColor(hex: colors.bottom)
-
-        let gradientSize = CGSize(width: GameConstants.virtualWidth, height: GameConstants.virtualHeight)
-        let renderer = UIGraphicsImageRenderer(size: gradientSize)
-        let image = renderer.image { ctx in
-            let cgCtx = ctx.cgContext
-            let colorSpace = CGColorSpaceCreateDeviceRGB()
-            let gradientColors = [topColor.cgColor, bottomColor.cgColor] as CFArray
-            let locations: [CGFloat] = [0.0, 1.0]
-            if let gradient = CGGradient(colorsSpace: colorSpace, colors: gradientColors, locations: locations) {
-                cgCtx.drawLinearGradient(
-                    gradient,
-                    start: CGPoint(x: 0, y: 0),
-                    end: CGPoint(x: 0, y: gradientSize.height),
-                    options: []
-                )
-            }
-        }
-
-        let tex = SKTexture(image: image)
-        tex.filteringMode = .nearest
-        let tilesNeeded = Int(ceil(worldWidth / GameConstants.virtualWidth)) + 1
-        for i in 0..<tilesNeeded {
-            let bg = SKSpriteNode(texture: tex, size: gradientSize)
-            bg.anchorPoint = CGPoint(x: 0, y: 1) // top-left
-            let pos = worldToScene(x: CGFloat(i) * GameConstants.virtualWidth, y: 0)
-            bg.position = pos
-            bg.zPosition = -100
-            backgroundNode.addChild(bg)
-        }
-    }
-
-    private func drawParallaxBackground(biome: String) {
-        guard let path = GameConstants.biomeParallaxBackgrounds[biome],
-              let tex = AssetManager.shared.texture(for: path) else { return }
-
-        let texSize = tex.size()
-        let scale = max(
-            GameConstants.virtualHeight / texSize.height,
-            GameConstants.virtualWidth / texSize.width,
-            1
-        )
-        let drawW = texSize.width * scale
-        let drawH = texSize.height * scale
-
-        let copies = Int(ceil(worldWidth / drawW)) + 2
-        for i in 0..<copies {
-            let sprite = SKSpriteNode(texture: tex, size: CGSize(width: drawW, height: drawH))
-            sprite.anchorPoint = CGPoint(x: 0, y: 1)
-            let pos = worldToScene(x: CGFloat(i) * drawW, y: 0)
-            sprite.position = pos
-            sprite.zPosition = -50
-            sprite.name = "parallax_\(i)"
-            backgroundNode.addChild(sprite)
-        }
-    }
-
-    // MARK: - Ground Tiles
-
-    private func drawGround(biome: String) {
-        let style = GameConstants.groundTileStyleByBiome[biome] ?? "forest"
-        let tileFiles = GameConstants.groundTileFilesByStyle[style] ?? []
-        if tileFiles.isEmpty { drawFallbackGround(); return }
-
-        let textures: [SKTexture] = tileFiles.compactMap { file in
-            AssetManager.shared.texture(for: "game_assets/ground/\(style)/\(file)")
-        }
-        if textures.isEmpty { drawFallbackGround(); return }
-
-        let groundThickness = GameConstants.groundThicknessTiles
-        for col in 0..<worldWidthTiles {
-            for row in 0..<groundThickness {
-                let tex = textures[(col + row * 7) % textures.count]
-                let sprite = SKSpriteNode(texture: tex, size: CGSize(width: tileSize + 2, height: tileSize + 2))
-                sprite.anchorPoint = CGPoint(x: 0, y: 1) // top-left
-                let tileWorldY = groundSurfaceY + CGFloat(row) * tileSize
-                let pos = worldToScene(x: CGFloat(col) * tileSize, y: tileWorldY)
-                sprite.position = pos
-                sprite.zPosition = 1
-                groundNode.addChild(sprite)
-            }
-        }
-    }
-
-    private func drawFallbackGround() {
-        let rect = SKSpriteNode(
-            color: UIColor(red: 0.2, green: 0.5, blue: 0.3, alpha: 1),
-            size: CGSize(width: worldWidth, height: tileSize * CGFloat(GameConstants.groundThicknessTiles))
-        )
-        rect.anchorPoint = CGPoint(x: 0, y: 1)
-        let pos = worldToScene(x: 0, y: groundSurfaceY)
-        rect.position = pos
-        rect.zPosition = 1
-        groundNode.addChild(rect)
     }
 
     // MARK: - Update Loop
@@ -271,31 +300,19 @@ class GameScene: SKScene {
         let delta = min(CGFloat(currentTime - lastUpdateTime), GameConstants.maxDeltaTime)
         lastUpdateTime = currentTime
 
-        guard !isPaused else { return }
+        guard !isPaused, currentLevel != nil else { return }
 
-        // Store previous Y for one-way platform collision
+        runTime += delta
         playerPreviousY = player.worldY
 
-        // 1. Read input from SwiftUI controls
         updatePlayerInput(delta: delta)
-
-        // 2. Apply physics
         updatePlayerPhysics(delta: delta)
-
-        // 3. Resolve collisions
         resolvePlayerCollisions()
-
-        // 4. Update animation
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
-
-        // 5. Update sprite position in scene
         updatePlayerSpritePosition()
-
-        // 6. Camera
         updateCamera(delta: delta)
-
-        // 7. Sync HUD
+        checkEndGoal()
         syncHUD()
     }
 
@@ -304,7 +321,6 @@ class GameScene: SKScene {
     private func updatePlayerInput(delta: CGFloat) {
         guard let vm = viewModel, player.stunTimeLeft <= 0, !player.isDead else { return }
 
-        // Horizontal movement
         if vm.inputLeft {
             player.vx = -GameConstants.moveSpeed
             player.facing = "south-west"
@@ -312,41 +328,35 @@ class GameScene: SKScene {
             player.vx = GameConstants.moveSpeed
             player.facing = "south-east"
         }
-        // Friction when no input
         if !vm.inputLeft && !vm.inputRight {
             player.vx *= GameConstants.friction
             if abs(player.vx) < 1 { player.vx = 0 }
         }
 
-        // Jump buffer: if jump pressed, start buffer timer
         if vm.inputJump && !player.jumpHeld {
             player.jumpBufferTimeLeft = GameConstants.jumpBufferWindowSeconds
         }
         player.jumpHeld = vm.inputJump
 
-        // Coyote time: track time since last on ground
         if player.onGround {
             player.coyoteTimeLeft = GameConstants.coyoteTimeSeconds
         } else {
             player.coyoteTimeLeft -= delta
         }
 
-        // Execute jump if buffer and coyote time both valid
         if player.jumpBufferTimeLeft > 0 && player.coyoteTimeLeft > 0 {
-            player.vy = GameConstants.jumpVelocity  // -525 (upward in Y-down)
+            player.vy = GameConstants.jumpVelocity
             player.onGround = false
             player.coyoteTimeLeft = 0
             player.jumpBufferTimeLeft = 0
         }
 
-        // Jump buffer decay
         if player.jumpBufferTimeLeft > 0 {
             player.jumpBufferTimeLeft -= delta
         }
 
-        // Variable jump height: release jump early to cut velocity
         if vm.inputJumpReleased && player.vy < 0 {
-            player.vy *= GameConstants.jumpCutMultiplier  // 0.4x
+            player.vy *= GameConstants.jumpCutMultiplier
             vm.inputJumpReleased = false
         }
     }
@@ -354,20 +364,16 @@ class GameScene: SKScene {
     // MARK: - Player Physics
 
     private func updatePlayerPhysics(delta: CGFloat) {
-        guard !player.isDead else { return }
+        guard !player.isDead, let level = currentLevel else { return }
 
-        // Gravity (Y-down: positive = downward)
         player.vy += GameConstants.gravity * delta
         player.vy = min(player.vy, GameConstants.maxFallVelocity)
 
-        // Apply velocity
         player.worldX += player.vx * delta
         player.worldY += player.vy * delta
 
-        // Clamp to world bounds
-        player.worldX = max(0, min(player.worldX, worldWidth - player.hitboxWidth))
+        player.worldX = max(0, min(player.worldX, level.worldWidth - player.hitboxWidth))
 
-        // Death by falling off screen
         if player.worldY > GameConstants.virtualHeight + 200 {
             playerDied()
         }
@@ -376,9 +382,8 @@ class GameScene: SKScene {
     // MARK: - Collision Resolution
 
     private func resolvePlayerCollisions() {
-        guard !player.isDead else { return }
+        guard !player.isDead, let level = currentLevel else { return }
 
-        // Horizontal collisions with ground
         PhysicsSystem.resolveHorizontalCollisions(
             entityX: &player.worldX,
             entityY: player.worldY,
@@ -386,10 +391,9 @@ class GameScene: SKScene {
             entityH: player.hitboxHeight,
             entityVx: &player.vx,
             solidRects: groundCollisionRects,
-            worldWidth: worldWidth
+            worldWidth: level.worldWidth
         )
 
-        // Vertical collisions with ground and platforms
         player.onGround = PhysicsSystem.resolveVerticalCollisions(
             entityX: player.worldX,
             entityY: &player.worldY,
@@ -405,10 +409,10 @@ class GameScene: SKScene {
     // MARK: - Camera
 
     private func updateCamera(delta: CGFloat, snap: Bool = false) {
+        guard let level = currentLevel else { return }
         let visibleWidth = GameConstants.virtualWidth
-        // Player at 65% from left (35% offset)
         let desired = player.worldX - visibleWidth * 0.35
-        let maxX = max(0, worldWidth - visibleWidth)
+        let maxX = max(0, level.worldWidth - visibleWidth)
         let target = max(0, min(desired, maxX))
 
         if snap {
@@ -416,14 +420,41 @@ class GameScene: SKScene {
         } else {
             let diff = target - gameCameraX
             if abs(diff) < GameConstants.cameraDeadzoneX { return }
-            // Exponential lerp: 1 - e^(-speed * dt)
             let t = 1 - exp(-GameConstants.cameraLerpSpeed * delta)
             gameCameraX += diff * t
         }
 
-        // Convert camera X (Y-down world) to scene position
-        let sceneCamX = gameCameraX + visibleWidth / 2 - worldWidth / 2
+        let sceneCamX = gameCameraX + visibleWidth / 2 - level.worldWidth / 2
         cameraNode.position = CGPoint(x: sceneCamX, y: 0)
+
+        // Update parallax
+        parallaxBg.update(
+            cameraX: gameCameraX,
+            worldWidth: level.worldWidth,
+            worldToScene: worldToSceneFunc()
+        )
+    }
+
+    // MARK: - End Goal Check
+
+    private func checkEndGoal() {
+        guard let level = currentLevel, !player.isDead else { return }
+
+        let playerRect = player.hitboxRect
+        let goalRect = CGRect(x: level.endX, y: level.endY, width: level.endWidth, height: level.endHeight)
+
+        if PhysicsSystem.aabb(playerRect, goalRect) {
+            // Level complete — load next
+            let nextIndex = currentLevelIndex + 1
+            if nextIndex < levels.count {
+                loadLevel(index: nextIndex)
+            } else {
+                // Victory!
+                Task { @MainActor in
+                    viewModel?.isVictory = true
+                }
+            }
+        }
     }
 
     // MARK: - Player Death
@@ -431,7 +462,7 @@ class GameScene: SKScene {
     private func playerDied() {
         guard !player.isDead else { return }
         player.isDead = true
-        player.vy = GameConstants.playerDeathLaunchY  // Launch upward on death
+        player.vy = GameConstants.playerDeathLaunchY
 
         Task { @MainActor [weak self] in
             guard let self = self else { return }
@@ -439,9 +470,10 @@ class GameScene: SKScene {
             if (self.viewModel?.hearts ?? 0) <= 0 {
                 self.viewModel?.isGameOver = true
             } else {
-                // Respawn after short delay
                 try? await Task.sleep(for: .seconds(GameConstants.playerDeathDelaySeconds))
-                self.spawnPlayer()
+                if let level = self.currentLevel {
+                    self.spawnPlayer(level: level)
+                }
             }
         }
     }
@@ -454,10 +486,9 @@ class GameScene: SKScene {
         player.invulnTimeLeft = GameConstants.playerHitInvulnSeconds
         player.stunTimeLeft = GameConstants.playerHitStunSeconds
 
-        // Knockback direction: away from damage source
         let knockDir: CGFloat = player.worldX > knockbackFromX ? 1 : -1
         player.vx = GameConstants.playerHitKnockbackX * knockDir
-        player.vy = GameConstants.playerHitKnockbackY  // Upward bounce
+        player.vy = GameConstants.playerHitKnockbackY
 
         Task { @MainActor in
             viewModel?.hearts -= 1
@@ -471,7 +502,7 @@ class GameScene: SKScene {
     // MARK: - HUD Sync
 
     private func syncHUD() {
-        // Will sync score/gold in later phases
+        // Score and gold sync will be added in later phases
     }
 
     // MARK: - Public API
@@ -482,7 +513,8 @@ class GameScene: SKScene {
             viewModel?.isGameOver = false
             viewModel?.isVictory = false
         }
-        buildLevel(biome: currentBiome)
+        levels = LevelGenerator.generateLevels()
+        loadLevel(index: currentLevelIndex)
     }
 
     func answerDuel(index: Int) {
@@ -494,16 +526,15 @@ class GameScene: SKScene {
 
 extension UIColor {
     convenience init(hex: String) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-
+        var s = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        s = s.replacingOccurrences(of: "#", with: "")
         var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
-        let b = CGFloat(rgb & 0x0000FF) / 255.0
-
-        self.init(red: r, green: g, blue: b, alpha: 1.0)
+        Scanner(string: s).scanHexInt64(&rgb)
+        self.init(
+            red: CGFloat((rgb >> 16) & 0xFF) / 255,
+            green: CGFloat((rgb >> 8) & 0xFF) / 255,
+            blue: CGFloat(rgb & 0xFF) / 255,
+            alpha: 1
+        )
     }
 }

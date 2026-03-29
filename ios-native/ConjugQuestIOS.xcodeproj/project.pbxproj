@@ -28,6 +28,10 @@
 		AA00000F /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* LeaderboardView.swift */; };
 		AA000020 /* PlayerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000021 /* PlayerNode.swift */; };
 		AA000022 /* PhysicsSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000023 /* PhysicsSystem.swift */; };
+		AA000024 /* LevelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000025 /* LevelData.swift */; };
+		AA000026 /* SeededRandom.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000027 /* SeededRandom.swift */; };
+		AA000028 /* LevelGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000029 /* LevelGenerator.swift */; };
+		AA00002A /* ParallaxBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002B /* ParallaxBackground.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +57,10 @@
 		AA00001F /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
 		AA000021 /* PlayerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNode.swift; sourceTree = "<group>"; };
 		AA000023 /* PhysicsSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsSystem.swift; sourceTree = "<group>"; };
+		AA000025 /* LevelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelData.swift; sourceTree = "<group>"; };
+		AA000027 /* SeededRandom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandom.swift; sourceTree = "<group>"; };
+		AA000029 /* LevelGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelGenerator.swift; sourceTree = "<group>"; };
+		AA00002B /* ParallaxBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxBackground.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +109,7 @@
 			children = (
 				AA000011 /* GameConstants.swift */,
 				AA000012 /* AppState.swift */,
+				AA000025 /* LevelData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -130,6 +139,9 @@
 				AA000015 /* GameScene.swift */,
 				AA000021 /* PlayerNode.swift */,
 				AA000023 /* PhysicsSystem.swift */,
+				AA000027 /* SeededRandom.swift */,
+				AA000029 /* LevelGenerator.swift */,
+				AA00002B /* ParallaxBackground.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -222,6 +234,10 @@
 				AA00000F /* LeaderboardView.swift in Sources */,
 				AA000020 /* PlayerNode.swift in Sources */,
 				AA000022 /* PhysicsSystem.swift in Sources */,
+				AA000024 /* LevelData.swift in Sources */,
+				AA000026 /* SeededRandom.swift in Sources */,
+				AA000028 /* LevelGenerator.swift in Sources */,
+				AA00002A /* ParallaxBackground.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
