@@ -163,7 +163,7 @@ export const state = {
   cheatLongPressTimer: null,
   visualDebugLongPressTimer: null,
   visualDebugOpen: false,
-  mobileButtonsOffsetY: 150,
+  mobileButtonsOffsetY: 120,
   mobileGameOffsetY: 200,
   generationProfile: "normal",
   tileStyleMode: "new",
