@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Game Over and Victory overlay.
+/// Game Over and Victory overlay with name entry for leaderboard.
 struct GameOverOverlay: View {
     @ObservedObject var viewModel: GameViewModel
     @ObservedObject var appState: AppState
+    @State private var playerName: String = ""
+    @State private var savedToLeaderboard: Bool = false
 
     var body: some View {
         ZStack {
@@ -34,13 +36,55 @@ struct GameOverOverlay: View {
                         .foregroundColor(.yellow)
                 }
 
+                // Name entry for leaderboard
+                if !savedToLeaderboard {
+                    VStack(spacing: 8) {
+                        Text("Entrez votre nom")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.6))
+
+                        TextField("Nom", text: $playerName)
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                            .frame(maxWidth: 200)
+                            .autocorrectionDisabled()
+
+                        Button {
+                            let name = playerName.isEmpty ? "Joueur" : playerName
+                            appState.addLeaderboardEntry(
+                                name: name,
+                                score: viewModel.score,
+                                coins: viewModel.gold,
+                                mode: appState.difficultyMode
+                            )
+                            savedToLeaderboard = true
+                        } label: {
+                            Text("Sauvegarder")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                                .background(Color.green.opacity(0.5))
+                                .cornerRadius(8)
+                        }
+                    }
+                } else {
+                    Text("Score sauvegardé !")
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                }
+
                 // Buttons
                 if !viewModel.isVictory {
                     Button {
                         appState.addGold(viewModel.gold)
+                        savedToLeaderboard = false
                         viewModel.restartLevel()
                     } label: {
-                        Text("Recommencer le niveau")
+                        Text("Recommencer")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.white)
                             .frame(minWidth: 220)
@@ -51,10 +95,10 @@ struct GameOverOverlay: View {
                 }
 
                 Button {
-                    // Persist earned gold
                     appState.addGold(viewModel.gold)
                     viewModel.isGameOver = false
                     viewModel.isVictory = false
+                    savedToLeaderboard = false
                     appState.currentScreen = .title
                 } label: {
                     Text("Écran titre")

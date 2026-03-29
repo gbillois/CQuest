@@ -73,6 +73,20 @@ struct TitleScreenView: View {
                         }
 
                         Button {
+                            appState.currentScreen = .shop
+                        } label: {
+                            Text("Boutique")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
+                                .frame(maxWidth: min(geometry.size.width * 0.7, 280))
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.12))
+                                )
+                        }
+
+                        Button {
                             appState.currentScreen = .settings
                         } label: {
                             HStack(spacing: 6) {
