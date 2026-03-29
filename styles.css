@@ -129,8 +129,9 @@ body {
   align-content: center;
   gap: 1px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
   text-align: center;
 }
 
@@ -138,7 +139,7 @@ body {
   font-size: 0.66rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 #hudScoreValue,
