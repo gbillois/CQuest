@@ -82,6 +82,10 @@ class GameScene: SKScene {
 
     // MARK: - Tower
     private var towerNode: SKSpriteNode?
+    private var towerInteriorActive: Bool = false
+    private var towerChestState: String = "locked"  // "locked", "open"
+    private var towerChestStreak: Int = 0
+    private let towerChestRequired: Int = 3
 
     // MARK: - Bonus Blocks
     private var bonusBlockNodes: [(block: BonusBlock, node: SKSpriteNode)] = []
@@ -197,6 +201,9 @@ class GameScene: SKScene {
         skyBirds.removeAll()
         towerNode?.removeFromParent()
         towerNode = nil
+        towerInteriorActive = false
+        towerChestState = "locked"
+        towerChestStreak = 0
         deathSequenceActive = false
         duelEnemy = nil
         projectiles.forEach { $0.node.removeFromParent() }
@@ -540,6 +547,89 @@ class GameScene: SKScene {
         }
     }
 
+    // MARK: - Update Crumbling Platforms
+
+    private var crumblingPlatformNodes: [(platform: CrumblingPlatform, nodes: [SKSpriteNode])] = []
+
+    private func updateCrumblingPlatforms(delta: CGFloat) {
+        guard var level = currentLevel else { return }
+
+        for i in level.crumblingPlatforms.indices {
+            guard !level.crumblingPlatforms[i].removed else { continue }
+
+            if !level.crumblingPlatforms[i].triggered {
+                // Check if player is standing on this platform
+                let plat = level.crumblingPlatforms[i]
+                let platX = plat.x
+                let platY = plat.y
+                let platW = plat.width
+                let playerFeetY = player.worldY + player.hitboxHeight
+                let playerCenterX = player.worldX + player.hitboxWidth / 2
+                let tolerance = level.tileSize * 0.25
+
+                if player.onGround &&
+                   abs(playerFeetY - platY) < tolerance &&
+                   playerCenterX >= platX &&
+                   playerCenterX <= platX + platW {
+                    level.crumblingPlatforms[i].triggered = true
+                    level.crumblingPlatforms[i].triggerTime = level.crumblingPlatforms[i].disappearDelay
+                }
+                continue
+            }
+
+            // Count down
+            level.crumblingPlatforms[i].triggerTime -= delta
+
+            if level.crumblingPlatforms[i].triggerTime <= 0 {
+                level.crumblingPlatforms[i].removed = true
+                // Remove from collision rects would go here in a full implementation
+            }
+        }
+
+        currentLevel = level
+    }
+
+    // MARK: - Update Moving Platforms
+
+    private func updateMovingPlatforms(delta: CGFloat) {
+        guard var level = currentLevel else { return }
+
+        for i in level.movingPlatforms.indices {
+            level.movingPlatforms[i].phase += delta
+
+            let plat = level.movingPlatforms[i]
+            let t = plat.phase
+
+            // Calculate new position
+            var newX = plat.x
+            var newY = plat.y
+
+            switch plat.axis {
+            case .horizontal:
+                newX = plat.x + sin(t * plat.speed / 30) * plat.range
+            case .vertical:
+                newY = plat.y + sin(t * plat.speed / 30) * plat.range
+            }
+
+            // Check if player is riding
+            let playerFeetY = player.worldY + player.hitboxHeight
+            let playerCenterX = player.worldX + player.hitboxWidth / 2
+            let tolerance = level.tileSize * 0.25
+
+            if player.onGround &&
+               abs(playerFeetY - newY) < tolerance &&
+               playerCenterX >= newX &&
+               playerCenterX <= newX + plat.width {
+                let dx = newX - plat.x
+                let dy = newY - plat.y
+                player.worldX += dx
+                player.worldY += dy
+            }
+        }
+
+        currentLevel = level
+    }
+
     // MARK: - Update Sky Birds
 
     private func updateSkyBirds(delta: CGFloat) {
@@ -671,8 +761,8 @@ class GameScene: SKScene {
             return
         }
 
-        // Don't update gameplay during duel
-        if duelEnemy != nil { return }
+        // Don't update gameplay during duel or tower interior
+        if duelEnemy != nil || towerInteriorActive { return }
 
         runTime += delta
         playerPreviousY = player.worldY
@@ -689,12 +779,15 @@ class GameScene: SKScene {
         updateCoinDrops(delta: delta)
         updateGuards()
         updateSkyBirds(delta: delta)
+        updateCrumblingPlatforms(delta: delta)
+        updateMovingPlatforms(delta: delta)
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
         updatePlayerSpritePosition()
         updateEntityPositions()
         updateCamera(delta: delta)
         checkEndGoal()
+        checkTowerEntry()
         syncHUD()
     }
 
@@ -915,6 +1008,12 @@ class GameScene: SKScene {
         // Route to boss trial handler if boss is active
         if bossActive {
             answerBossTrial(index: index)
+            return
+        }
+
+        // Route to tower chest if active
+        if towerInteriorActive {
+            answerTowerChest(index: index)
             return
         }
 
@@ -1262,6 +1361,96 @@ class GameScene: SKScene {
         bossNode?.removeFromParent()
         bossNode = nil
         damagePlayer(knockbackFromX: player.worldX)
+    }
+
+    // MARK: - Tower Entry
+
+    private func checkTowerEntry() {
+        guard let level = currentLevel, let tower = level.tower,
+              !player.isDead, !isTransitioning, !bossActive,
+              !towerInteriorActive, towerChestState == "locked",
+              duelEnemy == nil else { return }
+
+        let playerRect = player.hitboxRect
+        let towerEntryRect = CGRect(
+            x: tower.x - tower.width / 2,
+            y: tower.y + tower.height - level.tileSize,
+            width: tower.width,
+            height: level.tileSize
+        )
+
+        guard PhysicsSystem.aabb(playerRect, towerEntryRect) else { return }
+
+        // Enter tower — start chest puzzle
+        towerInteriorActive = true
+        towerChestStreak = 0
+        presentTowerChestQuestion()
+    }
+
+    private func presentTowerChestQuestion() {
+        guard towerInteriorActive, towerChestState == "locked" else { return }
+
+        guard let question = ConjugationData.makeQuestion(
+            activeTenses: activeTenses,
+            activeGroups: activeGroups
+        ) else {
+            towerInteriorActive = false
+            return
+        }
+
+        let correctIndex = question.options.firstIndex(of: question.correct) ?? 0
+        let pronoun = ConjugationData.pronouns[question.pronIdx]
+        let prompt = "Coffre (\(towerChestStreak + 1)/\(towerChestRequired)) — Conjugue « \(question.vKey) » au \(question.tenseLabel) pour « \(pronoun) »"
+
+        let duelState = DuelState(
+            prompt: prompt,
+            answers: question.options,
+            correctIndex: correctIndex,
+            enemySpritePath: nil,
+            heroSpritePath: nil,
+            timeLimit: GameConstants.duelTimeLimitSeconds
+        )
+
+        Task { @MainActor in
+            viewModel?.activeDuel = duelState
+        }
+    }
+
+    func answerTowerChest(index: Int) {
+        guard let duel = viewModel?.activeDuel, towerInteriorActive else { return }
+
+        let correct = index == duel.correctIndex
+
+        if correct {
+            towerChestStreak += 1
+        } else {
+            towerChestStreak = 0
+        }
+
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.viewModel?.activeDuel = nil
+
+            try? await Task.sleep(for: .seconds(0.5))
+
+            if self.towerChestStreak >= self.towerChestRequired {
+                // Chest opened!
+                self.towerChestState = "open"
+                self.towerInteriorActive = false
+                let goldReward = 50 + Int.random(in: 0...100)
+                self.showFloatingText("+\(goldReward) pièces!", at: CGPoint(x: self.player.worldX, y: self.player.worldY - 20), color: .yellow)
+                self.viewModel?.gold += goldReward
+                self.viewModel?.score += self.viewModel!.score * 2
+                self.viewModel?.statusMessage = "Coffre ouvert ! +\(goldReward) pièces"
+            } else if !correct {
+                // Failed — exit tower
+                self.towerInteriorActive = false
+                self.viewModel?.statusMessage = "Mauvaise réponse ! Réessayez plus tard."
+            } else {
+                // Correct but need more
+                self.presentTowerChestQuestion()
+            }
+        }
     }
 
     // MARK: - Camera
