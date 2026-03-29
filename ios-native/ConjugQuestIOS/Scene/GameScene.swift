@@ -733,7 +733,7 @@ class GameScene: SKScene {
                 showFloatingText("+\(scoreGain)", at: CGPoint(x: blockCenterX, y: block.y - 30))
             }
 
-            Task { @MainActor in
+            Task { [scoreGain, goldGain, heartGain] @MainActor in
                 viewModel?.score += scoreGain
                 viewModel?.gold += goldGain
                 if heartGain > 0, let vm = viewModel {

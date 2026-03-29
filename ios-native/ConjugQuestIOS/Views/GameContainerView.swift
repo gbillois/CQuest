@@ -28,7 +28,6 @@ struct GameContainerView: View {
             let safeTop = geometry.safeAreaInsets.top
             let safeBottom = geometry.safeAreaInsets.bottom
             let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
 
             ZStack {
                 // Layer 1: Game scene — fills entire screen including safe areas
