@@ -19,7 +19,7 @@ struct SeededRandom {
         z = (z ^ (z >> 16)) &* 0x45d9f3b
         z = (z ^ (z >> 16)) &* 0x45d9f3b
         z = z ^ (z >> 16)
-        return Double(z) / Double(UInt32.max)
+        return Double(z) / Double(UInt64(UInt32.max) + 1)
     }
 
     /// Returns a random CGFloat in [0, 1).
