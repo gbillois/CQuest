@@ -55,6 +55,25 @@ class GameScene: SKScene {
     private var isTransitioning: Bool = false
     private let fadeNode = SKSpriteNode(color: .black, size: CGSize(width: 1000, height: 1000))
 
+    // MARK: - Boss Fight
+    private var bossActive: Bool = false
+    private var bossTrialCount: Int = 0
+    private var bossCorrectStreak: Int = 0
+    private var bossNode: SKSpriteNode?
+
+    // MARK: - Projectiles
+    private struct Projectile {
+        let node: SKSpriteNode
+        var worldX: CGFloat
+        var worldY: CGFloat
+        var vx: CGFloat
+        var vy: CGFloat
+        var gravity: CGFloat
+        var radius: CGFloat
+    }
+    private var projectiles: [Projectile] = []
+    private var fireCooldown: CGFloat = 0
+
     // MARK: - Timing
     private var lastUpdateTime: TimeInterval = 0
     private var runTime: CGFloat = 0
@@ -154,6 +173,11 @@ class GameScene: SKScene {
         animals.forEach { $0.removeFromParent() }
         animals.removeAll()
         duelEnemy = nil
+        projectiles.forEach { $0.node.removeFromParent() }
+        projectiles.removeAll()
+        bossNode?.removeFromParent()
+        bossNode = nil
+        bossActive = false
 
         // Build collision data
         buildCollisionData(level: level)
@@ -380,6 +404,8 @@ class GameScene: SKScene {
         updatePlayerPhysics(delta: delta)
         resolvePlayerCollisions()
         updateEntities(delta: delta)
+        handleFire(delta: delta)
+        updateProjectiles(delta: delta)
         checkEnemyCollisions()
         checkAnimalBounce()
         player.updateSprite(delta: delta)
@@ -590,6 +616,12 @@ class GameScene: SKScene {
     }
 
     func answerDuel(index: Int) {
+        // Route to boss trial handler if boss is active
+        if bossActive {
+            answerBossTrial(index: index)
+            return
+        }
+
         guard let duel = viewModel?.activeDuel, let enemy = duelEnemy else { return }
 
         let correct = index == duel.correctIndex
@@ -616,6 +648,224 @@ class GameScene: SKScene {
             viewModel?.score += GameConstants.enemyDefeatScore
             viewModel?.gold += GameConstants.enemyDefeatCoins
         }
+    }
+
+    // MARK: - Projectiles
+
+    private func handleFire(delta: CGFloat) {
+        fireCooldown = max(0, fireCooldown - delta)
+        guard let vm = viewModel, vm.inputFire, fireCooldown <= 0, !player.isDead else { return }
+
+        let heroId = selectedHeroId.lowercased()
+        let facingRight = player.facing == "south-east"
+        let dirMult: CGFloat = facingRight ? 1 : -1
+
+        var vx: CGFloat = 0
+        var vy: CGFloat = 0
+        var grav: CGFloat = 0
+        var radius: CGFloat = 12
+        var color: UIColor = .orange
+
+        switch heroId {
+        case "mage":
+            vx = GameConstants.mageFireballSpeed * dirMult
+            radius = GameConstants.mageFireballRadius
+            color = .orange
+        case "ninja":
+            vx = GameConstants.ninjaShurkenSpeed * dirMult
+            radius = GameConstants.ninjaShurikenRadius
+            color = .lightGray
+        case "pirate":
+            vx = GameConstants.pirateSaberSpeedX * dirMult
+            vy = GameConstants.pirateSaberSpeedY
+            grav = GameConstants.pirateSaberGravity
+            radius = GameConstants.pirateSaberRadius
+            color = .brown
+        case "barbarian":
+            vx = GameConstants.barbarianAxeSpeed * dirMult
+            radius = GameConstants.barbarianAxeRadius
+            color = .darkGray
+        case "golem":
+            vx = GameConstants.golemRockSpeedX * dirMult
+            vy = GameConstants.golemRockSpeedY
+            grav = GameConstants.golemRockGravity
+            radius = GameConstants.golemRockRadius
+            color = .gray
+        case "knight":
+            vx = GameConstants.knightFireballSpeed * dirMult
+            radius = GameConstants.knightFireballRadius
+            color = .cyan
+        default:
+            return  // paladin and catwarrior have no projectile
+        }
+
+        let spawnX = player.worldX + player.hitboxWidth / 2 + dirMult * 20
+        let spawnY = player.worldY + player.hitboxHeight * 0.4
+
+        let projNode = SKSpriteNode(color: color, size: CGSize(width: radius * 2, height: radius * 2))
+        projNode.zPosition = 9
+        entityNode.addChild(projNode)
+
+        projectiles.append(Projectile(
+            node: projNode,
+            worldX: spawnX, worldY: spawnY,
+            vx: vx, vy: vy,
+            gravity: grav, radius: radius
+        ))
+
+        fireCooldown = 0.3
+        vm.inputFire = false
+    }
+
+    private func updateProjectiles(delta: CGFloat) {
+        guard let level = currentLevel else { return }
+        var toRemove: [Int] = []
+
+        for i in projectiles.indices {
+            projectiles[i].worldX += projectiles[i].vx * delta
+            projectiles[i].vy += projectiles[i].gravity * delta
+            projectiles[i].worldY += projectiles[i].vy * delta
+
+            // Check bounds
+            if projectiles[i].worldX < -50 || projectiles[i].worldX > level.worldWidth + 50 ||
+               projectiles[i].worldY > level.worldHeight + 50 {
+                toRemove.append(i)
+                continue
+            }
+
+            // Check enemy hits
+            let projRect = CGRect(
+                x: projectiles[i].worldX - projectiles[i].radius,
+                y: projectiles[i].worldY - projectiles[i].radius,
+                width: projectiles[i].radius * 2,
+                height: projectiles[i].radius * 2
+            )
+
+            for enemy in enemies {
+                guard enemy.isAlive, !enemy.battling else { continue }
+                if PhysicsSystem.aabb(projRect, enemy.hitboxRect) {
+                    triggerDuel(enemy: enemy)
+                    toRemove.append(i)
+                    break
+                }
+            }
+
+            // Update position
+            let pos = worldToScene(x: projectiles[i].worldX, y: projectiles[i].worldY)
+            projectiles[i].node.position = pos
+        }
+
+        // Remove in reverse order
+        for i in toRemove.sorted().reversed() {
+            guard i < projectiles.count else { continue }
+            projectiles[i].node.removeFromParent()
+            projectiles.remove(at: i)
+        }
+    }
+
+    // MARK: - Boss Fight
+
+    private func startBossFight() {
+        bossActive = true
+        bossTrialCount = 0
+        bossCorrectStreak = 0
+
+        // Create boss visual
+        let boss = SKSpriteNode(color: .purple.withAlphaComponent(0.8), size: CGSize(width: 120, height: 120))
+        boss.zPosition = 15
+        guard let level = currentLevel else { return }
+        let bossX = level.endX - 100
+        let bossY = level.groundSurfaceY - 140
+        boss.position = worldToScene(x: bossX, y: bossY)
+        entityNode.addChild(boss)
+        bossNode = boss
+
+        // Show boss intro message
+        Task { @MainActor in
+            viewModel?.statusMessage = "Le Dragon apparaît !"
+        }
+
+        // Start first trial after delay
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(GameConstants.bossIntroMessageDelaySeconds))
+            self?.presentBossTrial()
+        }
+    }
+
+    private func presentBossTrial() {
+        guard bossActive, bossTrialCount < GameConstants.bossTrialsRequired else { return }
+
+        guard let question = ConjugationData.makeQuestion(
+            activeTenses: activeTenses,
+            activeGroups: activeGroups
+        ) else { return }
+
+        let correctIndex = question.options.firstIndex(of: question.correct) ?? 0
+        let pronoun = ConjugationData.pronouns[question.pronIdx]
+        let prompt = "Boss (\(bossTrialCount + 1)/\(GameConstants.bossTrialsRequired)) — Conjugue « \(question.vKey) » au \(question.tenseLabel) pour « \(pronoun) »"
+
+        let duelState = DuelState(
+            prompt: prompt,
+            answers: question.options,
+            correctIndex: correctIndex,
+            enemySpritePath: nil,
+            heroSpritePath: nil,
+            timeLimit: GameConstants.bossTrialTimeLimitSeconds
+        )
+
+        Task { @MainActor in
+            viewModel?.activeDuel = duelState
+        }
+    }
+
+    func answerBossTrial(index: Int) {
+        guard let duel = viewModel?.activeDuel, bossActive else { return }
+
+        let correct = index == duel.correctIndex
+        bossTrialCount += 1
+
+        if correct {
+            bossCorrectStreak += 1
+        }
+
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.viewModel?.activeDuel = nil
+
+            try? await Task.sleep(for: .seconds(0.6))
+
+            if self.bossTrialCount >= GameConstants.bossTrialsRequired {
+                // Boss fight over
+                if self.bossCorrectStreak >= 3 {
+                    self.bossDefeated()
+                } else {
+                    self.bossWins()
+                }
+            } else {
+                self.presentBossTrial()
+            }
+        }
+    }
+
+    private func bossDefeated() {
+        bossActive = false
+        bossNode?.run(SKAction.sequence([
+            SKAction.fadeOut(withDuration: 1.0),
+            SKAction.removeFromParent()
+        ]))
+        bossNode = nil
+
+        Task { @MainActor in
+            viewModel?.score += 500
+            viewModel?.isVictory = true
+        }
+    }
+
+    private func bossWins() {
+        bossActive = false
+        bossNode?.removeFromParent()
+        bossNode = nil
+        damagePlayer(knockbackFromX: player.worldX)
     }
 
     // MARK: - Camera
@@ -650,7 +900,7 @@ class GameScene: SKScene {
     // MARK: - End Goal Check
 
     private func checkEndGoal() {
-        guard let level = currentLevel, !player.isDead, !isTransitioning else { return }
+        guard let level = currentLevel, !player.isDead, !isTransitioning, !bossActive else { return }
 
         let playerRect = player.hitboxRect
         let goalRect = CGRect(x: level.endX, y: level.endY, width: level.endWidth, height: level.endHeight)
@@ -660,9 +910,8 @@ class GameScene: SKScene {
             if nextIndex < levels.count {
                 transitionToLevel(index: nextIndex)
             } else {
-                Task { @MainActor in
-                    viewModel?.isVictory = true
-                }
+                // Last level complete — trigger boss fight
+                startBossFight()
             }
         }
     }
