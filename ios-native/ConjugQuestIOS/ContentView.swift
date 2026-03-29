@@ -1,16 +1,25 @@
 import SwiftUI
 
+/// Root navigation: switches between screens based on AppState.
 struct ContentView: View {
-    @State private var isWarpZonePresented = false
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
-        GameWebView(onOpenWarpZone: {
-            isWarpZonePresented = true
-        })
-        .ignoresSafeArea()
-        .background(Color.black)
-        .fullScreenCover(isPresented: $isWarpZonePresented) {
-            WarpZoneGameView(isPresented: $isWarpZonePresented)
+        Group {
+            switch appState.currentScreen {
+            case .title:
+                TitleScreenView()
+            case .game:
+                GameContainerView()
+            case .settings:
+                SettingsView()
+            case .shop:
+                ShopView()
+            case .leaderboard:
+                LeaderboardView()
+            }
         }
+        .preferredColorScheme(.dark)
+        .statusBarHidden(appState.currentScreen == .game)
     }
 }
