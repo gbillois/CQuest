@@ -22,7 +22,7 @@ import { clamp } from "./utils.js";
 // Late-binding reference to renderHeroShop (set by main.js to avoid circular deps).
 let _renderHeroShop = null;
 
-const DEFAULT_MOBILE_BUTTONS_OFFSET = 150;
+const DEFAULT_MOBILE_BUTTONS_OFFSET = 120;
 const DEFAULT_MOBILE_GAME_OFFSET = 200;
 
 export function setRenderHeroShop(fn) {
