@@ -118,6 +118,14 @@ struct BonusBlock {
     var rewardType: String = "coin"
 }
 
+// MARK: - Ground Decoration
+
+struct GroundDecor {
+    let x: CGFloat
+    let y: CGFloat
+    let path: String
+}
+
 // MARK: - Conjugation Gate
 
 struct ConjugationGate {
@@ -161,6 +169,7 @@ struct Level {
     // Objects
     var bonuses: [BonusBlock] = []
     var conjugationGates: [ConjugationGate] = []
+    var groundDecor: [GroundDecor] = []
 
     // Structures
     var startX: CGFloat = 0

@@ -246,6 +246,25 @@ enum LevelGenerator {
             ))
         }
 
+        // --- Phase 5c: Ground Decorations ---
+        var groundDecor: [GroundDecor] = []
+        let decorFiles = GameConstants.groundDecorFilesByStyle[groundStyle] ?? []
+        if !decorFiles.isEmpty {
+            let holeSet = Set(holes.flatMap { $0.start..<$0.end })
+            // Place decor every 3-5 tiles on average
+            var col = startReserve
+            while col < endReserve {
+                let step = rand.nextInt(min: 3, max: 5)
+                col += step
+                guard col < endReserve, !holeSet.contains(col) else { continue }
+                let decorFile = rand.pick(from: decorFiles) ?? decorFiles[0]
+                let path = "game_assets/ground/\(groundStyle)/\(decorFile)"
+                let x = CGFloat(col) * tileSize + CGFloat(rand.nextInt(min: 0, max: Int(tileSize / 2)))
+                let y = groundSurfaceY - CGFloat(rand.nextInt(min: 4, max: 16))
+                groundDecor.append(GroundDecor(x: x, y: y, path: path))
+            }
+        }
+
         // --- Phase 6: Start/End positions ---
         let startX = tileSize * 3
         let startY = groundSurfaceY - 120  // Player height above ground
@@ -268,6 +287,7 @@ enum LevelGenerator {
         level.enemySpawns = enemySpawns
         level.animalSpawns = animalSpawns
         level.bonuses = bonuses
+        level.groundDecor = groundDecor
         level.blockSequence = segments.map { $0.blockId }
         level.segments = segments
         level.startX = startX

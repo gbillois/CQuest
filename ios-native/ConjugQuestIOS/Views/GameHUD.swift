@@ -69,5 +69,28 @@ struct GameHUD: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.black.opacity(0.5))
         )
+
+        // Status message below HUD
+        if !viewModel.statusMessage.isEmpty {
+            Text(viewModel.statusMessage)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.black.opacity(0.6))
+                )
+                .transition(.opacity)
+                .onAppear {
+                    // Auto-dismiss after 2 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation {
+                            viewModel.statusMessage = ""
+                        }
+                    }
+                }
+                .id(viewModel.statusMessage)  // Force re-create on new message
+        }
     }
 }

@@ -42,6 +42,7 @@ class EnemyNode: SKSpriteNode {
     var defeatFadeActive: Bool = false
     var defeatFadeElapsed: CGFloat = 0
     var battling: Bool = false
+    var timesAnswered: Int = 0  // Track attempts for first-strike bonus
 
     // MARK: - Init
 

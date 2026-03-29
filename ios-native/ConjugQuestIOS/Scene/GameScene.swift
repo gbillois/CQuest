@@ -180,6 +180,9 @@ class GameScene: SKScene {
         animals.removeAll()
         bonusBlockNodes.forEach { $0.node.removeFromParent() }
         bonusBlockNodes.removeAll()
+        coinDrops.forEach { $0.node.removeFromParent() }
+        coinDrops.removeAll()
+        deathSequenceActive = false
         duelEnemy = nil
         projectiles.forEach { $0.node.removeFromParent() }
         projectiles.removeAll()
@@ -194,6 +197,7 @@ class GameScene: SKScene {
         drawBackground(level: level)
         drawParallax(level: level)
         drawGroundTiles(level: level)
+        drawGroundDecor(level: level)
         drawPlatformTiles(level: level)
         drawEndGoal(level: level)
 
@@ -308,6 +312,19 @@ class GameScene: SKScene {
         }
     }
 
+    // MARK: - Draw Ground Decorations
+
+    private func drawGroundDecor(level: Level) {
+        for decor in level.groundDecor {
+            guard let tex = AssetManager.shared.texture(for: decor.path) else { continue }
+            let sprite = SKSpriteNode(texture: tex, size: tex.size())
+            sprite.anchorPoint = CGPoint(x: 0.5, y: 1)
+            sprite.position = worldToScene(x: decor.x, y: decor.y)
+            sprite.zPosition = 1.5  // Between ground and platforms
+            groundNode.addChild(sprite)
+        }
+    }
+
     // MARK: - Draw Platform Tiles
 
     private func drawPlatformTiles(level: Level) {
@@ -341,18 +358,23 @@ class GameScene: SKScene {
     // MARK: - Draw End Goal
 
     private func drawEndGoal(level: Level) {
-        let goalSize = CGSize(width: level.endWidth, height: level.endHeight)
-        let goal = SKSpriteNode(color: .yellow.withAlphaComponent(0.6), size: goalSize)
+        // Try to load actual castle sprite
+        let castleTex = AssetManager.shared.texture(for: "game_assets/castle/castle_unlocked.png")
+        let goalSize: CGSize
+        let goal: SKSpriteNode
+
+        if let tex = castleTex {
+            let scale = GameConstants.castleScale
+            goalSize = CGSize(width: tex.size().width * scale, height: tex.size().height * scale)
+            goal = SKSpriteNode(texture: tex, size: goalSize)
+        } else {
+            goalSize = CGSize(width: level.endWidth, height: level.endHeight)
+            goal = SKSpriteNode(color: .yellow.withAlphaComponent(0.6), size: goalSize)
+        }
+
         goal.anchorPoint = CGPoint(x: 0.5, y: 1)
         goal.position = worldToScene(x: level.endX + level.endWidth / 2, y: level.endY)
         goal.zPosition = 5
-
-        // Add a label
-        let label = SKLabelNode(text: "🏰")
-        label.fontSize = 48
-        label.verticalAlignmentMode = .center
-        label.position = CGPoint(x: 0, y: -goalSize.height / 2)
-        goal.addChild(label)
 
         entityNode.addChild(goal)
         endGoalNode = goal
@@ -498,6 +520,15 @@ class GameScene: SKScene {
 
         guard !isPaused, currentLevel != nil else { return }
 
+        // Death sequence: animate falling body, skip normal gameplay
+        if deathSequenceActive {
+            updateDeathSequence(delta: delta)
+            updateEntities(delta: delta)
+            updateEntityPositions()
+            updateCamera(delta: delta)
+            return
+        }
+
         // Don't update gameplay during duel
         if duelEnemy != nil { return }
 
@@ -513,6 +544,7 @@ class GameScene: SKScene {
         checkEnemyCollisions()
         checkAnimalBounce()
         checkBonusBlocks()
+        updateCoinDrops(delta: delta)
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
         updatePlayerSpritePosition()
@@ -745,12 +777,14 @@ class GameScene: SKScene {
         guard let duel = viewModel?.activeDuel, let enemy = duelEnemy else { return }
 
         let correct = index == duel.correctIndex
+        enemy.timesAnswered += 1
+        let isFirstStrike = correct && enemy.timesAnswered == 1
 
         Task { @MainActor [weak self] in
             guard let self = self else { return }
 
             if correct {
-                self.resolveEnemyDefeat(enemy: enemy)
+                self.resolveEnemyDefeat(enemy: enemy, firstStrike: isFirstStrike)
             } else {
                 enemy.battling = false
                 self.damagePlayer(knockbackFromX: enemy.worldX)
@@ -762,20 +796,108 @@ class GameScene: SKScene {
         }
     }
 
-    private func resolveEnemyDefeat(enemy: EnemyNode) {
+    private func resolveEnemyDefeat(enemy: EnemyNode, firstStrike: Bool = false) {
         enemy.defeat()
+        let centerX = enemy.worldX + enemy.hitboxWidth / 2
+
         showFloatingText(
             "+\(GameConstants.enemyDefeatScore)",
-            at: CGPoint(x: enemy.worldX + enemy.hitboxWidth / 2, y: enemy.worldY - 10)
+            at: CGPoint(x: centerX, y: enemy.worldY - 10)
         )
         showFloatingText(
             "+\(GameConstants.enemyDefeatCoins) pièces",
-            at: CGPoint(x: enemy.worldX + enemy.hitboxWidth / 2, y: enemy.worldY - 30),
+            at: CGPoint(x: centerX, y: enemy.worldY - 30),
             color: .yellow
         )
+
+        // Spawn coin drop visual entities
+        spawnCoinDrops(at: CGPoint(x: centerX, y: enemy.worldY))
+
+        var bonusScore = 0
+        var bonusGold = 0
+        if firstStrike {
+            // Random first-strike reward: flail(160/40), helmet(120/30), or jewel(60/12)
+            let roll = Int.random(in: 0...2)
+            switch roll {
+            case 0:  bonusScore = 160; bonusGold = 40
+                showFloatingText("Premier coup ! +fléau", at: CGPoint(x: centerX, y: enemy.worldY - 50), color: .orange)
+            case 1:  bonusScore = 120; bonusGold = 30
+                showFloatingText("Premier coup ! +casque", at: CGPoint(x: centerX, y: enemy.worldY - 50), color: .cyan)
+            default: bonusScore = 60;  bonusGold = 12
+                showFloatingText("Premier coup ! +joyau", at: CGPoint(x: centerX, y: enemy.worldY - 50), color: .purple)
+            }
+        }
+
         Task { @MainActor in
-            viewModel?.score += GameConstants.enemyDefeatScore
-            viewModel?.gold += GameConstants.enemyDefeatCoins
+            viewModel?.score += GameConstants.enemyDefeatScore + bonusScore
+            viewModel?.gold += GameConstants.enemyDefeatCoins + bonusGold
+        }
+    }
+
+    // MARK: - Coin Drops
+
+    private struct CoinDrop {
+        let node: SKSpriteNode
+        var worldX: CGFloat
+        var worldY: CGFloat
+        var vx: CGFloat
+        var vy: CGFloat
+        var life: CGFloat
+    }
+    private var coinDrops: [CoinDrop] = []
+
+    private func spawnCoinDrops(at worldPos: CGPoint) {
+        for _ in 0..<GameConstants.enemyDefeatCoins {
+            let coin = SKSpriteNode(color: .yellow, size: CGSize(width: 8, height: 8))
+            coin.zPosition = 12
+            entityNode.addChild(coin)
+
+            let spread: CGFloat = CGFloat.random(in: -30...30)
+            let launchVy: CGFloat = CGFloat.random(in: -280...(-180))
+
+            coinDrops.append(CoinDrop(
+                node: coin,
+                worldX: worldPos.x + spread,
+                worldY: worldPos.y,
+                vx: spread * 2,
+                vy: launchVy,
+                life: 1.2
+            ))
+        }
+    }
+
+    private func updateCoinDrops(delta: CGFloat) {
+        guard let level = currentLevel else { return }
+        var toRemove: [Int] = []
+
+        for i in coinDrops.indices {
+            coinDrops[i].vy += GameConstants.enemyDropGravity * delta
+            coinDrops[i].vy = min(coinDrops[i].vy, GameConstants.enemyDropMaxFallSpeed)
+            coinDrops[i].worldX += coinDrops[i].vx * delta
+            coinDrops[i].worldY += coinDrops[i].vy * delta
+            coinDrops[i].life -= delta
+
+            // Stop at ground
+            if coinDrops[i].worldY >= level.groundSurfaceY {
+                coinDrops[i].worldY = level.groundSurfaceY
+                coinDrops[i].vy = 0
+                coinDrops[i].vx = 0
+            }
+
+            let pos = worldToScene(x: coinDrops[i].worldX, y: coinDrops[i].worldY)
+            coinDrops[i].node.position = pos
+
+            if coinDrops[i].life <= 0 {
+                coinDrops[i].node.alpha = max(0, coinDrops[i].life + 0.3) / 0.3
+            }
+            if coinDrops[i].life <= -0.3 {
+                toRemove.append(i)
+            }
+        }
+
+        for i in toRemove.sorted().reversed() {
+            coinDrops[i].node.removeFromParent()
+            coinDrops.remove(at: i)
         }
     }
 
@@ -1084,22 +1206,49 @@ class GameScene: SKScene {
         fadeNode.run(SKAction.sequence([fadeIn, load, fadeOut, done]))
     }
 
+    // MARK: - Death Sequence
+    private var deathSequenceActive: Bool = false
+    private var deathSequenceElapsed: CGFloat = 0
+
     // MARK: - Player Death
 
     private func playerDied() {
         guard !player.isDead else { return }
         player.isDead = true
+        player.vx = 0
         player.vy = GameConstants.playerDeathLaunchY
+        deathSequenceActive = true
+        deathSequenceElapsed = 0
 
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            self.viewModel?.hearts -= 1
-            if (self.viewModel?.hearts ?? 0) <= 0 {
-                self.viewModel?.isGameOver = true
-            } else {
-                try? await Task.sleep(for: .seconds(GameConstants.playerDeathDelaySeconds))
-                if let level = self.currentLevel {
-                    self.spawnPlayer(level: level)
+        Task { @MainActor in
+            viewModel?.hearts -= 1
+        }
+    }
+
+    /// Called each frame during death sequence to animate the body falling.
+    private func updateDeathSequence(delta: CGFloat) {
+        guard deathSequenceActive else { return }
+        deathSequenceElapsed += delta
+
+        // Apply gravity to the dead player (body falls)
+        player.vy += GameConstants.gravity * delta
+        player.vy = min(player.vy, GameConstants.maxFallVelocity)
+        player.worldY += player.vy * delta
+
+        // Update player animation time for death spin
+        player.animTime += delta
+        updatePlayerSpritePosition()
+
+        if deathSequenceElapsed >= GameConstants.playerDeathDelaySeconds {
+            deathSequenceActive = false
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if (self.viewModel?.hearts ?? 0) <= 0 {
+                    self.viewModel?.isGameOver = true
+                } else {
+                    if let level = self.currentLevel {
+                        self.spawnPlayer(level: level)
+                    }
                 }
             }
         }
@@ -1108,7 +1257,7 @@ class GameScene: SKScene {
     // MARK: - Damage
 
     func damagePlayer(knockbackFromX: CGFloat) {
-        guard player.invulnTimeLeft <= 0, !player.isDead else { return }
+        guard player.invulnTimeLeft <= 0, !player.isDead, !deathSequenceActive else { return }
 
         player.invulnTimeLeft = GameConstants.playerHitInvulnSeconds
         player.stunTimeLeft = GameConstants.playerHitStunSeconds
@@ -1117,11 +1266,11 @@ class GameScene: SKScene {
         player.vx = GameConstants.playerHitKnockbackX * knockDir
         player.vy = GameConstants.playerHitKnockbackY
 
-        Task { @MainActor in
-            viewModel?.hearts -= 1
-            if (viewModel?.hearts ?? 0) <= 0 {
-                player.isDead = true
-                viewModel?.isGameOver = true
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.viewModel?.hearts -= 1
+            if (self.viewModel?.hearts ?? 0) <= 0 {
+                self.playerDied()
             }
         }
     }
