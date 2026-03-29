@@ -221,6 +221,20 @@ enum GameConstants {
         "snow": ["snowdeco01.png", "snowdeco02.png", "snowdeco03.png", "snowdeco04.png"],
     ]
 
+    // MARK: - Platform Tile Config
+    static let platformTilePrefixByStyle: [String: String] = [
+        "wood": "woodhalf",
+        "castlewall": "rockhalf",
+    ]
+    static let platformTileRowsByStyle: [String: Int] = [
+        "wood": 4,
+        "castlewall": 5,
+    ]
+    static let platformTileColsByStyle: [String: Int] = [
+        "wood": 4,
+        "castlewall": 4,
+    ]
+
     // MARK: - Ground Tile Style by Biome
     static let groundTileStyleByBiome: [String: String] = [
         "desert": "desert",

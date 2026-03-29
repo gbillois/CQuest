@@ -149,16 +149,25 @@ enum LevelGenerator {
                 let minY = groundRow - maxJumpTiles
                 let clampedY = max(minY, min(p.y, groundRow - 2))
 
+                // Pick platform style based on progress (JS: wood early, castlewall late)
+                let platformStyle: String = progress >= 0.82 ? "castlewall" : "wood"
+                let prefix = GameConstants.platformTilePrefixByStyle[platformStyle] ?? "woodhalf"
+                let maxRows = GameConstants.platformTileRowsByStyle[platformStyle] ?? 4
+                let maxCols = GameConstants.platformTileColsByStyle[platformStyle] ?? 4
+
                 platformRails.append(PlatformRail(
                     startX: p.startX, endX: p.endX,
-                    y: clampedY, themeId: biomeId
+                    y: clampedY, themeId: platformStyle
                 ))
 
                 // Place one-way platform tiles
                 for col in p.startX..<p.endX {
                     guard col >= 0, col < widthTiles, clampedY >= 0, clampedY < heightTiles else { continue }
+                    let tileRow = rand.nextInt(min: 1, max: maxRows)
+                    let tileCol = rand.nextInt(min: 1, max: maxCols)
+                    let tilePath = "game_assets/platforms/\(platformStyle)/\(prefix)_tile_r\(String(format: "%02d", tileRow))_c\(String(format: "%02d", tileCol)).png"
                     tileGrid[clampedY][col] = Tile(
-                        path: "game_assets/platforms/wood/woodhalf_tile_r01_c02_01.png",
+                        path: tilePath,
                         collision: .solid,
                         oneWayPlatform: true,
                         walkableTop: true,

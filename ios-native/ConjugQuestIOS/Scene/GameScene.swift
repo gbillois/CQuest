@@ -314,7 +314,15 @@ class GameScene: SKScene {
         for rail in level.platformRails {
             for col in rail.startX..<rail.endX {
                 guard col >= 0, col < level.widthTiles else { continue }
-                let texPath = "game_assets/platforms/wood/woodhalf_tile_r01_c02_01.png"
+                // Use tile path from the grid if available, otherwise fallback
+                let row = rail.y
+                let texPath: String
+                if row >= 0, row < level.heightTiles, col < level.widthTiles,
+                   let tile = level.tileGrid[row][col], tile.oneWayPlatform {
+                    texPath = tile.path
+                } else {
+                    texPath = "game_assets/platforms/wood/woodhalf_tile_r01_c02.png"
+                }
                 let tex = AssetManager.shared.texture(for: texPath)
                 let sprite: SKSpriteNode
                 if let tex = tex {

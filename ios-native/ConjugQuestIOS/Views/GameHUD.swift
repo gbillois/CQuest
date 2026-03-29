@@ -4,6 +4,7 @@ import SwiftUI
 /// Positioned below the safe area top inset (never hidden under notch).
 struct GameHUD: View {
     @ObservedObject var viewModel: GameViewModel
+    var onShopTapped: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -45,7 +46,8 @@ struct GameHUD: View {
 
             // Shop button
             Button {
-                // Phase 6: open shop
+                viewModel.pauseGame()
+                onShopTapped?()
             } label: {
                 Image(systemName: "bag.fill")
                     .font(.system(size: 18))

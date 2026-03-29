@@ -49,9 +49,11 @@ struct GameContainerView: View {
                 // Layer 2: HUD + Controls overlay
                 VStack(spacing: 0) {
                     // HUD at top, respecting safe area
-                    GameHUD(viewModel: viewModel)
-                        .padding(.top, safeTop + 8)
-                        .padding(.horizontal, 16)
+                    GameHUD(viewModel: viewModel) {
+                        appState.currentScreen = .shop
+                    }
+                    .padding(.top, safeTop + 8)
+                    .padding(.horizontal, 16)
 
                     Spacer()
 
