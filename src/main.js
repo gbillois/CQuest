@@ -7,7 +7,7 @@ import {
   ensureEmergencyRoster, enforceMinimumJumpHeight, loadImage, preloadLevelAssetImages,
   preloadSelectedHeroSprites, scheduleBackgroundWarmup, setUpdateHudInfo,
 } from "./asset-loader.js";
-import { generateLevelsFromConfig } from "./level-generator.js";
+import { generateLevelsFromConfig, generateFirstLevel, generateRemainingLevels } from "./level-generator.js";
 import { loadSpriteManifest } from "./sprite-manifest.js";
 import { validateAllLevels, scoreLevelQuality } from "./level-validator.js";
 import { logInfo, logError, dumpLogs, setLogLevel, getLogs, clearLogs } from "./logger.js";
@@ -51,6 +51,7 @@ setRendererHooks({
 });
 setUiHooks({
   generateLevelsFromConfig,
+  generateRemainingLevels,
   loadLevel,
   startBossMode,
   getBossPrepLevelIndex,
@@ -98,8 +99,9 @@ function updateRespawnTrail(delta) {
 
 // ─── Init ───
 async function init() {
-  // Phase 1: Load config and sprite manifest in parallel (independent fetches).
-  const [config] = await Promise.all([loadConfig(), loadSpriteManifest()]);
+  // Phase 1: Load config (required) and start sprite manifest in background (non-blocking).
+  const spriteManifestPromise = loadSpriteManifest();
+  const config = await loadConfig();
   state.config = config;
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
@@ -212,25 +214,18 @@ async function init() {
   };
 
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
-  // Phase 2: Load all entity rosters and UI assets in parallel (all independent).
-  // Heroes must finish before initializeHeroProgress, but enemies/animals/birds/guards
-  // and UI assets are fully independent of each other.
+
+  // Phase 2: Load heroes + UI assets (critical for title screen).
+  // Enemies, animals, birds, guards load in the background — not needed for title.
   const heroesPromise = loadHeroes().then(() => initializeHeroProgress());
-  await Promise.all([heroesPromise, loadEnemies(), loadAnimals(), loadSkyBirds(), loadGuards(), setupUiAssets(config)]);
+  await Promise.all([heroesPromise, setupUiAssets(config)]);
   ensureEmergencyRoster();
 
-  logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
+  logInfo("init", `Loaded ${state.heroes.length} heroes`);
 
-  generateLevelsFromConfig(config);
-  logInfo("init", `Generated ${state.levels.length} levels`);
-  // Preload level-0 tiles and its background image in parallel so the first
-  // level renders fully (no gradient fallback) as soon as the game starts.
-  const firstBgPath = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biome];
-  await Promise.all([
-    preloadLevelAssetImages(state.levels[0]),
-    preloadSelectedHeroSprites(),
-    firstBgPath ? loadImage(firstBgPath).catch(() => null) : Promise.resolve(),
-  ]);
+  // Phase 3: Generate only level 0, show title screen ASAP.
+  generateFirstLevel(config);
+
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();
@@ -241,9 +236,25 @@ async function init() {
   resetRespawnTrail();
   state.ready = true;
   showTitleScreen();
-  scheduleBackgroundWarmup(config);
-  logInfo("init", "Game ready — starting loop");
+  logInfo("init", "Title screen shown — starting loop");
   requestAnimationFrame(gameLoop);
+
+  // Phase 4 (background): Load remaining entities, generate remaining levels,
+  // and preload level-0 assets — all deferred so the title screen is interactive.
+  const bgInit = async () => {
+    await Promise.all([loadEnemies(), loadAnimals(), loadSkyBirds(), loadGuards(), spriteManifestPromise]);
+    logInfo("init", `Background-loaded ${state.enemies.length} enemies, ${state.animals.length} animals`);
+    generateRemainingLevels(config);
+    logInfo("init", `Generated remaining levels (${state.levels.length} total)`);
+    const firstBgPath = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biome];
+    await Promise.all([
+      preloadLevelAssetImages(state.levels[0]),
+      preloadSelectedHeroSprites(),
+      firstBgPath ? loadImage(firstBgPath).catch(() => null) : Promise.resolve(),
+    ]);
+    scheduleBackgroundWarmup(config);
+  };
+  bgInit().catch((err) => logError("init", "Background init error", { message: err?.message }));
 }
 
 // ─── Game Loop ───
