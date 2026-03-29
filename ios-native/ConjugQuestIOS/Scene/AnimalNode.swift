@@ -99,15 +99,33 @@ class AnimalNode: SKSpriteNode {
     }
 
     static func spriteConfig(for animalId: String) -> SpriteConfig {
-        // Default config — animals share similar structure
-        let basePath = "game_assets/animals/\(animalId)"
+        let base = "game_assets/animals/\(animalId)"
+
+        // Hitbox sizes from sprite-manifest.json (scaled 1.5x)
+        let hitbox: (w: CGFloat, h: CGFloat)
+        switch animalId {
+        case "forest-goat":          hitbox = (53, 45)
+        case "forest-sheep":         hitbox = (45, 39)
+        case "forest-rabbit":        hitbox = (45, 38)
+        case "desert-camel":         hitbox = (54, 39)
+        case "desert-fennec":        hitbox = (32, 26)
+        case "mountain-marmot":      hitbox = (30, 23)
+        case "mountain-ibex":        hitbox = (45, 41)
+        case "snow-reindeer":        hitbox = (50, 50)
+        case "snow-otter":           hitbox = (33, 21)
+        case "snow-rabbit":          hitbox = (44, 39)
+        case "desolation-frog":      hitbox = (30, 23)
+        case "desolation-earthworm": hitbox = (32, 23)
+        default:                     hitbox = (40, 30)
+        }
+
         return SpriteConfig(
-            idleE: "\(basePath)/east.png",
-            idleW: "\(basePath)/west.png",
-            walkE: (0..<4).map { "\(basePath)/walk_east/frame_\(String(format: "%03d", $0)).png" },
-            walkW: (0..<4).map { "\(basePath)/walk_west/frame_\(String(format: "%03d", $0)).png" },
-            hitboxW: 48,
-            hitboxH: 48
+            idleE: "\(base)/rotations/east.png",
+            idleW: "\(base)/rotations/west.png",
+            walkE: (0..<6).map { "\(base)/animations/walk-6-frames/east/frame_\(String(format: "%03d", $0)).png" },
+            walkW: (0..<6).map { "\(base)/animations/walk-6-frames/west/frame_\(String(format: "%03d", $0)).png" },
+            hitboxW: hitbox.w,
+            hitboxH: hitbox.h
         )
     }
 

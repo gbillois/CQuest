@@ -104,56 +104,35 @@ class EnemyNode: SKSpriteNode {
     }
 
     static func spriteConfig(for enemyId: String) -> SpriteConfig {
+        let base = "game_assets/enemies/\(enemyId)"
+
+        // Determine walk animation folder name (varies per enemy)
+        let walkFolder: String
         switch enemyId {
-        case "forest-wasp":
-            return SpriteConfig(
-                idleE: "game_assets/enemies/forest-wasp/east.png",
-                idleW: "game_assets/enemies/forest-wasp/west.png",
-                walkE: (0..<4).map { "game_assets/enemies/forest-wasp/walk_east/frame_\(String(format: "%03d", $0)).png" },
-                walkW: (0..<4).map { "game_assets/enemies/forest-wasp/walk_west/frame_\(String(format: "%03d", $0)).png" },
-                hitboxW: 64, hitboxH: 54
-            )
-        case "desert-scorpion":
-            return SpriteConfig(
-                idleE: "game_assets/enemies/desert-scorpion/east.png",
-                idleW: "game_assets/enemies/desert-scorpion/west.png",
-                walkE: (0..<4).map { "game_assets/enemies/desert-scorpion/walk_east/frame_\(String(format: "%03d", $0)).png" },
-                walkW: (0..<4).map { "game_assets/enemies/desert-scorpion/walk_west/frame_\(String(format: "%03d", $0)).png" },
-                hitboxW: 72, hitboxH: 48
-            )
-        case "mountain-snake":
-            return SpriteConfig(
-                idleE: "game_assets/enemies/mountain-snake/east.png",
-                idleW: "game_assets/enemies/mountain-snake/west.png",
-                walkE: (0..<4).map { "game_assets/enemies/mountain-snake/walk_east/frame_\(String(format: "%03d", $0)).png" },
-                walkW: (0..<4).map { "game_assets/enemies/mountain-snake/walk_west/frame_\(String(format: "%03d", $0)).png" },
-                hitboxW: 64, hitboxH: 48
-            )
-        case "snow-fox":
-            return SpriteConfig(
-                idleE: "game_assets/enemies/snow-fox/east.png",
-                idleW: "game_assets/enemies/snow-fox/west.png",
-                walkE: (0..<4).map { "game_assets/enemies/snow-fox/walk_east/frame_\(String(format: "%03d", $0)).png" },
-                walkW: (0..<4).map { "game_assets/enemies/snow-fox/walk_west/frame_\(String(format: "%03d", $0)).png" },
-                hitboxW: 64, hitboxH: 52
-            )
-        case "desolation-wolf":
-            return SpriteConfig(
-                idleE: "game_assets/enemies/desolation-wolf/east.png",
-                idleW: "game_assets/enemies/desolation-wolf/west.png",
-                walkE: (0..<4).map { "game_assets/enemies/desolation-wolf/walk_east/frame_\(String(format: "%03d", $0)).png" },
-                walkW: (0..<4).map { "game_assets/enemies/desolation-wolf/walk_west/frame_\(String(format: "%03d", $0)).png" },
-                hitboxW: 72, hitboxH: 56
-            )
+        case "forest-wasp", "desert-scorpion", "mountain-snake":
+            walkFolder = "walking-6-frames"
         default:
-            return SpriteConfig(
-                idleE: "game_assets/enemies/forest-wasp/east.png",
-                idleW: "game_assets/enemies/forest-wasp/west.png",
-                walkE: [],
-                walkW: [],
-                hitboxW: 48, hitboxH: 48
-            )
+            walkFolder = "walk-6-frames"
         }
+
+        // Hitbox sizes from sprite-manifest.json (scaled 1.5x, clamped to constants)
+        let hitbox: (w: CGFloat, h: CGFloat)
+        switch enemyId {
+        case "forest-wasp":     hitbox = (29, 51)
+        case "desert-scorpion": hitbox = (32, 57)
+        case "mountain-snake":  hitbox = (28, 56)
+        case "snow-fox":        hitbox = (51, 56)
+        case "desolation-wolf": hitbox = (50, 56)
+        default:                hitbox = (28, 56)
+        }
+
+        return SpriteConfig(
+            idleE: "\(base)/rotations/east.png",
+            idleW: "\(base)/rotations/west.png",
+            walkE: (0..<6).map { "\(base)/animations/\(walkFolder)/east/frame_\(String(format: "%03d", $0)).png" },
+            walkW: (0..<6).map { "\(base)/animations/\(walkFolder)/west/frame_\(String(format: "%03d", $0)).png" },
+            hitboxW: hitbox.w, hitboxH: hitbox.h
+        )
     }
 
     // MARK: - Update
