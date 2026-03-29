@@ -593,7 +593,7 @@ export async function preloadBossAssets() {
 
 export function scheduleBackgroundWarmup(config) {
   // Load current level's background immediately so it's ready when the player starts.
-  const firstBiome = state.levels?.[0]?.biome;
+  const firstBiome = state.levels?.[0]?.biomeId;
   if (firstBiome) {
     const bgPath = BIOME_PARALLAX_BACKGROUNDS[firstBiome];
     if (bgPath) {
