@@ -265,6 +265,64 @@ enum LevelGenerator {
             }
         }
 
+        // --- Phase 5d: Tower ---
+        let towerTileX = widthTiles / 2
+        let towerW: CGFloat = 116
+        let towerH = CGFloat(200) * GameConstants.towerHeightScale
+        let towerX = CGFloat(towerTileX) * tileSize
+        let towerY = groundSurfaceY - (towerH - tileSize)
+        let tower = TowerData(x: towerX, y: towerY, width: towerW, height: towerH)
+
+        // --- Phase 5e: Guard Spawns ---
+        let guardW: CGFloat = 40
+        let guardH: CGFloat = 100
+        var guardSpawns: [GuardSpawn] = []
+
+        // Tower guard — 2 tiles left of the tower
+        let towerLeft = max(0, towerX - towerW / 2)
+        let towerGuardX = towerLeft - 2 * tileSize - guardW
+        if towerGuardX > 2 * tileSize {
+            guardSpawns.append(GuardSpawn(
+                x: towerGuardX,
+                y: groundSurfaceY - guardH,
+                messages: ["Bienvenue, voyageur !", "La tour contient un trésor..."]
+            ))
+        }
+
+        // Castle guard — 2 tiles left of the castle
+        let castleW = CGFloat(220) * GameConstants.castleScale
+        let castleLeft = max(0, CGFloat(widthTiles - 7) * tileSize - castleW / 2)
+        let castleGuardX = castleLeft - 2 * tileSize - guardW
+        if castleGuardX > 2 * tileSize {
+            guardSpawns.append(GuardSpawn(
+                x: castleGuardX,
+                y: groundSurfaceY - guardH,
+                messages: ["Vaincez les ennemis pour ouvrir le château !"]
+            ))
+        }
+
+        // --- Phase 5f: Sky Birds ---
+        var skyBirdSpawns: [SkyBirdSpawn] = []
+        let skyBirdCount = rand.nextInt(min: 2, max: 5)
+        let skyTop = 2 * tileSize
+        let skyBottom = groundSurfaceY - 6 * tileSize
+        if skyBottom > skyTop {
+            for _ in 0..<skyBirdCount {
+                let baseY = skyTop + rand.nextCGFloat() * (skyBottom - skyTop)
+                skyBirdSpawns.append(SkyBirdSpawn(
+                    x: rand.nextCGFloat() * CGFloat(widthTiles) * tileSize,
+                    y: baseY,
+                    baseY: baseY,
+                    dir: rand.next() > 0.5 ? 1 : -1,
+                    speed: CGFloat(rand.nextInt(min: 40, max: 80)),
+                    swoopAmp: CGFloat(rand.nextInt(min: 15, max: 40)),
+                    swoopFreq: 0.5 + rand.nextCGFloat() * 1.0,
+                    swoopPhase: rand.nextCGFloat() * .pi * 2,
+                    animTime: rand.nextCGFloat() * 3
+                ))
+            }
+        }
+
         // --- Phase 6: Start/End positions ---
         let startX = tileSize * 3
         let startY = groundSurfaceY - 120  // Player height above ground
@@ -288,6 +346,9 @@ enum LevelGenerator {
         level.animalSpawns = animalSpawns
         level.bonuses = bonuses
         level.groundDecor = groundDecor
+        level.tower = tower
+        level.guardSpawns = guardSpawns
+        level.skyBirdSpawns = skyBirdSpawns
         level.blockSequence = segments.map { $0.blockId }
         level.segments = segments
         level.startX = startX

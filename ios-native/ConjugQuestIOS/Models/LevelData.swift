@@ -118,6 +118,29 @@ struct BonusBlock {
     var rewardType: String = "coin"
 }
 
+// MARK: - Sky Bird
+
+struct SkyBirdSpawn {
+    var x: CGFloat
+    var y: CGFloat
+    var baseY: CGFloat
+    var dir: CGFloat       // 1 or -1
+    var speed: CGFloat
+    var swoopAmp: CGFloat
+    var swoopFreq: CGFloat
+    var swoopPhase: CGFloat
+    var animTime: CGFloat
+}
+
+// MARK: - Tower Data
+
+struct TowerData {
+    let x: CGFloat         // World X center
+    let y: CGFloat         // World Y top
+    let width: CGFloat
+    let height: CGFloat
+}
+
 // MARK: - Ground Decoration
 
 struct GroundDecor {
@@ -170,6 +193,10 @@ struct Level {
     var bonuses: [BonusBlock] = []
     var conjugationGates: [ConjugationGate] = []
     var groundDecor: [GroundDecor] = []
+
+    // Tower & Guards
+    var tower: TowerData? = nil
+    var skyBirdSpawns: [SkyBirdSpawn] = []
 
     // Structures
     var startX: CGFloat = 0

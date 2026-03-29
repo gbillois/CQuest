@@ -74,6 +74,15 @@ class GameScene: SKScene {
     private var projectiles: [Projectile] = []
     private var fireCooldown: CGFloat = 0
 
+    // MARK: - Guards
+    private var guardNodes: [(spawn: GuardSpawn, node: SKSpriteNode, labelNode: SKLabelNode?)] = []
+
+    // MARK: - Sky Birds
+    private var skyBirds: [(spawn: SkyBirdSpawn, node: SKSpriteNode)] = []
+
+    // MARK: - Tower
+    private var towerNode: SKSpriteNode?
+
     // MARK: - Bonus Blocks
     private var bonusBlockNodes: [(block: BonusBlock, node: SKSpriteNode)] = []
 
@@ -182,6 +191,12 @@ class GameScene: SKScene {
         bonusBlockNodes.removeAll()
         coinDrops.forEach { $0.node.removeFromParent() }
         coinDrops.removeAll()
+        guardNodes.forEach { $0.node.removeFromParent() }
+        guardNodes.removeAll()
+        skyBirds.forEach { $0.node.removeFromParent() }
+        skyBirds.removeAll()
+        towerNode?.removeFromParent()
+        towerNode = nil
         deathSequenceActive = false
         duelEnemy = nil
         projectiles.forEach { $0.node.removeFromParent() }
@@ -199,12 +214,15 @@ class GameScene: SKScene {
         drawGroundTiles(level: level)
         drawGroundDecor(level: level)
         drawPlatformTiles(level: level)
+        drawTower(level: level)
         drawEndGoal(level: level)
 
         // Spawn entities
         spawnEnemies(level: level)
         spawnAnimals(level: level)
         spawnBonusBlocks(level: level)
+        spawnGuards(level: level)
+        spawnSkyBirds(level: level)
 
         // Spawn player
         spawnPlayer(level: level)
@@ -424,6 +442,130 @@ class GameScene: SKScene {
         }
     }
 
+    // MARK: - Draw Tower
+
+    private func drawTower(level: Level) {
+        guard let tower = level.tower else { return }
+        let towerTex = AssetManager.shared.texture(for: "game_assets/tower/tower_main.png")
+        let tNode: SKSpriteNode
+        if let tex = towerTex {
+            tNode = SKSpriteNode(texture: tex, size: CGSize(width: tower.width, height: tower.height))
+        } else {
+            tNode = SKSpriteNode(color: .brown.withAlphaComponent(0.7), size: CGSize(width: tower.width, height: tower.height))
+        }
+        tNode.anchorPoint = CGPoint(x: 0.5, y: 1)
+        tNode.position = worldToScene(x: tower.x, y: tower.y)
+        tNode.zPosition = 3
+        entityNode.addChild(tNode)
+        towerNode = tNode
+    }
+
+    // MARK: - Spawn Guards
+
+    private func spawnGuards(level: Level) {
+        for spawn in level.guardSpawns {
+            // Guard body
+            let guardTex = AssetManager.shared.texture(for: "game_assets/heroes/paladin/rotations/south-west.png")
+            let node: SKSpriteNode
+            if let tex = guardTex {
+                let scale = GameConstants.guardScale
+                node = SKSpriteNode(texture: tex, size: CGSize(width: tex.size().width * scale, height: tex.size().height * scale))
+            } else {
+                node = SKSpriteNode(color: .gray, size: CGSize(width: 40, height: 100))
+            }
+            node.position = worldToScene(x: spawn.x + 20, y: spawn.y + 50)
+            node.zPosition = 6
+            entityNode.addChild(node)
+            guardNodes.append((spawn: spawn, node: node, labelNode: nil))
+        }
+    }
+
+    // MARK: - Spawn Sky Birds
+
+    private func spawnSkyBirds(level: Level) {
+        for spawn in level.skyBirdSpawns {
+            let bird = SKSpriteNode(color: .darkGray, size: CGSize(width: 12, height: 6))
+            bird.zPosition = -40
+            entityNode.addChild(bird)
+            skyBirds.append((spawn: spawn, node: bird))
+        }
+    }
+
+    // MARK: - Update Guards
+
+    private func updateGuards() {
+        guard !player.isDead else { return }
+
+        let playerCenterX = player.worldX + player.hitboxWidth / 2
+
+        for i in guardNodes.indices {
+            let spawn = guardNodes[i].spawn
+            let guardCenterX = spawn.x + 20
+            let dist = abs(playerCenterX - guardCenterX)
+
+            if dist < GameConstants.guardTriggerRadius {
+                // Show dialog if not already showing
+                if guardNodes[i].labelNode == nil, let msg = spawn.messages.first {
+                    let label = SKLabelNode(text: msg)
+                    label.fontName = "Helvetica-Bold"
+                    label.fontSize = 12
+                    label.fontColor = .white
+                    label.numberOfLines = 0
+                    label.preferredMaxLayoutWidth = 150
+                    let pos = worldToScene(x: spawn.x + 20, y: spawn.y - 16)
+                    label.position = pos
+                    label.zPosition = 50
+
+                    let bg = SKShapeNode(rectOf: CGSize(width: 160, height: 30), cornerRadius: 6)
+                    bg.fillColor = UIColor(white: 0, alpha: 0.7)
+                    bg.strokeColor = .clear
+                    bg.zPosition = -1
+                    label.addChild(bg)
+
+                    entityNode.addChild(label)
+                    guardNodes[i].labelNode = label
+
+                    // Auto-remove after TTL
+                    label.run(SKAction.sequence([
+                        SKAction.wait(forDuration: TimeInterval(GameConstants.guardMessageTTL)),
+                        SKAction.fadeOut(withDuration: 0.3),
+                        SKAction.removeFromParent()
+                    ])) { [weak self] in
+                        if i < self?.guardNodes.count ?? 0 {
+                            self?.guardNodes[i].labelNode = nil
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Update Sky Birds
+
+    private func updateSkyBirds(delta: CGFloat) {
+        guard let level = currentLevel else { return }
+
+        for i in skyBirds.indices {
+            skyBirds[i].spawn.animTime += delta
+            skyBirds[i].spawn.x += skyBirds[i].spawn.dir * skyBirds[i].spawn.speed * delta
+
+            // Swoop (sine wave vertical motion)
+            let t = skyBirds[i].spawn.animTime
+            let swoopY = skyBirds[i].spawn.baseY + skyBirds[i].spawn.swoopAmp * sin(t * skyBirds[i].spawn.swoopFreq * .pi * 2 + skyBirds[i].spawn.swoopPhase)
+            skyBirds[i].spawn.y = swoopY
+
+            // Wrap around world edges
+            if skyBirds[i].spawn.x < -50 { skyBirds[i].spawn.x = level.worldWidth + 50 }
+            if skyBirds[i].spawn.x > level.worldWidth + 50 { skyBirds[i].spawn.x = -50 }
+
+            // Flip based on direction
+            skyBirds[i].node.xScale = skyBirds[i].spawn.dir >= 0 ? 1 : -1
+
+            let pos = worldToScene(x: skyBirds[i].spawn.x, y: skyBirds[i].spawn.y)
+            skyBirds[i].node.position = pos
+        }
+    }
+
     // MARK: - Spawn Bonus Blocks
 
     private func spawnBonusBlocks(level: Level) {
@@ -545,6 +687,8 @@ class GameScene: SKScene {
         checkAnimalBounce()
         checkBonusBlocks()
         updateCoinDrops(delta: delta)
+        updateGuards()
+        updateSkyBirds(delta: delta)
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
         updatePlayerSpritePosition()
