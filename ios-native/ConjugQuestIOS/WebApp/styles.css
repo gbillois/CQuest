@@ -578,8 +578,8 @@ body {
 }
 
 .question-actor-sprite {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 4px 2px rgba(0, 0, 0, 0.35));
@@ -661,7 +661,7 @@ body {
   text-align: center;
   border: 2px solid rgba(129, 177, 255, 0.7);
   border-radius: 8px;
-  min-height: 64px;
+  min-height: 52px;
   color: #f7fbff;
   font-weight: 800;
   letter-spacing: 0.02em;
