@@ -36,6 +36,11 @@ class GameScene: SKScene {
     // MARK: - End Goal
     private var endGoalNode: SKSpriteNode?
 
+    // MARK: - Enemies & Animals
+    private var enemies: [EnemyNode] = []
+    private var animals: [AnimalNode] = []
+    private var duelEnemy: EnemyNode?
+
     // MARK: - Player
     private var player = PlayerNode()
     private var playerPreviousY: CGFloat = 0
@@ -111,6 +116,13 @@ class GameScene: SKScene {
         endGoalNode = nil
         parallaxBg.removeAll()
 
+        // Clear entities
+        enemies.forEach { $0.removeFromParent() }
+        enemies.removeAll()
+        animals.forEach { $0.removeFromParent() }
+        animals.removeAll()
+        duelEnemy = nil
+
         // Build collision data
         buildCollisionData(level: level)
 
@@ -120,6 +132,10 @@ class GameScene: SKScene {
         drawGroundTiles(level: level)
         drawPlatformTiles(level: level)
         drawEndGoal(level: level)
+
+        // Spawn entities
+        spawnEnemies(level: level)
+        spawnAnimals(level: level)
 
         // Spawn player
         spawnPlayer(level: level)
@@ -293,6 +309,26 @@ class GameScene: SKScene {
         player.position = scenePos
     }
 
+    // MARK: - Spawn Enemies
+
+    private func spawnEnemies(level: Level) {
+        for spawn in level.enemySpawns {
+            let enemy = EnemyNode(enemyId: spawn.enemyId, spawn: spawn)
+            entityNode.addChild(enemy)
+            enemies.append(enemy)
+        }
+    }
+
+    // MARK: - Spawn Animals
+
+    private func spawnAnimals(level: Level) {
+        for spawn in level.animalSpawns {
+            let animal = AnimalNode(animalId: spawn.animalId, spawn: spawn)
+            entityNode.addChild(animal)
+            animals.append(animal)
+        }
+    }
+
     // MARK: - Update Loop
 
     override func update(_ currentTime: TimeInterval) {
@@ -302,15 +338,22 @@ class GameScene: SKScene {
 
         guard !isPaused, currentLevel != nil else { return }
 
+        // Don't update gameplay during duel
+        if duelEnemy != nil { return }
+
         runTime += delta
         playerPreviousY = player.worldY
 
         updatePlayerInput(delta: delta)
         updatePlayerPhysics(delta: delta)
         resolvePlayerCollisions()
+        updateEntities(delta: delta)
+        checkEnemyCollisions()
+        checkAnimalBounce()
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
         updatePlayerSpritePosition()
+        updateEntityPositions()
         updateCamera(delta: delta)
         checkEndGoal()
         syncHUD()
@@ -374,7 +417,7 @@ class GameScene: SKScene {
 
         player.worldX = max(0, min(player.worldX, level.worldWidth - player.hitboxWidth))
 
-        if player.worldY > GameConstants.virtualHeight + 200 {
+        if player.worldY > level.worldHeight + 200 {
             playerDied()
         }
     }
@@ -404,6 +447,143 @@ class GameScene: SKScene {
             oneWayRects: platformCollisionRects,
             previousY: playerPreviousY
         )
+    }
+
+    // MARK: - Entity Updates
+
+    private func updateEntities(delta: CGFloat) {
+        guard let level = currentLevel else { return }
+
+        for enemy in enemies {
+            enemy.update(delta: delta, groundSurfaceY: level.groundSurfaceY, worldWidth: level.worldWidth)
+        }
+        for animal in animals {
+            animal.update(delta: delta, groundSurfaceY: level.groundSurfaceY, worldWidth: level.worldWidth)
+        }
+    }
+
+    private func updateEntityPositions() {
+        for enemy in enemies {
+            let centerX = enemy.worldX + enemy.hitboxWidth / 2
+            let centerY = enemy.worldY + enemy.hitboxHeight / 2
+            var pos = worldToScene(x: centerX, y: centerY)
+            if enemy.defeatFadeActive {
+                pos.y += enemy.defeatRiseOffset
+            }
+            enemy.position = pos
+        }
+        for animal in animals {
+            let centerX = animal.worldX + animal.hitboxWidth / 2
+            let centerY = animal.worldY + animal.hitboxHeight / 2
+            let pos = worldToScene(x: centerX, y: centerY)
+            animal.position = pos
+        }
+    }
+
+    // MARK: - Enemy Collision
+
+    private func checkEnemyCollisions() {
+        guard !player.isDead, player.invulnTimeLeft <= 0 else { return }
+
+        let playerRect = player.hitboxRect
+
+        for enemy in enemies {
+            guard enemy.isAlive, !enemy.battling else { continue }
+            guard PhysicsSystem.aabb(playerRect, enemy.hitboxRect) else { continue }
+            triggerDuel(enemy: enemy)
+            break
+        }
+    }
+
+    // MARK: - Animal Bounce
+
+    private func checkAnimalBounce() {
+        guard !player.isDead else { return }
+
+        let playerRect = player.hitboxRect
+
+        for animal in animals {
+            guard PhysicsSystem.aabb(playerRect, animal.hitboxRect) else { continue }
+
+            let prevBottom = playerPreviousY + player.hitboxHeight
+
+            if player.vy > 0 && prevBottom <= animal.worldY + animal.hitboxHeight * 0.4 {
+                player.vy = GameConstants.animalBounceVelocity
+                player.onGround = false
+
+                if !animal.bounceRewardClaimed {
+                    animal.bounceRewardClaimed = true
+                    Task { @MainActor in
+                        viewModel?.score += GameConstants.animalBounceScore
+                        viewModel?.gold += GameConstants.animalBounceCoins
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Duel System
+
+    private func triggerDuel(enemy: EnemyNode) {
+        duelEnemy = enemy
+        enemy.battling = true
+
+        let activeTenses = Set(GameConstants.tenseKeys)
+        let activeGroups = Set(ConjugationData.verbs.keys)
+
+        guard let question = ConjugationData.makeQuestion(
+            activeTenses: activeTenses,
+            activeGroups: activeGroups
+        ) else {
+            resolveEnemyDefeat(enemy: enemy)
+            return
+        }
+
+        let correctIndex = question.options.firstIndex(of: question.correct) ?? 0
+        let pronoun = ConjugationData.pronouns[question.pronIdx]
+        let prompt = "Conjugue « \(question.vKey) » au \(question.tenseLabel) pour « \(pronoun) »"
+
+        let duelState = DuelState(
+            prompt: prompt,
+            answers: question.options,
+            correctIndex: correctIndex,
+            enemySpritePath: nil,
+            heroSpritePath: nil,
+            timeLimit: GameConstants.duelTimeLimitSeconds
+        )
+
+        Task { @MainActor in
+            viewModel?.activeDuel = duelState
+        }
+    }
+
+    func answerDuel(index: Int) {
+        guard let duel = viewModel?.activeDuel, let enemy = duelEnemy else { return }
+
+        let correct = index == duel.correctIndex
+
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+
+            if correct {
+                self.resolveEnemyDefeat(enemy: enemy)
+            } else {
+                enemy.battling = false
+                self.damagePlayer(knockbackFromX: enemy.worldX)
+            }
+
+            try? await Task.sleep(for: .seconds(0.8))
+            self.viewModel?.activeDuel = nil
+            self.duelEnemy = nil
+        }
+    }
+
+    private func resolveEnemyDefeat(enemy: EnemyNode) {
+        enemy.defeat()
+        Task { @MainActor in
+            viewModel?.score += GameConstants.enemyDefeatScore
+            viewModel?.gold += GameConstants.enemyDefeatCoins
+        }
     }
 
     // MARK: - Camera
@@ -515,10 +695,6 @@ class GameScene: SKScene {
         }
         levels = LevelGenerator.generateLevels()
         loadLevel(index: currentLevelIndex)
-    }
-
-    func answerDuel(index: Int) {
-        // Phase 4
     }
 }
 

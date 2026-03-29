@@ -32,6 +32,9 @@
 		AA000026 /* SeededRandom.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000027 /* SeededRandom.swift */; };
 		AA000028 /* LevelGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000029 /* LevelGenerator.swift */; };
 		AA00002A /* ParallaxBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002B /* ParallaxBackground.swift */; };
+		AA00002C /* EnemyNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002D /* EnemyNode.swift */; };
+		AA00002E /* AnimalNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002F /* AnimalNode.swift */; };
+		AA000040 /* ConjugationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000041 /* ConjugationData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +64,9 @@
 		AA000027 /* SeededRandom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandom.swift; sourceTree = "<group>"; };
 		AA000029 /* LevelGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelGenerator.swift; sourceTree = "<group>"; };
 		AA00002B /* ParallaxBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxBackground.swift; sourceTree = "<group>"; };
+		AA00002D /* EnemyNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyNode.swift; sourceTree = "<group>"; };
+		AA00002F /* AnimalNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalNode.swift; sourceTree = "<group>"; };
+		AA000041 /* ConjugationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConjugationData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +116,7 @@
 				AA000011 /* GameConstants.swift */,
 				AA000012 /* AppState.swift */,
 				AA000025 /* LevelData.swift */,
+				AA000041 /* ConjugationData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -142,6 +149,8 @@
 				AA000027 /* SeededRandom.swift */,
 				AA000029 /* LevelGenerator.swift */,
 				AA00002B /* ParallaxBackground.swift */,
+				AA00002D /* EnemyNode.swift */,
+				AA00002F /* AnimalNode.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -238,6 +247,9 @@
 				AA000026 /* SeededRandom.swift in Sources */,
 				AA000028 /* LevelGenerator.swift in Sources */,
 				AA00002A /* ParallaxBackground.swift in Sources */,
+				AA00002C /* EnemyNode.swift in Sources */,
+				AA00002E /* AnimalNode.swift in Sources */,
+				AA000040 /* ConjugationData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -40,6 +40,13 @@ enum GameConstants {
     static let playerDeathDelaySeconds: CGFloat = 1
     static let playerDeathLaunchY: CGFloat = -420
 
+    // MARK: - Duel / Rewards
+    static let duelTimeLimitSeconds: CGFloat = 10
+    static let enemyDefeatScore = 100
+    static let enemyDefeatCoins = 6
+    static let animalBounceScore = 10
+    static let animalBounceCoins = 5
+
     // MARK: - Enemy
     static let enemyMoveSpeed: CGFloat = 52
     static let enemyHitboxWidthRatio: CGFloat = 0.34
