@@ -7,6 +7,11 @@ struct GameHUD: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            // Level
+            Text("Niv.\(viewModel.currentLevelIndex + 1)")
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.7))
+
             // Score
             HStack(spacing: 4) {
                 Image(systemName: "star.fill")

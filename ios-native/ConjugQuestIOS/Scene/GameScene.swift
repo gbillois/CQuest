@@ -571,6 +571,11 @@ class GameScene: SKScene {
 
                 if !animal.bounceRewardClaimed {
                     animal.bounceRewardClaimed = true
+                    showFloatingText(
+                        "+\(GameConstants.animalBounceCoins) pièces",
+                        at: CGPoint(x: animal.worldX + animal.hitboxWidth / 2, y: animal.worldY - 10),
+                        color: .yellow
+                    )
                     Task { @MainActor in
                         viewModel?.score += GameConstants.animalBounceScore
                         viewModel?.gold += GameConstants.animalBounceCoins
@@ -644,6 +649,15 @@ class GameScene: SKScene {
 
     private func resolveEnemyDefeat(enemy: EnemyNode) {
         enemy.defeat()
+        showFloatingText(
+            "+\(GameConstants.enemyDefeatScore)",
+            at: CGPoint(x: enemy.worldX + enemy.hitboxWidth / 2, y: enemy.worldY - 10)
+        )
+        showFloatingText(
+            "+\(GameConstants.enemyDefeatCoins) pièces",
+            at: CGPoint(x: enemy.worldX + enemy.hitboxWidth / 2, y: enemy.worldY - 30),
+            color: .yellow
+        )
         Task { @MainActor in
             viewModel?.score += GameConstants.enemyDefeatScore
             viewModel?.gold += GameConstants.enemyDefeatCoins
@@ -973,10 +987,27 @@ class GameScene: SKScene {
         }
     }
 
+    // MARK: - Floating Reward Text
+
+    private func showFloatingText(_ text: String, at worldPos: CGPoint, color: UIColor = .white) {
+        let label = SKLabelNode(text: text)
+        label.fontName = "Helvetica-Bold"
+        label.fontSize = 18
+        label.fontColor = color
+        label.zPosition = 50
+        label.position = worldToScene(x: worldPos.x, y: worldPos.y)
+        entityNode.addChild(label)
+
+        let rise = SKAction.moveBy(x: 0, y: 40, duration: 0.8)
+        let fade = SKAction.fadeOut(withDuration: 0.8)
+        let group = SKAction.group([rise, fade])
+        label.run(SKAction.sequence([group, SKAction.removeFromParent()]))
+    }
+
     // MARK: - HUD Sync
 
     private func syncHUD() {
-        // Score and gold sync will be added in later phases
+        // HUD is updated via viewModel @Published properties
     }
 
     // MARK: - Public API
