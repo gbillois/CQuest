@@ -884,8 +884,14 @@ export function drawGuardSpeech(level) {
     const screenX = (guard.x + guard.w / 2 - state.cameraX) * zoom;
     const screenY = (guard.y + worldOffsetY) * zoom;
     if (screenX < -maxBoxW || screenX > VIRTUAL_WIDTH + maxBoxW) continue;
-    const lines = wrapText(ctx, guard.speechText, maxBoxW - padding * 2);
-    const boxW = Math.min(maxBoxW, Math.max(...lines.map((l) => ctx.measureText(l).width)) + padding * 2);
+    // Cache wrapped lines and box width since guard speech text doesn't change.
+    if (!guard._cachedSpeechLines || guard._cachedSpeechText !== guard.speechText) {
+      guard._cachedSpeechText = guard.speechText;
+      guard._cachedSpeechLines = wrapText(ctx, guard.speechText, maxBoxW - padding * 2);
+      guard._cachedSpeechBoxW = Math.min(maxBoxW, Math.max(...guard._cachedSpeechLines.map((l) => ctx.measureText(l).width)) + padding * 2);
+    }
+    const lines = guard._cachedSpeechLines;
+    const boxW = guard._cachedSpeechBoxW;
     const boxH = lines.length * lineHeight + padding;
     const boxX = clamp(screenX - boxW / 2, 10, VIRTUAL_WIDTH - boxW - 10);
     const boxY = screenY - boxH - 8;
@@ -1579,7 +1585,12 @@ export function updateFloatingRewards(delta) {
     const riseSpeed = reward.riseSpeed ?? 42;
     reward.rise = Math.min(maxRise, (reward.rise || 0) + delta * riseSpeed);
   }
-  state.floatingRewards = state.floatingRewards.filter((reward) => reward.life > 0);
+  // Remove expired rewards in-place to avoid allocating a new array every frame.
+  for (let i = state.floatingRewards.length - 1; i >= 0; i--) {
+    if (state.floatingRewards[i].life <= 0) {
+      state.floatingRewards.splice(i, 1);
+    }
+  }
 }
 
 export function drawFloatingRewards(level) {
