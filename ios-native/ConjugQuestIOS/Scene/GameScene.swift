@@ -45,6 +45,16 @@ class GameScene: SKScene {
     private var player = PlayerNode()
     private var playerPreviousY: CGFloat = 0
 
+    // MARK: - Game Config
+    private var selectedHeroId: String = "paladin"
+    private var difficultyMode: String = "normal"
+    private var activeTenses: Set<String> = Set(GameConstants.tenseKeys)
+    private var activeGroups: Set<String> = Set(ConjugationData.verbs.keys)
+
+    // MARK: - Level Transition
+    private var isTransitioning: Bool = false
+    private let fadeNode = SKSpriteNode(color: .black, size: CGSize(width: 1000, height: 1000))
+
     // MARK: - Timing
     private var lastUpdateTime: TimeInterval = 0
     private var runTime: CGFloat = 0
@@ -74,6 +84,18 @@ class GameScene: SKScene {
         viewModel.scene = self
     }
 
+    func configure(
+        heroId: String,
+        difficulty: String,
+        activeTenses: Set<String>,
+        activeGroups: Set<String>
+    ) {
+        self.selectedHeroId = heroId
+        self.difficultyMode = difficulty
+        self.activeTenses = activeTenses
+        self.activeGroups = activeGroups
+    }
+
     override func didMove(to view: SKView) {
         backgroundColor = .black
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -95,8 +117,18 @@ class GameScene: SKScene {
 
         entityNode.addChild(player)
 
-        // Generate all levels
-        levels = LevelGenerator.generateLevels()
+        // Fade node for level transitions
+        fadeNode.zPosition = 100
+        fadeNode.alpha = 0
+        cameraNode.addChild(fadeNode)
+
+        // Set starting hearts based on difficulty
+        Task { @MainActor in
+            viewModel?.hearts = GameConstants.startingHearts(for: difficultyMode)
+        }
+
+        // Generate all levels with selected difficulty
+        levels = LevelGenerator.generateLevels(profile: difficultyMode)
         loadLevel(index: 0)
     }
 
@@ -288,7 +320,7 @@ class GameScene: SKScene {
     // MARK: - Player Spawn
 
     private func spawnPlayer(level: Level) {
-        player.loadHero(id: "paladin") // TODO: use selected hero from AppState
+        player.loadHero(id: selectedHeroId)
         player.worldX = level.startX
         player.worldY = level.groundSurfaceY - player.hitboxHeight
         player.vx = 0
@@ -528,8 +560,8 @@ class GameScene: SKScene {
         duelEnemy = enemy
         enemy.battling = true
 
-        let activeTenses = Set(GameConstants.tenseKeys)
-        let activeGroups = Set(ConjugationData.verbs.keys)
+        let activeTenses = self.activeTenses
+        let activeGroups = self.activeGroups
 
         guard let question = ConjugationData.makeQuestion(
             activeTenses: activeTenses,
@@ -618,23 +650,36 @@ class GameScene: SKScene {
     // MARK: - End Goal Check
 
     private func checkEndGoal() {
-        guard let level = currentLevel, !player.isDead else { return }
+        guard let level = currentLevel, !player.isDead, !isTransitioning else { return }
 
         let playerRect = player.hitboxRect
         let goalRect = CGRect(x: level.endX, y: level.endY, width: level.endWidth, height: level.endHeight)
 
         if PhysicsSystem.aabb(playerRect, goalRect) {
-            // Level complete — load next
             let nextIndex = currentLevelIndex + 1
             if nextIndex < levels.count {
-                loadLevel(index: nextIndex)
+                transitionToLevel(index: nextIndex)
             } else {
-                // Victory!
                 Task { @MainActor in
                     viewModel?.isVictory = true
                 }
             }
         }
+    }
+
+    private func transitionToLevel(index: Int) {
+        isTransitioning = true
+
+        // Fade to black
+        let fadeIn = SKAction.fadeAlpha(to: 1, duration: 0.4)
+        let load = SKAction.run { [weak self] in
+            self?.loadLevel(index: index)
+        }
+        let fadeOut = SKAction.fadeAlpha(to: 0, duration: 0.4)
+        let done = SKAction.run { [weak self] in
+            self?.isTransitioning = false
+        }
+        fadeNode.run(SKAction.sequence([fadeIn, load, fadeOut, done]))
     }
 
     // MARK: - Player Death
@@ -689,12 +734,14 @@ class GameScene: SKScene {
 
     func restartCurrentLevel() {
         Task { @MainActor in
-            viewModel?.hearts = GameConstants.startingHearts(for: "normal")
+            viewModel?.hearts = GameConstants.startingHearts(for: difficultyMode)
+            viewModel?.score = 0
+            viewModel?.gold = 0
             viewModel?.isGameOver = false
             viewModel?.isVictory = false
         }
-        levels = LevelGenerator.generateLevels()
-        loadLevel(index: currentLevelIndex)
+        levels = LevelGenerator.generateLevels(profile: difficultyMode)
+        loadLevel(index: 0)
     }
 }
 

@@ -105,7 +105,7 @@ final class AppState: ObservableObject {
            let groups = try? JSONDecoder().decode([String].self, from: data) {
             self.activeGroups = groups
         } else {
-            self.activeGroups = []  // Will be populated when conjugation data loads
+            self.activeGroups = Array(ConjugationData.verbs.keys)
         }
 
         if let data = defaults.data(forKey: Keys.leaderboard),

@@ -36,6 +36,14 @@ struct GameContainerView: View {
                     .ignoresSafeArea()
                     .onAppear {
                         scene.bind(to: viewModel)
+                        scene.configure(
+                            heroId: appState.selectedHeroId,
+                            difficulty: appState.difficultyMode,
+                            activeTenses: Set(appState.activeTenses),
+                            activeGroups: Set(appState.activeGroups.isEmpty
+                                ? Array(ConjugationData.verbs.keys)
+                                : appState.activeGroups)
+                        )
                     }
 
                 // Layer 2: HUD + Controls overlay

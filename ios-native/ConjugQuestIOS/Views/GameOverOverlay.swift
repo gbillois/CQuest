@@ -37,6 +37,7 @@ struct GameOverOverlay: View {
                 // Buttons
                 if !viewModel.isVictory {
                     Button {
+                        appState.addGold(viewModel.gold)
                         viewModel.restartLevel()
                     } label: {
                         Text("Recommencer le niveau")
@@ -50,6 +51,8 @@ struct GameOverOverlay: View {
                 }
 
                 Button {
+                    // Persist earned gold
+                    appState.addGold(viewModel.gold)
                     viewModel.isGameOver = false
                     viewModel.isVictory = false
                     appState.currentScreen = .title
