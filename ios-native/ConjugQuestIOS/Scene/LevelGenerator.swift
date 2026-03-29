@@ -20,7 +20,9 @@ enum LevelGenerator {
         for i in 0..<count {
             let levelSeed = seed &+ UInt32(i) &* 101
             let biomeId = biomes[i % biomes.count]
-            let widthTiles = 120 + i * 14  // Grows per level
+            // Match JS: clamp(baseSize.width * 1.05 + i * 14, 120, 230)
+            let rawWidth = Int(Double(128) * 1.05) + i * 14
+            let widthTiles = max(120, min(rawWidth, 230))
             let level = generateLevel(
                 index: i,
                 seed: levelSeed,
@@ -215,6 +217,26 @@ enum LevelGenerator {
             }
         }
 
+        // --- Phase 5b: Bonus Blocks ---
+        var bonuses: [BonusBlock] = []
+        let bonusDensity = 8  // per 100 tiles
+        let bonusCount = max(3, widthTiles * bonusDensity / 100)
+        let rewardTypes = ["coin", "coin", "coin", "jewel", "jewel", "potion", "helmet", "flail"]
+        for i in 0..<bonusCount {
+            let progress = CGFloat(i + 1) / CGFloat(bonusCount + 1)
+            let col = startReserve + Int(progress * CGFloat(endReserve - startReserve))
+            let bonusRow = groundRow - rand.nextInt(min: 3, max: 5)
+            guard col >= 0, col < widthTiles, bonusRow >= 2, bonusRow < heightTiles else { continue }
+            let reward = rand.pick(from: rewardTypes) ?? "coin"
+            bonuses.append(BonusBlock(
+                x: CGFloat(col) * tileSize,
+                y: CGFloat(bonusRow) * tileSize,
+                w: tileSize,
+                h: tileSize,
+                rewardType: reward
+            ))
+        }
+
         // --- Phase 6: Start/End positions ---
         let startX = tileSize * 3
         let startY = groundSurfaceY - 120  // Player height above ground
@@ -236,6 +258,7 @@ enum LevelGenerator {
         level.platformRails = platformRails
         level.enemySpawns = enemySpawns
         level.animalSpawns = animalSpawns
+        level.bonuses = bonuses
         level.blockSequence = segments.map { $0.blockId }
         level.segments = segments
         level.startX = startX

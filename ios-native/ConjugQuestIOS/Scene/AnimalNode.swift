@@ -73,17 +73,21 @@ class AnimalNode: SKSpriteNode {
         hitboxWidth = config.hitboxW
         hitboxHeight = config.hitboxH
 
-        let drawW = config.hitboxW
-        let drawH = config.hitboxH
-        self.size = CGSize(width: drawW, height: drawH)
-
         idleEastTex = assets.texture(for: config.idleE)
         idleWestTex = assets.texture(for: config.idleW)
         walkEastFrames = config.walkE.compactMap { assets.texture(for: $0) }
         walkWestFrames = config.walkW.compactMap { assets.texture(for: $0) }
 
+        // Use actual texture size scaled by 1.5x for draw size
         if let tex = idleEastTex {
             self.texture = tex
+            let texSize = tex.size()
+            self.size = CGSize(
+                width: texSize.width * GameConstants.enemyScale,
+                height: texSize.height * GameConstants.enemyScale
+            )
+        } else {
+            self.size = CGSize(width: config.hitboxW, height: config.hitboxH)
         }
     }
 

@@ -74,6 +74,12 @@ class GameScene: SKScene {
     private var projectiles: [Projectile] = []
     private var fireCooldown: CGFloat = 0
 
+    // MARK: - Bonus Blocks
+    private var bonusBlockNodes: [(block: BonusBlock, node: SKSpriteNode)] = []
+
+    // MARK: - Status Message Throttle
+    private var lastStatusTime: CGFloat = 0
+
     // MARK: - Timing
     private var lastUpdateTime: TimeInterval = 0
     private var runTime: CGFloat = 0
@@ -172,6 +178,8 @@ class GameScene: SKScene {
         enemies.removeAll()
         animals.forEach { $0.removeFromParent() }
         animals.removeAll()
+        bonusBlockNodes.forEach { $0.node.removeFromParent() }
+        bonusBlockNodes.removeAll()
         duelEnemy = nil
         projectiles.forEach { $0.node.removeFromParent() }
         projectiles.removeAll()
@@ -192,6 +200,7 @@ class GameScene: SKScene {
         // Spawn entities
         spawnEnemies(level: level)
         spawnAnimals(level: level)
+        spawnBonusBlocks(level: level)
 
         // Spawn player
         spawnPlayer(level: level)
@@ -385,6 +394,93 @@ class GameScene: SKScene {
         }
     }
 
+    // MARK: - Spawn Bonus Blocks
+
+    private func spawnBonusBlocks(level: Level) {
+        for bonus in level.bonuses {
+            let node = SKSpriteNode(color: .orange.withAlphaComponent(0.8), size: CGSize(width: level.tileSize, height: level.tileSize))
+            node.anchorPoint = CGPoint(x: 0, y: 1)
+            node.position = worldToScene(x: bonus.x, y: bonus.y)
+            node.zPosition = 3
+
+            // Question mark label
+            let label = SKLabelNode(text: "?")
+            label.fontSize = 28
+            label.fontName = "Helvetica-Bold"
+            label.fontColor = .white
+            label.verticalAlignmentMode = .center
+            label.horizontalAlignmentMode = .center
+            label.position = CGPoint(x: level.tileSize / 2, y: -level.tileSize / 2)
+            node.addChild(label)
+
+            entityNode.addChild(node)
+            bonusBlockNodes.append((block: bonus, node: node))
+        }
+    }
+
+    // MARK: - Check Bonus Block Collisions
+
+    private func checkBonusBlocks() {
+        guard !player.isDead else { return }
+
+        let playerRect = player.hitboxRect
+
+        for i in bonusBlockNodes.indices {
+            guard !bonusBlockNodes[i].block.triggered else { continue }
+
+            let block = bonusBlockNodes[i].block
+            let blockRect = CGRect(x: block.x, y: block.y, width: block.w, height: block.h)
+
+            // Check head collision (player jumping into block from below)
+            guard PhysicsSystem.aabb(playerRect, blockRect) else { continue }
+            guard player.vy < 0 else { continue }  // Must be moving upward
+            let playerTop = player.worldY
+            let blockBottom = block.y + block.h
+            guard playerTop <= blockBottom + 4 else { continue }
+
+            bonusBlockNodes[i].block.triggered = true
+
+            // Bump animation
+            let bumpUp = SKAction.moveBy(x: 0, y: 4, duration: 0.08)
+            let bumpDown = SKAction.moveBy(x: 0, y: -4, duration: 0.08)
+            bonusBlockNodes[i].node.run(SKAction.sequence([bumpUp, bumpDown]))
+            bonusBlockNodes[i].node.alpha = 0.4
+
+            // Award reward
+            let reward = block.rewardType
+            var scoreGain = 0
+            var goldGain = 0
+            var heartGain = 0
+
+            switch reward {
+            case "royal-shield": scoreGain = 400; goldGain = 100
+            case "double-axe":   scoreGain = 200; goldGain = 50
+            case "flail":        scoreGain = 160; goldGain = 40
+            case "helmet":       scoreGain = 120; goldGain = 30
+            case "jewel":        scoreGain = 60;  goldGain = 12
+            case "potion":       scoreGain = 20;  heartGain = 1
+            case "coin":         scoreGain = 10;  goldGain = 4
+            default:             scoreGain = 5
+            }
+
+            let blockCenterX = block.x + block.w / 2
+            if goldGain > 0 {
+                showFloatingText("+\(goldGain) pièces", at: CGPoint(x: blockCenterX, y: block.y - 10), color: .yellow)
+            }
+            if scoreGain > 0 {
+                showFloatingText("+\(scoreGain)", at: CGPoint(x: blockCenterX, y: block.y - 30))
+            }
+
+            Task { @MainActor in
+                viewModel?.score += scoreGain
+                viewModel?.gold += goldGain
+                if heartGain > 0, let vm = viewModel {
+                    vm.hearts = min(vm.hearts + heartGain, vm.maxHearts)
+                }
+            }
+        }
+    }
+
     // MARK: - Update Loop
 
     override func update(_ currentTime: TimeInterval) {
@@ -408,6 +504,7 @@ class GameScene: SKScene {
         updateProjectiles(delta: delta)
         checkEnemyCollisions()
         checkAnimalBounce()
+        checkBonusBlocks()
         player.updateSprite(delta: delta)
         player.updateBlink(delta: delta)
         updatePlayerSpritePosition()
@@ -420,7 +517,15 @@ class GameScene: SKScene {
     // MARK: - Player Input
 
     private func updatePlayerInput(delta: CGFloat) {
-        guard let vm = viewModel, player.stunTimeLeft <= 0, !player.isDead else { return }
+        guard let vm = viewModel, !player.isDead else { return }
+
+        // During stun: apply stronger friction, skip input
+        if player.stunTimeLeft > 0 {
+            let stunFriction = pow(0.92, CGFloat(delta * 60))
+            player.vx *= stunFriction
+            if abs(player.vx) < 1 { player.vx = 0 }
+            return
+        }
 
         if vm.inputLeft {
             player.vx = -GameConstants.moveSpeed
@@ -430,7 +535,9 @@ class GameScene: SKScene {
             player.facing = "south-east"
         }
         if !vm.inputLeft && !vm.inputRight {
-            player.vx *= GameConstants.friction
+            // Frame-rate independent friction: pow(0.84, delta * 60)
+            let frictionFactor = pow(GameConstants.friction, CGFloat(delta * 60))
+            player.vx *= frictionFactor
             if abs(player.vx) < 1 { player.vx = 0 }
         }
 
@@ -836,10 +943,11 @@ class GameScene: SKScene {
         guard let duel = viewModel?.activeDuel, bossActive else { return }
 
         let correct = index == duel.correctIndex
-        bossTrialCount += 1
 
         if correct {
             bossCorrectStreak += 1
+        } else {
+            bossCorrectStreak = 0  // Reset streak on wrong answer
         }
 
         Task { @MainActor [weak self] in
@@ -848,14 +956,14 @@ class GameScene: SKScene {
 
             try? await Task.sleep(for: .seconds(0.6))
 
-            if self.bossTrialCount >= GameConstants.bossTrialsRequired {
-                // Boss fight over
-                if self.bossCorrectStreak >= 3 {
-                    self.bossDefeated()
-                } else {
-                    self.bossWins()
-                }
+            if self.bossCorrectStreak >= GameConstants.bossTrialsRequired {
+                // All 5 correct in a row — victory!
+                self.bossDefeated()
+            } else if !correct {
+                // Wrong answer — boss wins this round
+                self.bossWins()
             } else {
+                // Correct but not enough yet — next trial
                 self.presentBossTrial()
             }
         }
@@ -919,14 +1027,37 @@ class GameScene: SKScene {
         let playerRect = player.hitboxRect
         let goalRect = CGRect(x: level.endX, y: level.endY, width: level.endWidth, height: level.endHeight)
 
-        if PhysicsSystem.aabb(playerRect, goalRect) {
-            let nextIndex = currentLevelIndex + 1
-            if nextIndex < levels.count {
-                transitionToLevel(index: nextIndex)
-            } else {
-                // Last level complete — trigger boss fight
-                startBossFight()
+        guard PhysicsSystem.aabb(playerRect, goalRect) else { return }
+
+        // Castle unlock: must defeat >50% of enemies
+        let totalEnemies = level.enemySpawns.count
+        let defeatedCount = enemies.filter { !$0.isAlive }.count
+        let unlockRatio: CGFloat = totalEnemies > 0 ? CGFloat(defeatedCount) / CGFloat(totalEnemies) : 1.0
+
+        if unlockRatio <= 0.5 {
+            // Castle locked — show message (throttled to once per 0.9s)
+            if runTime - lastStatusTime >= 0.9 {
+                lastStatusTime = runTime
+                let pct = Int(unlockRatio * 100)
+                Task { @MainActor in
+                    viewModel?.statusMessage = "Château verrouillé ! Ennemis vaincus : \(pct)%"
+                }
             }
+            return
+        }
+
+        // Award castle bonus
+        Task { @MainActor in
+            viewModel?.score += 100
+            viewModel?.gold += 18
+        }
+
+        let nextIndex = currentLevelIndex + 1
+        if nextIndex < levels.count {
+            transitionToLevel(index: nextIndex)
+        } else {
+            // Last level complete — trigger boss fight
+            startBossFight()
         }
     }
 

@@ -78,17 +78,24 @@ class EnemyNode: SKSpriteNode {
         hitboxWidth = config.hitboxW
         hitboxHeight = config.hitboxH
 
-        let drawW = config.hitboxW * GameConstants.enemyScale
-        let drawH = config.hitboxH * GameConstants.enemyScale
-        self.size = CGSize(width: drawW, height: drawH)
-
         idleEastTex = assets.texture(for: config.idleE)
         idleWestTex = assets.texture(for: config.idleW)
         walkEastFrames = config.walkE.compactMap { assets.texture(for: $0) }
         walkWestFrames = config.walkW.compactMap { assets.texture(for: $0) }
 
+        // Use actual texture size scaled by ENEMY_SCALE for draw size
         if let tex = dir >= 0 ? idleEastTex : idleWestTex {
             self.texture = tex
+            let texSize = tex.size()
+            self.size = CGSize(
+                width: texSize.width * GameConstants.enemyScale,
+                height: texSize.height * GameConstants.enemyScale
+            )
+        } else {
+            self.size = CGSize(
+                width: config.hitboxW * GameConstants.enemyScale,
+                height: config.hitboxH * GameConstants.enemyScale
+            )
         }
     }
 
