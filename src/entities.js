@@ -834,7 +834,7 @@ export function collectBonuses() {
    Crumbling Platforms
    ═══════════════════════════════════════════════════════════ */
 
-export function updateCrumblingPlatforms(delta) {
+export function updateCrumblingPlatforms(delta, onTileCacheInvalidate) {
   const level = state.currentLevel;
   if (!level?.crumblingPlatforms?.length) return;
   const player = state.player;
@@ -862,6 +862,7 @@ export function updateCrumblingPlatforms(delta) {
         plat.triggered = true;
         plat.timer = plat.disappearDelay;
         plat.shakeTime = plat.disappearDelay; // Shake for entire delay.
+        onTileCacheInvalidate?.();
       }
       continue;
     }
@@ -879,6 +880,7 @@ export function updateCrumblingPlatforms(delta) {
         }
       }
       plat.removed = true;
+      onTileCacheInvalidate?.();
     }
   }
 }

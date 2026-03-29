@@ -26,6 +26,65 @@ const DESOLATION_MOUNTAIN_DARKEN_ALPHA = 0.42;
 let _cachedGradientKey = null;
 let _cachedGradient = null;
 
+/* ── Offscreen tile layer cache ── */
+const TILE_CACHE_PAD_TILES = 8;
+let _tileCacheCanvas = null;
+let _tileCacheCtx = null;
+let _tileCacheLevelId = -1;
+let _tileCacheZoom = -1;
+let _tileCacheStartCol = 0;
+let _tileCacheEndCol = 0;
+let _tileCacheStartRow = 0;
+let _tileCacheEndRow = 0;
+let _tileCacheTileStyleMode = null;
+let _tileCacheDirty = true;
+
+export function invalidateTileCache() {
+  _tileCacheDirty = true;
+}
+
+/* ── Fireball gradient cache ── */
+let _fireballGradCanvas = null;
+let _fireballGradCtx = null;
+let _goldenFireballGradCanvas = null;
+let _goldenFireballGradCtx = null;
+const FIREBALL_GRAD_SIZE = 64;
+
+function _getFireballGradCanvas(golden) {
+  if (golden && _goldenFireballGradCanvas) return _goldenFireballGradCanvas;
+  if (!golden && _fireballGradCanvas) return _fireballGradCanvas;
+
+  const size = FIREBALL_GRAD_SIZE;
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const g = c.getContext("2d");
+  const half = size / 2;
+  const grad = g.createRadialGradient(
+    half - half * 0.3, half - half * 0.3, half * 0.2,
+    half, half, half,
+  );
+  if (golden) {
+    grad.addColorStop(0, "#fff8bf");
+    grad.addColorStop(0.55, "#ffd34d");
+    grad.addColorStop(1, "#d98a00");
+  } else {
+    grad.addColorStop(0, "#fff7c2");
+    grad.addColorStop(0.55, "#ffb347");
+    grad.addColorStop(1, "#ff6a2f");
+  }
+  g.fillStyle = grad;
+  g.beginPath();
+  g.arc(half, half, half, 0, Math.PI * 2);
+  g.fill();
+
+  if (golden) { _goldenFireballGradCanvas = c; } else { _fireballGradCanvas = c; }
+  return c;
+}
+
+/* ── Parallax flipped image cache ── */
+let _parallaxFlippedCache = new WeakMap();
+
 /* ── late-bound hooks (set by main module) ── */
 let _syncWorldZoomUi = null;
 let _saveWorldZoom = null;
@@ -316,6 +375,19 @@ export function drawParallaxBackground(level) {
   drawParallaxLayer(image, 0.3, 1, 1, 0);
 }
 
+function _getFlippedImage(image) {
+  if (_parallaxFlippedCache.has(image)) return _parallaxFlippedCache.get(image);
+  const c = document.createElement("canvas");
+  c.width = image.width;
+  c.height = image.height;
+  const g = c.getContext("2d");
+  g.translate(image.width, 0);
+  g.scale(-1, 1);
+  g.drawImage(image, 0, 0);
+  _parallaxFlippedCache.set(image, c);
+  return c;
+}
+
 export function drawParallaxLayer(image, speed, alpha, scale, yOffset) {
   const baseScale = Math.max(
     VIRTUAL_WIDTH / Math.max(1, image.width),
@@ -330,19 +402,12 @@ export function drawParallaxLayer(image, speed, alpha, scale, yOffset) {
   const loopStartX = firstX - drawW;
   const startIndex = Math.floor(loopStartX / drawW);
 
+  const flipped = _getFlippedImage(image);
   ctx.save();
   ctx.globalAlpha = alpha;
   for (let x = loopStartX, tileIndex = 0; x < VIRTUAL_WIDTH + drawW; x += drawW, tileIndex += 1) {
     const mirrored = Math.abs(startIndex + tileIndex) % 2 === 1;
-    if (mirrored) {
-      ctx.save();
-      ctx.translate(Math.round(x + drawW), y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(image, 0, 0, drawW, drawH);
-      ctx.restore();
-    } else {
-      ctx.drawImage(image, Math.round(x), y, drawW, drawH);
-    }
+    ctx.drawImage(mirrored ? flipped : image, Math.round(mirrored ? x : x), y, drawW, drawH);
   }
   ctx.restore();
 }
@@ -376,7 +441,7 @@ function getTileSideTransitionWidth(tileSize) {
   return clamp(Math.round(tileSize * TILE_SIDE_TRANSITION_RATIO), 1, TILE_SIDE_TRANSITION_MAX_PX);
 }
 
-function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, drawH = tileSize) {
+function _drawTileSideTransitionTo(targetCtx, leftTile, rightTile, seamX, drawY, tileSize, drawH = tileSize) {
   if (!canBlendTileSides(leftTile, rightTile)) {
     return;
   }
@@ -394,10 +459,10 @@ function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, dra
   const leftSampleW = Math.max(1, Math.min(leftSourceW, blendWidth));
   const rightSampleW = Math.max(1, Math.min(rightSourceW, blendWidth));
 
-  ctx.save();
-  ctx.globalAlpha = TILE_SIDE_TRANSITION_ALPHA;
+  targetCtx.save();
+  targetCtx.globalAlpha = TILE_SIDE_TRANSITION_ALPHA;
   // Cross-fade only around the shared seam; outer tile borders remain untouched.
-  ctx.drawImage(
+  targetCtx.drawImage(
     leftImage,
     Math.max(0, leftSourceW - leftSampleW),
     0,
@@ -408,7 +473,7 @@ function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, dra
     blendWidth,
     drawH,
   );
-  ctx.drawImage(
+  targetCtx.drawImage(
     rightImage,
     0,
     0,
@@ -419,16 +484,18 @@ function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, dra
     blendWidth,
     drawH,
   );
-  ctx.restore();
+  targetCtx.restore();
+}
+
+function drawTileSideTransition(leftTile, rightTile, seamX, drawY, tileSize, drawH = tileSize) {
+  _drawTileSideTransitionTo(ctx, leftTile, rightTile, seamX, drawY, tileSize, drawH);
 }
 
 export function drawTiles(level) {
   const tileSize = state.tileSize;
   const zoom = getWorldZoom();
-  const startX = Math.max(0, Math.floor(state.cameraX / tileSize) - 1);
-  const endX = Math.min(level.widthTiles - 1, Math.floor((state.cameraX + VIRTUAL_WIDTH / zoom) / tileSize) + 2);
-  const groundTopY = level.groundY;
-  const groundBottomY = Math.min(level.heightTiles - 1, groundTopY + GROUND_THICKNESS_TILES - 1);
+  const viewStartCol = Math.max(0, Math.floor(state.cameraX / tileSize) - 1);
+  const viewEndCol = Math.min(level.widthTiles - 1, Math.floor((state.cameraX + VIRTUAL_WIDTH / zoom) / tileSize) + 2);
 
   // Vertical culling: compute visible Y range in world coordinates.
   const offsetY = getWorldRenderOffsetY(level);
@@ -437,64 +504,102 @@ export function drawTiles(level) {
   const startY = Math.max(0, Math.floor(visibleWorldTop / tileSize) - 1);
   const endY = Math.min(level.heightTiles - 1, Math.floor(visibleWorldBottom / tileSize) + 1);
 
-  // Build skip-set for triggered crumbling platform tiles (drawn separately with shake).
+  // Check if tile cache needs rebuilding.
+  const needsRebuild = _tileCacheDirty
+    || _tileCacheLevelId !== level.id
+    || _tileCacheZoom !== zoom
+    || _tileCacheTileStyleMode !== state.tileStyleMode
+    || viewStartCol < _tileCacheStartCol
+    || viewEndCol > _tileCacheEndCol
+    || startY < _tileCacheStartRow
+    || endY > _tileCacheEndRow;
+
+  if (needsRebuild) {
+    _rebuildTileCache(level, tileSize, zoom, viewStartCol, viewEndCol, startY, endY);
+  }
+
+  // Blit cached tile layer to main canvas (1 draw call instead of 100+).
+  if (_tileCacheCanvas) {
+    const srcX = (_tileCacheStartCol * tileSize);
+    const srcY = (_tileCacheStartRow * tileSize);
+    ctx.drawImage(_tileCacheCanvas, srcX, srcY);
+  }
+
+}
+
+function _rebuildTileCache(level, tileSize, zoom, viewStartCol, viewEndCol, startY, endY) {
+  // Expand cache region beyond viewport for scroll headroom.
+  const cacheStartCol = Math.max(0, viewStartCol - TILE_CACHE_PAD_TILES);
+  const cacheEndCol = Math.min(level.widthTiles - 1, viewEndCol + TILE_CACHE_PAD_TILES);
+  const cacheStartRow = Math.max(0, startY - 2);
+  const cacheEndRow = Math.min(level.heightTiles - 1, endY + 2);
+
+  const cacheW = (cacheEndCol - cacheStartCol + 1) * tileSize + tileSize;
+  const cacheH = (cacheEndRow - cacheStartRow + 1) * tileSize + tileSize;
+
+  // Create or resize offscreen canvas.
+  if (!_tileCacheCanvas || _tileCacheCanvas.width !== cacheW || _tileCacheCanvas.height !== cacheH) {
+    _tileCacheCanvas = document.createElement("canvas");
+    _tileCacheCanvas.width = cacheW;
+    _tileCacheCanvas.height = cacheH;
+    _tileCacheCtx = _tileCacheCanvas.getContext("2d");
+    _tileCacheCtx.imageSmoothingEnabled = false;
+  }
+
+  _tileCacheCtx.clearRect(0, 0, cacheW, cacheH);
+
+  // Offset so we draw in world coordinates.
+  const ox = cacheStartCol * tileSize;
+  const oy = cacheStartRow * tileSize;
+  _tileCacheCtx.save();
+  _tileCacheCtx.translate(-ox, -oy);
+
+  const groundTopY = level.groundY;
+  const groundBottomY = Math.min(level.heightTiles - 1, groundTopY + GROUND_THICKNESS_TILES - 1);
+
+  // Build skip-set for triggered crumbling platform tiles.
   const crumblingSkip = _buildCrumblingSkipSet(level);
 
-  for (let y = startY; y <= endY; y += 1) {
-    if (y >= groundTopY && y <= groundBottomY) {
-      continue;
-    }
+  // Non-ground tiles.
+  for (let y = cacheStartRow; y <= cacheEndRow; y += 1) {
+    if (y >= groundTopY && y <= groundBottomY) continue;
 
-    for (let x = startX; x <= endX; x += 1) {
+    for (let x = cacheStartCol; x <= cacheEndCol; x += 1) {
       const tile = level.tileGrid[y][x];
-      if (!tile) {
-        continue;
-      }
-      // Skip tiles drawn by drawCrumblingPlatforms with shake offset.
-      if (crumblingSkip && crumblingSkip.has(y * level.widthTiles + x)) {
-        continue;
-      }
+      if (!tile) continue;
+      if (crumblingSkip && crumblingSkip.has(y * level.widthTiles + x)) continue;
 
       const image = imageCache.get(tile.path);
       const drawX = x * tileSize;
       const drawY = y * tileSize;
 
       if (isImageRenderable(image)) {
-        ctx.drawImage(image, drawX, drawY, tileSize, tileSize);
+        _tileCacheCtx.drawImage(image, drawX, drawY, tileSize, tileSize);
       } else {
-        ctx.fillStyle = "#5a6679";
-        ctx.fillRect(drawX, drawY, tileSize, tileSize);
+        _tileCacheCtx.fillStyle = "#5a6679";
+        _tileCacheCtx.fillRect(drawX, drawY, tileSize, tileSize);
       }
     }
 
-    for (let x = startX; x < endX; x += 1) {
+    // Tile seam transitions.
+    for (let x = cacheStartCol; x < cacheEndCol; x += 1) {
       const leftTile = level.tileGrid[y]?.[x];
       const rightTile = level.tileGrid[y]?.[x + 1];
-      if (!leftTile || !rightTile) {
-        continue;
-      }
-      if (
-        crumblingSkip &&
-        (crumblingSkip.has(y * level.widthTiles + x) || crumblingSkip.has(y * level.widthTiles + (x + 1)))
-      ) {
-        continue;
-      }
-      drawTileSideTransition(leftTile, rightTile, (x + 1) * tileSize, y * tileSize, tileSize);
+      if (!leftTile || !rightTile) continue;
+      if (crumblingSkip && (crumblingSkip.has(y * level.widthTiles + x) || crumblingSkip.has(y * level.widthTiles + (x + 1)))) continue;
+      _drawTileSideTransitionTo(_tileCacheCtx, leftTile, rightTile, (x + 1) * tileSize, y * tileSize, tileSize);
     }
   }
 
-  // Ground is rendered in dedicated passes with overlap so layers interlock visually.
-  // Draw from bottom to top to keep the highest row in front.
+  // Ground tiles with overlap (bottom to top for layering).
   const verticalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_OVERLAP_PX;
   const horizontalOverlap = state.tileStyleMode === "new" ? 0 : GROUND_TILE_HORIZONTAL_OVERLAP_PX;
   const isDesolation = level.biomeId === "desolation";
   for (let y = groundBottomY; y >= groundTopY; y -= 1) {
     const overlapOffset = (y - groundTopY) * verticalOverlap;
-    for (let x = startX; x <= endX; x += 1) {
+    for (let x = cacheStartCol; x <= cacheEndCol; x += 1) {
       const tile = level.tileGrid[y]?.[x];
-      if (!tile) {
-        continue;
-      }
+      if (!tile) continue;
       const image = imageCache.get(tile.path);
       const leftSolid = Boolean(level.tileGrid[y]?.[x - 1]);
       const rightSolid = Boolean(level.tileGrid[y]?.[x + 1]);
@@ -506,17 +611,29 @@ export function drawTiles(level) {
       const drawW = tileSize + leftExtra + rightExtra;
 
       if (isImageRenderable(image)) {
-        ctx.drawImage(image, drawX, drawY, drawW, tileSize);
+        _tileCacheCtx.drawImage(image, drawX, drawY, drawW, tileSize);
         if (isDesolation) {
-          ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_GROUND_DARKEN_ALPHA})`;
-          ctx.fillRect(drawX, drawY, drawW, tileSize);
+          _tileCacheCtx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_GROUND_DARKEN_ALPHA})`;
+          _tileCacheCtx.fillRect(drawX, drawY, drawW, tileSize);
         }
       } else {
-        ctx.fillStyle = "#5a6679";
-        ctx.fillRect(drawX, drawY, drawW, tileSize);
+        _tileCacheCtx.fillStyle = "#5a6679";
+        _tileCacheCtx.fillRect(drawX, drawY, drawW, tileSize);
       }
     }
   }
+
+  _tileCacheCtx.restore();
+
+  // Update cache metadata.
+  _tileCacheStartCol = cacheStartCol;
+  _tileCacheEndCol = cacheEndCol;
+  _tileCacheStartRow = cacheStartRow;
+  _tileCacheEndRow = cacheEndRow;
+  _tileCacheLevelId = level.id;
+  _tileCacheZoom = zoom;
+  _tileCacheTileStyleMode = state.tileStyleMode;
+  _tileCacheDirty = false;
 }
 
 export function drawStructures(level) {
@@ -546,7 +663,11 @@ export function drawStructures(level) {
 }
 
 export function drawDecorations(level) {
+  const zoom = getWorldZoom();
+  const camLeft = state.cameraX - 64;
+  const camRight = state.cameraX + VIRTUAL_WIDTH / zoom + 64;
   for (const deco of level.decorations) {
+    if (deco.x + deco.w < camLeft || deco.x > camRight) continue;
     const image = imageCache.get(deco.path);
     if (isImageRenderable(image)) {
       ctx.drawImage(image, deco.x, deco.y - deco.h, deco.w, deco.h);
@@ -569,6 +690,18 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
     if (x + tileSize < camLeft || x > camRight) {
       continue;
     }
+
+    // Use cached drawY if available (bounds/surface never change per level).
+    if (decor._cachedDrawY != null && decor._cachedSkip !== undefined) {
+      if (decor._cachedSkip) continue;
+      ctx.drawImage(imageCache.get(decor.path), x, decor._cachedDrawY, tileSize, tileSize);
+      if (isDesolation) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
+        ctx.fillRect(x, decor._cachedDrawY, tileSize, tileSize);
+      }
+      continue;
+    }
+
     const image = imageCache.get(decor.path);
     if (!isImageRenderable(image)) {
       if (decor.path) {
@@ -576,14 +709,12 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
       }
       continue;
     }
-    // Skip decoration sprites whose visible content fills less than half the
-    // tile height (e.g. mountain detail overlays that are only ~9px tall on a
-    // 32px canvas produce tiny, odd-looking decorations).
     const bounds = getSpriteOpaqueBounds(image);
     if (bounds) {
       const sourceH = image.naturalHeight || image.height || tileSize;
       const contentH = bounds.bottom - bounds.top + 1;
       if (!decor.allowShortSprite && contentH < sourceH * 0.5) {
+        decor._cachedSkip = true;
         continue;
       }
     }
@@ -591,26 +722,23 @@ export function drawGroundDecorations(level, { foreground = false } = {}) {
     const groundTile = level.tileGrid[groundTileY]?.[decor.xTile] || null;
     const groundRect = groundTile ? getSolidTileCollisionRect(groundTile, decor.xTile, groundTileY) : null;
     const surfaceY = groundRect ? groundRect.y : groundTileY * tileSize;
+    let drawY;
     if (bounds) {
       const sourceH = image.naturalHeight || image.height || tileSize;
       const scaleY = tileSize / sourceH;
       const bottomPad = Math.max(0, sourceH - 1 - bounds.bottom) * scaleY;
-      // Anchor visible pixels to the actual ground surface (including top inset of ground tile).
-      const drawY = Math.round(surfaceY - tileSize + bottomPad);
-      ctx.drawImage(image, x, drawY, tileSize, tileSize);
-      if (isDesolation) {
-        ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
-        ctx.fillRect(x, drawY, tileSize, tileSize);
-      }
+      drawY = Math.round(surfaceY - tileSize + bottomPad);
     } else {
-      // file:// fallback: pixel reads may be blocked, so apply a conservative bottom padding.
       const fallbackBottomPad = Math.round(tileSize * GROUND_DECOR_FALLBACK_BOTTOM_PAD_RATIO);
-      const drawY = Math.round(surfaceY - tileSize + fallbackBottomPad);
-      ctx.drawImage(image, x, drawY, tileSize, tileSize);
-      if (isDesolation) {
-        ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
-        ctx.fillRect(x, drawY, tileSize, tileSize);
-      }
+      drawY = Math.round(surfaceY - tileSize + fallbackBottomPad);
+    }
+    // Cache computed drawY for future frames.
+    decor._cachedDrawY = drawY;
+    decor._cachedSkip = false;
+    ctx.drawImage(image, x, drawY, tileSize, tileSize);
+    if (isDesolation) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${DESOLATION_MOUNTAIN_DARKEN_ALPHA})`;
+      ctx.fillRect(x, drawY, tileSize, tileSize);
     }
   }
 }
@@ -886,27 +1014,12 @@ export function drawFireballs(level) {
       continue;
     }
 
-    const gradient = ctx.createRadialGradient(
-      fireball.x - fireball.radius * 0.3,
-      fireball.y - fireball.radius * 0.3,
-      fireball.radius * 0.2,
-      fireball.x,
-      fireball.y,
-      fireball.radius,
-    );
-    if (fireball.kind === "golden-fireball") {
-      gradient.addColorStop(0, "#fff8bf");
-      gradient.addColorStop(0.55, "#ffd34d");
-      gradient.addColorStop(1, "#d98a00");
-    } else {
-      gradient.addColorStop(0, "#fff7c2");
-      gradient.addColorStop(0.55, "#ffb347");
-      gradient.addColorStop(1, "#ff6a2f");
-    }
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);
-    ctx.fill();
+    // Use pre-rendered fireball gradient canvas (avoids createRadialGradient per frame).
+    const isGolden = fireball.kind === "golden-fireball";
+    const cached = _getFireballGradCanvas(isGolden);
+    const r = fireball.radius;
+    const size = r * 2;
+    ctx.drawImage(cached, fireball.x - r, fireball.y - r, size, size);
   }
 }
 

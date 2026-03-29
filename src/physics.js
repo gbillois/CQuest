@@ -69,13 +69,15 @@ export function resolveVerticalCollisions(entity, level) {
   }
 }
 
+const _nearbyRectsPool = [];
 export function getNearbySolidRects(entity, level) {
   const minX = Math.max(0, Math.floor(entity.x / state.tileSize) - 1);
   const maxX = Math.min(level.widthTiles - 1, Math.floor((entity.x + entity.w) / state.tileSize) + 1);
   const minY = Math.max(0, Math.floor(entity.y / state.tileSize) - 1);
   const maxY = Math.min(level.heightTiles - 1, Math.floor((entity.y + entity.h) / state.tileSize) + 1);
 
-  const rects = [];
+  const rects = _nearbyRectsPool;
+  rects.length = 0;
   for (let y = minY; y <= maxY; y += 1) {
     for (let x = minX; x <= maxX; x += 1) {
       const tile = level.tileGrid[y][x];
