@@ -132,7 +132,14 @@ class GameScene: SKScene {
         self.difficultyMode = difficulty
         self.activeTenses = activeTenses
         self.activeGroups = activeGroups
+
+        // If didMove(to:) already ran, start the game now
+        if sceneReady && levels.isEmpty {
+            startGame()
+        }
     }
+
+    private var sceneReady = false
 
     override func didMove(to view: SKView) {
         backgroundColor = .black
@@ -160,7 +167,18 @@ class GameScene: SKScene {
         fadeNode.alpha = 0
         cameraNode.addChild(fadeNode)
 
-        // Set starting hearts based on difficulty
+        sceneReady = true
+
+        // If configure() was already called before didMove, start the game now
+        if viewModel != nil {
+            startGame()
+        }
+    }
+
+    /// Called after both didMove(to:) and bind/configure are complete.
+    private func startGame() {
+        guard sceneReady, viewModel != nil else { return }
+
         Task { @MainActor in
             viewModel?.hearts = GameConstants.startingHearts(for: difficultyMode)
         }
@@ -750,7 +768,7 @@ class GameScene: SKScene {
         let delta = min(CGFloat(currentTime - lastUpdateTime), GameConstants.maxDeltaTime)
         lastUpdateTime = currentTime
 
-        guard !isPaused, currentLevel != nil else { return }
+        guard !isPaused, currentLevel != nil, viewModel != nil else { return }
 
         // Death sequence: animate falling body, skip normal gameplay
         if deathSequenceActive {
@@ -1440,7 +1458,9 @@ class GameScene: SKScene {
                 let goldReward = 50 + Int.random(in: 0...100)
                 self.showFloatingText("+\(goldReward) pièces!", at: CGPoint(x: self.player.worldX, y: self.player.worldY - 20), color: .yellow)
                 self.viewModel?.gold += goldReward
-                self.viewModel?.score += self.viewModel!.score * 2
+                if let currentScore = self.viewModel?.score {
+                    self.viewModel?.score = currentScore * 3
+                }
                 self.viewModel?.statusMessage = "Coffre ouvert ! +\(goldReward) pièces"
             } else if !correct {
                 // Failed — exit tower
