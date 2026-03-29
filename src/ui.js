@@ -34,6 +34,7 @@ const _isDevMode = typeof window !== "undefined" &&
 /* ── late-binding for cross-module calls ── */
 
 let _generateLevelsFromConfig = null;
+let _generateRemainingLevels = null;
 let _loadLevel = null;
 let _startBossMode = null;
 let _getBossPrepLevelIndex = null;
@@ -44,11 +45,12 @@ let _syncWorldZoomUi_internal = null;
 let _preloadLevelAssetImages = null;
 
 export function setUiHooks({
-  generateLevelsFromConfig, loadLevel, startBossMode, getBossPrepLevelIndex,
+  generateLevelsFromConfig, generateRemainingLevels, loadLevel, startBossMode, getBossPrepLevelIndex,
   resetBossState, castHeroProjectile, setWorldZoom, syncWorldZoomUi,
   preloadLevelAssetImages,
 }) {
   _generateLevelsFromConfig = generateLevelsFromConfig;
+  _generateRemainingLevels = generateRemainingLevels;
   _loadLevel = loadLevel;
   _startBossMode = startBossMode;
   _getBossPrepLevelIndex = getBossPrepLevelIndex;
@@ -1129,6 +1131,8 @@ export function startGameFromMenu() {
   ensureSelectedHeroIsOwned();
   state.levelSeedBase = createRunSeed();
   _generateLevelsFromConfig(state.config);
+  // Ensure all levels exist (fills in any that were deferred during init).
+  _generateRemainingLevels?.(state.config);
   ui.titleScreen?.classList.add("hidden");
   ui.gameOverPanel?.classList.add("hidden");
   ui.pauseModal?.classList.add("hidden");

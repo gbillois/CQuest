@@ -52,6 +52,40 @@ export function generateLevelsFromConfig(config) {
   const levels = [];
   const baseSeed = state.levelSeedBase || createRunSeed();
   state.levelSeedBase = baseSeed;
+
+  for (let i = 0; i < GAME.levelCount; i += 1) {
+    levels.push(_generateLevelByIndex(config, baseSeed, i));
+  }
+
+  state.levels = levels;
+}
+
+/**
+ * Generate only the first level (index 0) and store it.
+ * Remaining levels are generated lazily/deferred via generateRemainingLevels().
+ */
+export function generateFirstLevel(config) {
+  const baseSeed = state.levelSeedBase || createRunSeed();
+  state.levelSeedBase = baseSeed;
+  state.levels = [_generateLevelByIndex(config, baseSeed, 0)];
+}
+
+/**
+ * Fill in any missing levels (indices 1..levelCount-1).
+ * Safe to call multiple times — skips already-generated slots.
+ */
+export function generateRemainingLevels(config) {
+  const baseSeed = state.levelSeedBase || createRunSeed();
+  state.levelSeedBase = baseSeed;
+
+  for (let i = 0; i < GAME.levelCount; i += 1) {
+    if (!state.levels[i]) {
+      state.levels[i] = _generateLevelByIndex(config, baseSeed, i);
+    }
+  }
+}
+
+function _generateLevelByIndex(config, baseSeed, i) {
   const baseSize = config.grid?.default_level_size_tiles || { width: 128, height: 36 };
   const weightedBiomes = buildWeightedBiomeList(config.generation?.biome_selection?.weights || {});
   const bonusDensity =
@@ -59,32 +93,25 @@ export function generateLevelsFromConfig(config) {
   const decoDensity =
     config.generation?.pipeline?.find((step) => step.step === "decoration_pass")?.params?.target_density_per_100_tiles || 12;
 
-  for (let i = 0; i < GAME.levelCount; i += 1) {
-    const seed = baseSeed + i * 101;
-    const rand = mulberry32(seed);
-    const fixedBiome = FIXED_LEVEL_BIOME_ORDER[i];
-    const biomeId = state.biomes[fixedBiome]
-      ? fixedBiome
-      : weightedPick(weightedBiomes, rand) || "forest";
+  const seed = baseSeed + i * 101;
+  const rand = mulberry32(seed);
+  const fixedBiome = FIXED_LEVEL_BIOME_ORDER[i];
+  const biomeId = state.biomes[fixedBiome]
+    ? fixedBiome
+    : weightedPick(weightedBiomes, rand) || "forest";
 
-    // Wider height range to support vertical shapes.
-    const widthTiles = clamp(Math.round(baseSize.width * 1.05) + i * 14, 120, 230);
-    const heightTiles = clamp(Math.round(baseSize.height * 0.85), 28, 42);
+  const widthTiles = clamp(Math.round(baseSize.width * 1.05) + i * 14, 120, 230);
+  const heightTiles = clamp(Math.round(baseSize.height * 0.85), 28, 42);
 
-    levels.push(
-      generateSingleLevel({
-        index: i,
-        seed,
-        biomeId,
-        widthTiles,
-        heightTiles,
-        bonusDensity,
-        decoDensity,
-      }),
-    );
-  }
-
-  state.levels = levels;
+  return generateSingleLevel({
+    index: i,
+    seed,
+    biomeId,
+    widthTiles,
+    heightTiles,
+    bonusDensity,
+    decoDensity,
+  });
 }
 
 export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTiles, bonusDensity, decoDensity }) {
