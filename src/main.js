@@ -226,6 +226,13 @@ async function init() {
   // Phase 3: Generate only level 0, show title screen ASAP.
   generateFirstLevel(config);
 
+  // Kick off level-0 background load immediately (non-blocking).
+  // This avoids waiting for entity loading in Phase 4.
+  const firstBgPathEarly = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biomeId];
+  if (firstBgPathEarly) {
+    loadImage(firstBgPathEarly).catch(() => null);
+  }
+
   populateSettingsPanel();
   populatePedagogyPanel();
   renderErrorList();
@@ -246,7 +253,7 @@ async function init() {
     logInfo("init", `Background-loaded ${state.enemies.length} enemies, ${state.animals.length} animals`);
     generateRemainingLevels(config);
     logInfo("init", `Generated remaining levels (${state.levels.length} total)`);
-    const firstBgPath = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biome];
+    const firstBgPath = BIOME_PARALLAX_BACKGROUNDS[state.levels[0]?.biomeId];
     await Promise.all([
       preloadLevelAssetImages(state.levels[0]),
       preloadSelectedHeroSprites(),
