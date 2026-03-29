@@ -20,7 +20,7 @@ import {
   tryEnterTower, collideWithEnemies, checkAnimalBounce, checkGoal, damagePlayer, respawnPlayer,
   castHeroProjectile, updateCrumblingPlatforms, updateMovingPlatforms, updateConjugationGates,
 } from "./entities.js";
-import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, updateFloatingRewards, toggleDebugOverlay } from "./renderer.js";
+import { render, updateCamera, setRendererHooks, setWorldZoom, syncCameraToCurrentZoom, getWorldZoom, updateParticles, updateFloatingRewards, toggleDebugOverlay, invalidateTileCache } from "./renderer.js";
 import {
   populateSettingsPanel, populatePedagogyPanel, renderErrorList,
   bindControls, applyMobileVisualDebugOffsets, loadLevel, showTitleScreen,
@@ -329,7 +329,7 @@ function update(delta) {
   updateFireballs(delta);
   updateBonusBlocks(delta);
   updateEnemyDrops(delta);
-  updateCrumblingPlatforms(delta);
+  updateCrumblingPlatforms(delta, invalidateTileCache);
   updateMovingPlatforms(delta);
   updateConjugationGates();
   updateCamera(delta);
