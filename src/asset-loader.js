@@ -270,7 +270,8 @@ export async function buildHeroFromMetadata(dir, metadata) {
     },
   };
 
-  if (!(await tryLoadImage(hero.sprite.idleSE)) || !(await tryLoadImage(hero.sprite.idleSW))) {
+  const [seOk, swOk] = await Promise.all([tryLoadImage(hero.sprite.idleSE), tryLoadImage(hero.sprite.idleSW)]);
+  if (!seOk || !swOk) {
     return null;
   }
 
@@ -280,26 +281,29 @@ export async function buildHeroFromMetadata(dir, metadata) {
 export async function buildHeroFromConvention(dir) {
   const idleSE = `game_assets/heroes/${dir}/rotations/south-east.png`;
   const idleSW = `game_assets/heroes/${dir}/rotations/south-west.png`;
-  if (!(await tryLoadImage(idleSE)) || !(await tryLoadImage(idleSW))) {
+  const [seOk, swOk] = await Promise.all([tryLoadImage(idleSE), tryLoadImage(idleSW)]);
+  if (!seOk || !swOk) {
     return null;
   }
 
-  const runSE = await collectFramePathsFromPrefixes([
-    `game_assets/heroes/${dir}/animations/running-6-frames/south-east/frame_`,
-    `game_assets/heroes/${dir}/animations/running-4-frames/south-east/frame_`,
-  ], 6);
-  const runSW = await collectFramePathsFromPrefixes([
-    `game_assets/heroes/${dir}/animations/running-6-frames/south-west/frame_`,
-    `game_assets/heroes/${dir}/animations/running-4-frames/south-west/frame_`,
-  ], 6);
-  const jumpSE = await collectFramePathsFromPrefixes([
-    `game_assets/heroes/${dir}/animations/jumping-2/south-east/frame_`,
-    `game_assets/heroes/${dir}/animations/jumping-1/south-east/frame_`,
-  ], 9);
-  const jumpSW = await collectFramePathsFromPrefixes([
-    `game_assets/heroes/${dir}/animations/jumping-2/south-west/frame_`,
-    `game_assets/heroes/${dir}/animations/jumping-1/south-west/frame_`,
-  ], 9);
+  const [runSE, runSW, jumpSE, jumpSW] = await Promise.all([
+    collectFramePathsFromPrefixes([
+      `game_assets/heroes/${dir}/animations/running-6-frames/south-east/frame_`,
+      `game_assets/heroes/${dir}/animations/running-4-frames/south-east/frame_`,
+    ], 6),
+    collectFramePathsFromPrefixes([
+      `game_assets/heroes/${dir}/animations/running-6-frames/south-west/frame_`,
+      `game_assets/heroes/${dir}/animations/running-4-frames/south-west/frame_`,
+    ], 6),
+    collectFramePathsFromPrefixes([
+      `game_assets/heroes/${dir}/animations/jumping-2/south-east/frame_`,
+      `game_assets/heroes/${dir}/animations/jumping-1/south-east/frame_`,
+    ], 9),
+    collectFramePathsFromPrefixes([
+      `game_assets/heroes/${dir}/animations/jumping-2/south-west/frame_`,
+      `game_assets/heroes/${dir}/animations/jumping-1/south-west/frame_`,
+    ], 9),
+  ]);
   const heroId = normalizeHeroId(dir);
   const override = getHeroRosterOverride(heroId);
 
@@ -333,27 +337,29 @@ export async function buildEnemyFromMetadata(dir, metadata) {
   let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
   let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
 
-  if (!walkE.length) {
-    walkE = await collectFramePathsFromPrefixes(
-      [
-        `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
-        `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
-        `game_assets/enemies/${dir}/animations/walking/east/frame_`,
-        `game_assets/enemies/${dir}/walk/east/frame_`,
-      ],
-      6,
-    );
-  }
-  if (!walkW.length) {
-    walkW = await collectFramePathsFromPrefixes(
-      [
-        `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
-        `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
-        `game_assets/enemies/${dir}/animations/walking/west/frame_`,
-        `game_assets/enemies/${dir}/walk/west/frame_`,
-      ],
-      6,
-    );
+  if (!walkE.length || !walkW.length) {
+    const [fallbackE, fallbackW] = await Promise.all([
+      !walkE.length ? collectFramePathsFromPrefixes(
+        [
+          `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
+          `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
+          `game_assets/enemies/${dir}/animations/walking/east/frame_`,
+          `game_assets/enemies/${dir}/walk/east/frame_`,
+        ],
+        6,
+      ) : Promise.resolve(walkE),
+      !walkW.length ? collectFramePathsFromPrefixes(
+        [
+          `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
+          `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
+          `game_assets/enemies/${dir}/animations/walking/west/frame_`,
+          `game_assets/enemies/${dir}/walk/west/frame_`,
+        ],
+        6,
+      ) : Promise.resolve(walkW),
+    ]);
+    walkE = fallbackE;
+    walkW = fallbackW;
   }
 
   const enemy = {
@@ -372,8 +378,7 @@ export async function buildEnemyFromMetadata(dir, metadata) {
     },
   };
 
-  const eastOk = await tryLoadImage(enemy.sprite.idleE);
-  const westOk = await tryLoadImage(enemy.sprite.idleW);
+  const [eastOk, westOk] = await Promise.all([tryLoadImage(enemy.sprite.idleE), tryLoadImage(enemy.sprite.idleW)]);
   if (!eastOk && !westOk) {
     return null;
   }
@@ -392,35 +397,33 @@ export async function buildEnemyFromConvention(dir) {
   const idleW = `game_assets/enemies/${dir}/rotations/west.png`;
   const idleS = `game_assets/enemies/${dir}/rotations/south.png`;
 
-  let chosenIdleE = idleE;
-  let chosenIdleW = idleW;
-
-  if (!(await tryLoadImage(chosenIdleE))) {
-    chosenIdleE = (await tryLoadImage(idleS)) ? idleS : idleW;
-  }
-  if (!(await tryLoadImage(chosenIdleW))) {
-    chosenIdleW = (await tryLoadImage(idleS)) ? idleS : chosenIdleE;
-  }
-  if (!(await tryLoadImage(chosenIdleE)) && !(await tryLoadImage(chosenIdleW))) {
+  // Probe all idle candidates in parallel.
+  const [eOk, wOk, sOk] = await Promise.all([tryLoadImage(idleE), tryLoadImage(idleW), tryLoadImage(idleS)]);
+  let chosenIdleE = eOk ? idleE : (sOk ? idleS : idleW);
+  let chosenIdleW = wOk ? idleW : (sOk ? idleS : chosenIdleE);
+  if (!eOk && !wOk && !sOk) {
     return null;
   }
 
-  const walkE = await collectFramePathsFromPrefixes(
-    [
-      `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
-      `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
-      `game_assets/enemies/${dir}/walk/east/frame_`,
-    ],
-    6,
-  );
-  const walkW = await collectFramePathsFromPrefixes(
-    [
-      `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
-      `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
-      `game_assets/enemies/${dir}/walk/west/frame_`,
-    ],
-    6,
-  );
+  // Probe walk frames for both directions in parallel.
+  const [walkE, walkW] = await Promise.all([
+    collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/enemies/${dir}/walk/east/frame_`,
+      ],
+      6,
+    ),
+    collectFramePathsFromPrefixes(
+      [
+        `game_assets/enemies/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/enemies/${dir}/walk/west/frame_`,
+      ],
+      6,
+    ),
+  ]);
 
   const enemy = {
     id: dir,
@@ -961,27 +964,29 @@ async function buildAnimalFromMetadata(dir, metadata) {
   let walkE = normalizeUniqueAssetPaths((walkingSet.east || []).map((file) => toAssetPath(base, file)));
   let walkW = normalizeUniqueAssetPaths((walkingSet.west || []).map((file) => toAssetPath(base, file)));
 
-  if (!walkE.length) {
-    walkE = await collectFramePathsFromPrefixes(
-      [
-        `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
-        `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
-        `game_assets/animals/${dir}/animations/walking/east/frame_`,
-        `game_assets/animals/${dir}/walk/east/frame_`,
-      ],
-      6,
-    );
-  }
-  if (!walkW.length) {
-    walkW = await collectFramePathsFromPrefixes(
-      [
-        `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
-        `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
-        `game_assets/animals/${dir}/animations/walking/west/frame_`,
-        `game_assets/animals/${dir}/walk/west/frame_`,
-      ],
-      6,
-    );
+  if (!walkE.length || !walkW.length) {
+    const [fallbackE, fallbackW] = await Promise.all([
+      !walkE.length ? collectFramePathsFromPrefixes(
+        [
+          `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
+          `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
+          `game_assets/animals/${dir}/animations/walking/east/frame_`,
+          `game_assets/animals/${dir}/walk/east/frame_`,
+        ],
+        6,
+      ) : Promise.resolve(walkE),
+      !walkW.length ? collectFramePathsFromPrefixes(
+        [
+          `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
+          `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
+          `game_assets/animals/${dir}/animations/walking/west/frame_`,
+          `game_assets/animals/${dir}/walk/west/frame_`,
+        ],
+        6,
+      ) : Promise.resolve(walkW),
+    ]);
+    walkE = fallbackE;
+    walkW = fallbackW;
   }
 
   const animal = {
@@ -1000,8 +1005,7 @@ async function buildAnimalFromMetadata(dir, metadata) {
     },
   };
 
-  const eastOk = await tryLoadImage(animal.sprite.idleE);
-  const westOk = await tryLoadImage(animal.sprite.idleW);
+  const [eastOk, westOk] = await Promise.all([tryLoadImage(animal.sprite.idleE), tryLoadImage(animal.sprite.idleW)]);
   if (!eastOk && !westOk) return null;
   if (!eastOk) animal.sprite.idleE = animal.sprite.idleW;
   if (!westOk) animal.sprite.idleW = animal.sprite.idleE;
@@ -1014,35 +1018,31 @@ async function buildEnemyFromConvention_animals(dir) {
   const idleW = `game_assets/animals/${dir}/rotations/west.png`;
   const idleS = `game_assets/animals/${dir}/rotations/south.png`;
 
-  let chosenIdleE = idleE;
-  let chosenIdleW = idleW;
-
-  if (!(await tryLoadImage(chosenIdleE))) {
-    chosenIdleE = (await tryLoadImage(idleS)) ? idleS : idleW;
-  }
-  if (!(await tryLoadImage(chosenIdleW))) {
-    chosenIdleW = (await tryLoadImage(idleS)) ? idleS : chosenIdleE;
-  }
-  if (!(await tryLoadImage(chosenIdleE)) && !(await tryLoadImage(chosenIdleW))) {
+  const [eOk, wOk, sOk] = await Promise.all([tryLoadImage(idleE), tryLoadImage(idleW), tryLoadImage(idleS)]);
+  let chosenIdleE = eOk ? idleE : (sOk ? idleS : idleW);
+  let chosenIdleW = wOk ? idleW : (sOk ? idleS : chosenIdleE);
+  if (!eOk && !wOk && !sOk) {
     return null;
   }
 
-  const walkE = await collectFramePathsFromPrefixes(
-    [
-      `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
-      `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
-      `game_assets/animals/${dir}/walk/east/frame_`,
-    ],
-    6,
-  );
-  const walkW = await collectFramePathsFromPrefixes(
-    [
-      `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
-      `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
-      `game_assets/animals/${dir}/walk/west/frame_`,
-    ],
-    6,
-  );
+  const [walkE, walkW] = await Promise.all([
+    collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/east/frame_`,
+        `game_assets/animals/${dir}/walk/east/frame_`,
+      ],
+      6,
+    ),
+    collectFramePathsFromPrefixes(
+      [
+        `game_assets/animals/${dir}/animations/walking-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/animations/walk-6-frames/west/frame_`,
+        `game_assets/animals/${dir}/walk/west/frame_`,
+      ],
+      6,
+    ),
+  ]);
 
   return {
     id: dir,

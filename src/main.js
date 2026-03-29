@@ -98,15 +98,12 @@ function updateRespawnTrail(delta) {
 
 // ─── Init ───
 async function init() {
-  const config = await loadConfig();
+  // Phase 1: Load config and sprite manifest in parallel (independent fetches).
+  const [config] = await Promise.all([loadConfig(), loadSpriteManifest()]);
   state.config = config;
   state.tileSize = (config.grid?.tile_size || 32) * WORLD_SCALE;
   enforceMinimumJumpHeight();
 
-  // Load sprite manifest for fast bounding-box lookups (replaces runtime pixel scanning).
-  await loadSpriteManifest();
-
-  await setupUiAssets(config);
   buildBiomeIndex(config);
   state.persistentGold = loadPersistentGold();
   state.coins = state.persistentGold;
@@ -215,11 +212,11 @@ async function init() {
   };
 
   logInfo("init", "Config loaded", { tileSize: state.tileSize, biomes: Object.keys(state.biomes).length });
-  // Load heroes first (initializeHeroProgress depends on them), then load
-  // enemies, animals, sky-birds and guards in parallel — they are independent.
-  await loadHeroes();
-  initializeHeroProgress();
-  await Promise.all([loadEnemies(), loadAnimals(), loadSkyBirds(), loadGuards()]);
+  // Phase 2: Load all entity rosters and UI assets in parallel (all independent).
+  // Heroes must finish before initializeHeroProgress, but enemies/animals/birds/guards
+  // and UI assets are fully independent of each other.
+  const heroesPromise = loadHeroes().then(() => initializeHeroProgress());
+  await Promise.all([heroesPromise, loadEnemies(), loadAnimals(), loadSkyBirds(), loadGuards(), setupUiAssets(config)]);
   ensureEmergencyRoster();
 
   logInfo("init", `Loaded ${state.heroes.length} heroes, ${state.enemies.length} enemies`);
