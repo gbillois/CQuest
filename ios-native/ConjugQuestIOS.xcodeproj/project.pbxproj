@@ -9,20 +9,64 @@
 /* Begin PBXBuildFile section */
 		9F1A2B3C4D5E6F700000000E /* ConjugQuestIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F700000000A /* ConjugQuestIOSApp.swift */; };
 		9F1A2B3C4D5E6F700000000F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F700000000B /* ContentView.swift */; };
-		9F1A2B3C4D5E6F7000000010 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F700000000C /* GameWebView.swift */; };
 		9F1A2B3C4D5E6F7000000011 /* WebApp in Resources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F700000000D /* WebApp */; };
 		9F1A2B3C4D5E6F7000000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F7000000019 /* Assets.xcassets */; };
-		9F1A2B3C4D5E6F700000001A /* WarpZoneGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1A2B3C4D5E6F700000001B /* WarpZoneGame.swift */; };
+		AA000001 /* GameConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000011 /* GameConstants.swift */; };
+		AA000002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012 /* AppState.swift */; };
+		AA000003 /* AssetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000013 /* AssetManager.swift */; };
+		AA000004 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014 /* GameViewModel.swift */; };
+		AA000005 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000015 /* GameScene.swift */; };
+		AA000006 /* GameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000016 /* GameContainerView.swift */; };
+		AA000007 /* GameHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000017 /* GameHUD.swift */; };
+		AA000008 /* ControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* ControlsOverlay.swift */; };
+		AA000009 /* DuelOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019 /* DuelOverlay.swift */; };
+		AA00000A /* PauseOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001A /* PauseOverlay.swift */; };
+		AA00000B /* GameOverOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* GameOverOverlay.swift */; };
+		AA00000C /* TitleScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* TitleScreenView.swift */; };
+		AA00000D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* SettingsView.swift */; };
+		AA00000E /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* ShopView.swift */; };
+		AA00000F /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* LeaderboardView.swift */; };
+		AA000020 /* PlayerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000021 /* PlayerNode.swift */; };
+		AA000022 /* PhysicsSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000023 /* PhysicsSystem.swift */; };
+		AA000024 /* LevelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000025 /* LevelData.swift */; };
+		AA000026 /* SeededRandom.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000027 /* SeededRandom.swift */; };
+		AA000028 /* LevelGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000029 /* LevelGenerator.swift */; };
+		AA00002A /* ParallaxBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002B /* ParallaxBackground.swift */; };
+		AA00002C /* EnemyNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002D /* EnemyNode.swift */; };
+		AA00002E /* AnimalNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002F /* AnimalNode.swift */; };
+		AA000040 /* ConjugationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000041 /* ConjugationData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9F1A2B3C4D5E6F7000000006 /* ConjugQuestIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConjugQuestIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F1A2B3C4D5E6F700000000A /* ConjugQuestIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConjugQuestIOSApp.swift; sourceTree = "<group>"; };
 		9F1A2B3C4D5E6F700000000B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		9F1A2B3C4D5E6F700000000C /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
 		9F1A2B3C4D5E6F700000000D /* WebApp */ = {isa = PBXFileReference; lastKnownFileType = folder; path = WebApp; sourceTree = "<group>"; };
 		9F1A2B3C4D5E6F7000000019 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		9F1A2B3C4D5E6F700000001B /* WarpZoneGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpZoneGame.swift; sourceTree = "<group>"; };
+		AA000011 /* GameConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstants.swift; sourceTree = "<group>"; };
+		AA000012 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		AA000013 /* AssetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetManager.swift; sourceTree = "<group>"; };
+		AA000014 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		AA000015 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		AA000016 /* GameContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContainerView.swift; sourceTree = "<group>"; };
+		AA000017 /* GameHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHUD.swift; sourceTree = "<group>"; };
+		AA000018 /* ControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlsOverlay.swift; sourceTree = "<group>"; };
+		AA000019 /* DuelOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelOverlay.swift; sourceTree = "<group>"; };
+		AA00001A /* PauseOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseOverlay.swift; sourceTree = "<group>"; };
+		AA00001B /* GameOverOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverOverlay.swift; sourceTree = "<group>"; };
+		AA00001C /* TitleScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleScreenView.swift; sourceTree = "<group>"; };
+		AA00001D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA00001E /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
+		AA00001F /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
+		AA000021 /* PlayerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNode.swift; sourceTree = "<group>"; };
+		AA000023 /* PhysicsSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsSystem.swift; sourceTree = "<group>"; };
+		AA000025 /* LevelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelData.swift; sourceTree = "<group>"; };
+		AA000027 /* SeededRandom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandom.swift; sourceTree = "<group>"; };
+		AA000029 /* LevelGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelGenerator.swift; sourceTree = "<group>"; };
+		AA00002B /* ParallaxBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxBackground.swift; sourceTree = "<group>"; };
+		AA00002D /* EnemyNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyNode.swift; sourceTree = "<group>"; };
+		AA00002F /* AnimalNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalNode.swift; sourceTree = "<group>"; };
+		AA000041 /* ConjugationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConjugationData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,15 +98,61 @@
 		};
 		9F1A2B3C4D5E6F7000000004 /* ConjugQuestIOS */ = {
 			isa = PBXGroup;
-				children = (
-					9F1A2B3C4D5E6F700000000A /* ConjugQuestIOSApp.swift */,
-					9F1A2B3C4D5E6F700000000B /* ContentView.swift */,
-					9F1A2B3C4D5E6F700000000C /* GameWebView.swift */,
-					9F1A2B3C4D5E6F700000001B /* WarpZoneGame.swift */,
-					9F1A2B3C4D5E6F7000000019 /* Assets.xcassets */,
-					9F1A2B3C4D5E6F700000000D /* WebApp */,
-				);
+			children = (
+				9F1A2B3C4D5E6F700000000A /* ConjugQuestIOSApp.swift */,
+				9F1A2B3C4D5E6F700000000B /* ContentView.swift */,
+				AA000030 /* Models */,
+				AA000031 /* Views */,
+				AA000032 /* Scene */,
+				9F1A2B3C4D5E6F7000000019 /* Assets.xcassets */,
+				9F1A2B3C4D5E6F700000000D /* WebApp */,
+			);
 			path = ConjugQuestIOS;
+			sourceTree = "<group>";
+		};
+		AA000030 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA000011 /* GameConstants.swift */,
+				AA000012 /* AppState.swift */,
+				AA000025 /* LevelData.swift */,
+				AA000041 /* ConjugationData.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AA000031 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA000016 /* GameContainerView.swift */,
+				AA000017 /* GameHUD.swift */,
+				AA000018 /* ControlsOverlay.swift */,
+				AA000019 /* DuelOverlay.swift */,
+				AA00001A /* PauseOverlay.swift */,
+				AA00001B /* GameOverOverlay.swift */,
+				AA00001C /* TitleScreenView.swift */,
+				AA00001D /* SettingsView.swift */,
+				AA00001E /* ShopView.swift */,
+				AA00001F /* LeaderboardView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA000032 /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				AA000013 /* AssetManager.swift */,
+				AA000014 /* GameViewModel.swift */,
+				AA000015 /* GameScene.swift */,
+				AA000021 /* PlayerNode.swift */,
+				AA000023 /* PhysicsSystem.swift */,
+				AA000027 /* SeededRandom.swift */,
+				AA000029 /* LevelGenerator.swift */,
+				AA00002B /* ParallaxBackground.swift */,
+				AA00002D /* EnemyNode.swift */,
+				AA00002F /* AnimalNode.swift */,
+			);
+			path = Scene;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -136,8 +226,30 @@
 			files = (
 				9F1A2B3C4D5E6F700000000E /* ConjugQuestIOSApp.swift in Sources */,
 				9F1A2B3C4D5E6F700000000F /* ContentView.swift in Sources */,
-				9F1A2B3C4D5E6F7000000010 /* GameWebView.swift in Sources */,
-				9F1A2B3C4D5E6F700000001A /* WarpZoneGame.swift in Sources */,
+				AA000001 /* GameConstants.swift in Sources */,
+				AA000002 /* AppState.swift in Sources */,
+				AA000003 /* AssetManager.swift in Sources */,
+				AA000004 /* GameViewModel.swift in Sources */,
+				AA000005 /* GameScene.swift in Sources */,
+				AA000006 /* GameContainerView.swift in Sources */,
+				AA000007 /* GameHUD.swift in Sources */,
+				AA000008 /* ControlsOverlay.swift in Sources */,
+				AA000009 /* DuelOverlay.swift in Sources */,
+				AA00000A /* PauseOverlay.swift in Sources */,
+				AA00000B /* GameOverOverlay.swift in Sources */,
+				AA00000C /* TitleScreenView.swift in Sources */,
+				AA00000D /* SettingsView.swift in Sources */,
+				AA00000E /* ShopView.swift in Sources */,
+				AA00000F /* LeaderboardView.swift in Sources */,
+				AA000020 /* PlayerNode.swift in Sources */,
+				AA000022 /* PhysicsSystem.swift in Sources */,
+				AA000024 /* LevelData.swift in Sources */,
+				AA000026 /* SeededRandom.swift in Sources */,
+				AA000028 /* LevelGenerator.swift in Sources */,
+				AA00002A /* ParallaxBackground.swift in Sources */,
+				AA00002C /* EnemyNode.swift in Sources */,
+				AA00002E /* AnimalNode.swift in Sources */,
+				AA000040 /* ConjugationData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -160,14 +272,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-					IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-					ONLY_ACTIVE_ARCH = YES;
-					SDKROOT = iphoneos;
-					SWIFT_VERSION = 5.0;
-					TARGETED_DEVICE_FAMILY = 1;
-				};
-				name = Debug;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
+			name = Debug;
+		};
 		9F1A2B3C4D5E6F7000000015 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -185,65 +297,65 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-					IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-					SDKROOT = iphoneos;
-					SWIFT_VERSION = 5.0;
-					TARGETED_DEVICE_FAMILY = 1;
-				};
-				name = Release;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			9F1A2B3C4D5E6F7000000016 /* Debug */ = {
-				isa = XCBuildConfiguration;
-				buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-					ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-					CODE_SIGN_STYLE = Automatic;
-					CURRENT_PROJECT_VERSION = 1;
-					DEVELOPMENT_TEAM = JQ4Z5PXR5K;
-					GENERATE_INFOPLIST_FILE = NO;
-					INFOPLIST_FILE = ConjugQuestIOS/Info.plist;
-					IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-					LD_RUNPATH_SEARCH_PATHS = (
-						"$(inherited)",
-						"@executable_path/Frameworks",
+			name = Release;
+		};
+		9F1A2B3C4D5E6F7000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JQ4Z5PXR5K;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ConjugQuestIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cquest.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-					SWIFT_EMIT_LOC_STRINGS = YES;
-					SWIFT_VERSION = 5.0;
-					TARGETED_DEVICE_FAMILY = 1;
-				};
-				name = Debug;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			9F1A2B3C4D5E6F7000000017 /* Release */ = {
-				isa = XCBuildConfiguration;
-				buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-					ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-					CODE_SIGN_STYLE = Automatic;
-					CURRENT_PROJECT_VERSION = 1;
-					DEVELOPMENT_TEAM = JQ4Z5PXR5K;
-					GENERATE_INFOPLIST_FILE = NO;
-					INFOPLIST_FILE = ConjugQuestIOS/Info.plist;
-					IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-					LD_RUNPATH_SEARCH_PATHS = (
-						"$(inherited)",
-						"@executable_path/Frameworks",
+			name = Debug;
+		};
+		9F1A2B3C4D5E6F7000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JQ4Z5PXR5K;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ConjugQuestIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cquest.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-					SWIFT_EMIT_LOC_STRINGS = YES;
-					SWIFT_VERSION = 5.0;
-					TARGETED_DEVICE_FAMILY = 1;
-				};
-				name = Release;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
