@@ -492,10 +492,6 @@ export function scoreLevelDesign(level, blockSequence) {
 // ─── Particle Definitions by Theme ───
 
 export const THEME_PARTICLES = {
-  forest: {
-    type: "leaves", color: "#4caf50", count: 8, speed: 20,
-    direction: "falling", sizeRange: [3, 6], opacity: 0.6,
-  },
   desert: {
     type: "sand", color: "#d4a853", count: 12, speed: 35,
     direction: "wind_horizontal", sizeRange: [2, 4], opacity: 0.4,

@@ -96,6 +96,11 @@ export function updateEnemies(delta) {
     if (enemy.battling) {
       continue;
     }
+    // Skip full physics for enemies far off-screen (>2.5 viewports away).
+    if (Math.abs(enemy.x - state.cameraX) > VIRTUAL_WIDTH * 2.5) {
+      enemy.animTime += delta;
+      continue;
+    }
     enemy.prevY = enemy.y;
     enemy.animTime += delta;
 
@@ -144,6 +149,11 @@ export function updateAnimals(delta) {
   if (!level?.animalSpawns) return;
 
   for (const animal of level.animalSpawns) {
+    // Skip full physics for animals far off-screen.
+    if (Math.abs(animal.x - state.cameraX) > VIRTUAL_WIDTH * 2.5) {
+      animal.animTime += delta;
+      continue;
+    }
     animal.prevY = animal.y;
     animal.animTime += delta;
 

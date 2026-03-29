@@ -357,7 +357,7 @@ export function generateSingleLevel({ index, seed, biomeId, widthTiles, heightTi
   const secretZones = [];
   const movingPlatforms = [];
   const crumblingPlatforms = [];
-  const particles = THEME_PARTICLES[biomeId] || THEME_PARTICLES.forest;
+  const particles = THEME_PARTICLES[biomeId] || null;
   let lastPlatformHeight = null;
   let sameHeightCount = 0;
 
