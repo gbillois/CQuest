@@ -157,8 +157,10 @@ async function init() {
       },
     },
   });
-  // Only expose debug/conjugation APIs in development (localhost or file://).
+  // Only expose debug/conjugation APIs in development (localhost or file://, but
+  // not inside a native app wrapper which also uses localhost via app:// scheme).
   const _isDevMode = typeof window !== "undefined" &&
+    window.location.protocol !== "app:" &&
     (window.location.hostname === "localhost" ||
      window.location.hostname === "127.0.0.1" ||
      window.location.protocol === "file:");

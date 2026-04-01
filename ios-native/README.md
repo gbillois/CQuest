@@ -1,29 +1,44 @@
-# ConjugQuest iOS (native wrapper)
+# ConjugQuest iOS (WebView wrapper)
 
-This directory contains a native iOS app wrapper for ConjugQuest.
+Thin native iOS shell that loads the web game inside a full-screen `WKWebView`.
+All game logic, rendering, and UI are handled by the bundled web app — the native
+code is just a transparent container.
 
 ## Structure
 
-- `ConjugQuestIOS.xcodeproj`: Xcode project.
-- `ConjugQuestIOS/`: SwiftUI app source.
-- `ConjugQuestIOS/WebApp/`: bundled web game files served by `WKWebView`.
-- `scripts/sync_web_assets.sh`: copies the latest web game files into `WebApp/`.
+```
+ConjugQuestIOS.xcodeproj        Xcode project (3 Swift source files)
+ConjugQuestIOS/
+  ConjugQuestIOSApp.swift       App entry point
+  ContentView.swift             Root SwiftUI view (just a WebView)
+  WebViewRepresentable.swift    WKWebView + BundleSchemeHandler
+  Info.plist                    Portrait-only, full-screen config
+  Assets.xcassets/              App icons
+  WebApp/                       Bundled web game (synced from repo root)
+scripts/
+  sync_web_assets.sh            Copies web files into WebApp/
+```
 
 ## Quick start
 
 1. Sync the web assets:
-   - `./scripts/sync_web_assets.sh`
-2. Open:
-   - `ConjugQuestIOS.xcodeproj`
-3. Run the `ConjugQuestIOS` scheme on an iOS simulator or device.
+   ```
+   ./scripts/sync_web_assets.sh
+   ```
+2. Open `ConjugQuestIOS.xcodeproj` in Xcode.
+3. Run the `ConjugQuestIOS` scheme on a simulator or device.
 
-## Notes
+## How it works
 
-- The app uses `WKWebView` and loads `WebApp/index.html` from the app bundle.
-- If you update game code/assets in the repo root, run the sync script again.
+- `WebViewRepresentable` registers a custom `app://` URL scheme handler that
+  serves files from the bundled `WebApp/` folder with correct MIME types.
+- The web page's CSP (`default-src 'self'`) is satisfied because all resources
+  load from the same `app://localhost` origin.
+- Scroll, bounce, and zoom are disabled — the game canvas fills the viewport.
+- Safe-area insets are managed by the web CSS via `env(safe-area-inset-*)`,
+  enabled by `viewport-fit=cover` in the HTML meta tag.
 
-## Native Warp Zone
+## Updating the game
 
-- The existing `Warp zone` button inside the bundled web app now opens a full-screen native SpriteKit experience instead of the placeholder SwiftUI sheet.
-- The native module mirrors the web version’s structure: multi-biome traversal, touch controls, collectible pickups, enemy encounters, and conjugation gates that unlock progression.
-- Warp Zone reuses the same bundled art from `ConjugQuestIOS/WebApp/game_assets`, so the iOS-native flow stays visually aligned with the web build while no longer depending on `WKWebView` for that mode.
+After modifying game code or assets in the repository root, run
+`./scripts/sync_web_assets.sh` to copy them into the app bundle, then rebuild.
