@@ -22,7 +22,8 @@ import { clamp } from "./utils.js";
 // Late-binding reference to renderHeroShop (set by main.js to avoid circular deps).
 let _renderHeroShop = null;
 
-const DEFAULT_MOBILE_BUTTONS_OFFSET = 120;
+const DEFAULT_MOBILE_BUTTONS_OFFSET = 70;
+const MAX_MOBILE_BUTTONS_OFFSET = 120;
 const DEFAULT_MOBILE_GAME_OFFSET = 200;
 
 export function setRenderHeroShop(fn) {
@@ -139,7 +140,7 @@ export function loadMobileButtonsOffset() {
   try {
     const raw = localStorage.getItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY);
     if (raw === null || !Number.isFinite(Number(raw))) return DEFAULT_MOBILE_BUTTONS_OFFSET;
-    return clamp(Math.round(Number(raw)), 0, DEFAULT_MOBILE_BUTTONS_OFFSET);
+    return clamp(Math.round(Number(raw)), 0, MAX_MOBILE_BUTTONS_OFFSET);
   } catch {
     return DEFAULT_MOBILE_BUTTONS_OFFSET;
   }
@@ -147,7 +148,7 @@ export function loadMobileButtonsOffset() {
 
 export function saveMobileButtonsOffset(value) {
   try {
-    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, DEFAULT_MOBILE_BUTTONS_OFFSET)));
+    localStorage.setItem(MOBILE_BUTTONS_OFFSET_STORAGE_KEY, String(clamp(Math.round(Number(value) || 0), 0, MAX_MOBILE_BUTTONS_OFFSET)));
   } catch {
     // Ignore storage issues.
   }

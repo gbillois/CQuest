@@ -1124,6 +1124,10 @@ body {
     align-self: end;
   }
 
+  .hud {
+    top: calc(env(safe-area-inset-top) + 8px);
+  }
+
   .panel {
     top: calc(env(safe-area-inset-top) + 16px);
     bottom: calc(env(safe-area-inset-bottom) + 16px);
