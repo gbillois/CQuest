@@ -15,6 +15,44 @@ struct GameWebView: UIViewRepresentable {
         prefs.allowsContentJavaScript = true
         config.defaultWebpagePreferences = prefs
 
+        // Inject CSS overrides so the game fills the full screen
+        // instead of being constrained to a phone-sized card.
+        let nativeCSS = """
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: var(--bg-deep) !important;
+        }
+        .app {
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+        }
+        .game-shell {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
+            max-height: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            aspect-ratio: unset !important;
+        }
+        """
+        let cssScript = WKUserScript(
+            source: """
+            const s = document.createElement('style');
+            s.textContent = `\(nativeCSS)`;
+            document.documentElement.appendChild(s);
+            """,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        config.userContentController.addUserScript(cssScript)
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = UIColor(red: 0x1a / 255.0,
