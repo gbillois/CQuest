@@ -11,6 +11,16 @@
 		A1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004 /* ContentView.swift */; };
 		A1000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006 /* Assets.xcassets */; };
 		A1000007 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000008 /* Preview Assets.xcassets */; };
+		A2100001 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* GameWebView.swift */; };
+		A2100002 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = A2000002 /* index.html */; };
+		A2100003 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = A2000003 /* styles.css */; };
+		A2100004 /* src in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* src */; };
+		A2100005 /* game_assets in Resources */ = {isa = PBXBuildFile; fileRef = A2000005 /* game_assets */; };
+		A2100006 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* assets */; };
+		A2100007 /* level_generation_config.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000007 /* level_generation_config.json */; };
+		A2100008 /* sprite-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000008 /* sprite-manifest.json */; };
+		A2100009 /* level-blocks.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000009 /* level-blocks.json */; };
+		A210000A /* site.webmanifest in Resources */ = {isa = PBXBuildFile; fileRef = A200000A /* site.webmanifest */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +29,16 @@
 		A1000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000008 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A1000010 /* CQuest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CQuest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000001 /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
+		A2000002 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = index.html; path = ../index.html; sourceTree = SOURCE_ROOT; };
+		A2000003 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = styles.css; path = ../styles.css; sourceTree = SOURCE_ROOT; };
+		A2000004 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; name = src; path = ../src; sourceTree = SOURCE_ROOT; };
+		A2000005 /* game_assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = game_assets; path = ../game_assets; sourceTree = SOURCE_ROOT; };
+		A2000006 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = SOURCE_ROOT; };
+		A2000007 /* level_generation_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = level_generation_config.json; path = ../level_generation_config.json; sourceTree = SOURCE_ROOT; };
+		A2000008 /* sprite-manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = sprite-manifest.json; path = ../sprite-manifest.json; sourceTree = SOURCE_ROOT; };
+		A2000009 /* level-blocks.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = level-blocks.json; path = ../level-blocks.json; sourceTree = SOURCE_ROOT; };
+		A200000A /* site.webmanifest */ = {isa = PBXFileReference; lastKnownFileType = text; name = site.webmanifest; path = ../site.webmanifest; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,10 +65,28 @@
 			children = (
 				A1000002 /* CQuestApp.swift */,
 				A1000004 /* ContentView.swift */,
+				A2000001 /* GameWebView.swift */,
 				A1000006 /* Assets.xcassets */,
 				A1000033 /* Preview Content */,
+				A2200001 /* WebContent */,
 			);
 			path = CQuest;
+			sourceTree = "<group>";
+		};
+		A2200001 /* WebContent */ = {
+			isa = PBXGroup;
+			children = (
+				A2000002 /* index.html */,
+				A2000003 /* styles.css */,
+				A2000004 /* src */,
+				A2000005 /* game_assets */,
+				A2000006 /* assets */,
+				A2000007 /* level_generation_config.json */,
+				A2000008 /* sprite-manifest.json */,
+				A2000009 /* level-blocks.json */,
+				A200000A /* site.webmanifest */,
+			);
+			name = WebContent;
 			sourceTree = "<group>";
 		};
 		A1000032 /* Products */ = {
@@ -128,6 +166,15 @@
 			files = (
 				A1000007 /* Preview Assets.xcassets in Resources */,
 				A1000005 /* Assets.xcassets in Resources */,
+				A2100002 /* index.html in Resources */,
+				A2100003 /* styles.css in Resources */,
+				A2100004 /* src in Resources */,
+				A2100005 /* game_assets in Resources */,
+				A2100006 /* assets in Resources */,
+				A2100007 /* level_generation_config.json in Resources */,
+				A2100008 /* sprite-manifest.json in Resources */,
+				A2100009 /* level-blocks.json in Resources */,
+				A210000A /* site.webmanifest in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +187,7 @@
 			files = (
 				A1000003 /* ContentView.swift in Sources */,
 				A1000001 /* CQuestApp.swift in Sources */,
+				A2100001 /* GameWebView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,8 +334,9 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -316,8 +365,9 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
