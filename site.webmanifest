@@ -1,6 +1,6 @@
 {
-  "name": "ConjugQuest",
-  "short_name": "CQuest",
+  "name": "ConjugationQuest",
+  "short_name": "ConjugationQuest",
   "description": "A fantasy platformer for practicing French conjugation.",
   "start_url": "./index.html",
   "display": "standalone",

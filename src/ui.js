@@ -311,7 +311,8 @@ export function renderHeroShop() {
     preview.className = "hero-shop-preview";
     const img = document.createElement("img");
     img.src = hero.sprite.idleSE;
-    img.alt = hero.name;
+    const heroDisplayName = t("hero." + hero.id) || hero.name;
+    img.alt = heroDisplayName;
     img.loading = "lazy";
     preview.appendChild(img);
     if (!owned) {
@@ -327,7 +328,7 @@ export function renderHeroShop() {
     meta.className = "hero-shop-meta";
     const nameDiv = document.createElement("div");
     nameDiv.className = "hero-shop-name";
-    nameDiv.textContent = hero.name;
+    nameDiv.textContent = heroDisplayName;
     meta.appendChild(nameDiv);
     const priceDiv = document.createElement("div");
     priceDiv.className = "hero-shop-price";
@@ -379,7 +380,7 @@ export function populateSettingsPanel() {
     }
     const option = document.createElement("option");
     option.value = String(index);
-    option.textContent = hero.name;
+    option.textContent = t("hero." + hero.id) || hero.name;
     ui.heroSelect.appendChild(option);
   });
 
@@ -413,7 +414,7 @@ export function populateCheatModalOptions() {
   state.heroes.forEach((hero, index) => {
     const option = document.createElement("option");
     option.value = String(index);
-    option.textContent = hero.name;
+    option.textContent = t("hero." + hero.id) || hero.name;
     ui.cheatHeroSelect.appendChild(option);
   });
 
@@ -697,8 +698,8 @@ export function bindControls() {
     openShopPanel();
   });
 
-  attachLongPressListeners(ui.hudLives, beginCheatMenuLongPress, endCheatMenuLongPress);
-  attachLongPressListeners(ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
+  attachLongPressListeners(ui.hudLives?.closest('.hud-item') || ui.hudLives, beginCheatMenuLongPress, endCheatMenuLongPress);
+  attachLongPressListeners(ui.hudScoreValue?.closest('.hud-item') || ui.hudScoreValue, beginVisualDebugLongPress, endVisualDebugLongPress);
 
   ui.debugButtonsOffsetSlider?.addEventListener("input", () => {
     state.mobileButtonsOffsetY = clamp(Number(ui.debugButtonsOffsetSlider.value) || 0, 0, 120);
@@ -794,7 +795,7 @@ export function bindControls() {
       saveHeroUnlocks(state.heroUnlocks);
       state.selectedHeroIndex = heroIndex;
       saveSelectedHeroId(heroId);
-      showMessage(t("heroUnlocked", { hero: state.heroes[heroIndex].name }));
+      showMessage(t("heroUnlocked", { hero: t("hero." + state.heroes[heroIndex].id) || state.heroes[heroIndex].name }));
       populateSettingsPanel();
       syncHeroActionButtonVisibility();
       return;

@@ -171,6 +171,8 @@ body {
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
   text-align: center;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 .hud-label {
