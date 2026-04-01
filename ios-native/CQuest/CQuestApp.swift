@@ -8,6 +8,7 @@ struct CQuestApp: App {
                 .persistentSystemOverlays(.hidden)
                 .statusBarHidden(true)
                 .preferredColorScheme(.dark)
+                .supportedInterfaceOrientations(.portrait)
         }
     }
 }
