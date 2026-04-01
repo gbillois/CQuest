@@ -1,25 +1,10 @@
 import SwiftUI
 
-/// Root navigation: switches between screens based on AppState.
+/// Full-screen WKWebView that loads the web game from the app bundle.
+/// The web version handles all layout, safe areas, and touch controls via CSS.
 struct ContentView: View {
-    @EnvironmentObject var appState: AppState
-
     var body: some View {
-        Group {
-            switch appState.currentScreen {
-            case .title:
-                TitleScreenView()
-            case .game:
-                GameContainerView()
-            case .settings:
-                SettingsView()
-            case .shop:
-                ShopView()
-            case .leaderboard:
-                LeaderboardView()
-            }
-        }
-        .preferredColorScheme(.dark)
-        .statusBarHidden(appState.currentScreen == .game)
+        WebViewRepresentable()
+            .ignoresSafeArea()
     }
 }
