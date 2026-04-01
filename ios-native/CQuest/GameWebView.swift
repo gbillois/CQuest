@@ -41,6 +41,9 @@ struct GameWebView: UIViewRepresentable {
             box-shadow: none !important;
             aspect-ratio: unset !important;
         }
+        #gameCanvas {
+            transform: translateY(-30px);
+        }
         """
         let cssScript = WKUserScript(
             source: """
