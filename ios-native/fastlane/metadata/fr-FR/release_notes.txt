@@ -1,0 +1,11 @@
+Première version de ConjugationQuest !
+
+• 5 mondes thématiques : Forêt, Désert, Montagne, Neige et Désolation
+• 8 héros déblocables avec des attaques de projectiles uniques
+• Conjugaison française à travers 5 temps et les 3 groupes de verbes
+• Combat de boss contre le Dragon
+• Trois modes de difficulté : Facile, Normal et Chaotique
+• Boutique en jeu pour débloquer des héros avec l'or gagné
+• Classement pour suivre tes meilleurs scores
+• Jouable entièrement hors ligne — aucune connexion requise
+• Interface en français et en anglais

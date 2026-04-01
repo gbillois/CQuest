@@ -1,0 +1,10 @@
+app_identifier("com.cquest.CQuest")
+# apple_id("your@email.com") # Your Apple Developer email
+# team_id("JQ4Z5PXR5K") # Your Apple Developer Team ID
+
+# Use App Store Connect API Key instead of password auth
+# The API key is provided via environment variables or key file:
+#   FASTLANE_APP_STORE_CONNECT_API_KEY_KEY_ID
+#   FASTLANE_APP_STORE_CONNECT_API_KEY_ISSUER_ID
+#   FASTLANE_APP_STORE_CONNECT_API_KEY_KEY (base64 encoded .p8 content)
+# Or pass via --api_key_path flag pointing to a JSON key file
