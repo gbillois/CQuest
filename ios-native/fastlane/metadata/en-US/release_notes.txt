@@ -1,0 +1,11 @@
+Initial release of ConjugationQuest!
+
+• 5 themed worlds: Forest, Desert, Mountain, Snow, and Desolation
+• 8 unlockable heroes with unique projectile attacks
+• French verb conjugation across 5 tenses and all 3 verb groups
+• Boss battle against the Dragon
+• Three difficulty modes: Easy, Normal, and Chaotic
+• In-game shop to unlock heroes with earned gold
+• Leaderboard to track your best scores
+• Fully playable offline — no internet required
+• English and French interface support

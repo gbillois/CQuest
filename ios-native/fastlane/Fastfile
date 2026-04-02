@@ -1,0 +1,72 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload metadata and screenshots to App Store Connect"
+  lane :upload_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      force: true,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      overwrite_screenshots: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+
+  desc "Upload metadata only (no screenshots)"
+  lane :upload_metadata_only do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true,
+      metadata_path: "./fastlane/metadata",
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Upload screenshots only"
+  lane :upload_screenshots do
+    deliver(
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: false,
+      force: true,
+      screenshots_path: "./fastlane/screenshots",
+      overwrite_screenshots: true
+    )
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    build_app(
+      project: "CQuest.xcodeproj",
+      scheme: "CQuest",
+      export_method: "app-store"
+    )
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  desc "Full release: build, upload binary, metadata, and screenshots"
+  lane :release do
+    build_app(
+      project: "CQuest.xcodeproj",
+      scheme: "CQuest",
+      export_method: "app-store"
+    )
+    deliver(
+      skip_screenshots: false,
+      force: true,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      overwrite_screenshots: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+end

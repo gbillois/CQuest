@@ -1,0 +1,29 @@
+# Deliverfile — App Store Connect delivery configuration
+# Docs: https://docs.fastlane.tools/actions/deliver/
+
+# App metadata
+app_identifier "com.cquest.CQuest"
+
+# Pricing (free app)
+price_tier 0
+
+# App Rating — REVIEW BEFORE SUBMITTING (see compliance note below)
+app_rating_config_path "./fastlane/rating_config.json"
+
+# Categories
+primary_category "GAMES_EDUCATIONAL"
+secondary_category "GAMES_ACTION"
+
+# Localized metadata and screenshots are in ./fastlane/metadata/ and ./fastlane/screenshots/
+
+# Auto-release after approval
+automatic_release false
+
+# App Review Information
+app_review_information(
+  first_name: "REVIEW_REQUIRED",
+  last_name: "REVIEW_REQUIRED",
+  phone_number: "REVIEW_REQUIRED",
+  email_address: "REVIEW_REQUIRED",
+  notes: "This is an offline educational game. No login or account is required. Simply launch the app and tap 'Play' to start. The game teaches French verb conjugation through a platformer adventure."
+)

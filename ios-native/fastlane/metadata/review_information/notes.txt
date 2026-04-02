@@ -1,0 +1,11 @@
+This is an offline educational game that teaches French verb conjugation through a platformer adventure. No login, account creation, or internet connection is required.
+
+To test the app:
+1. Launch the app
+2. Tap "Play" on the main menu
+3. Select a hero (Paladin is unlocked by default)
+4. Play through the Forest level — you will encounter enemies that prompt conjugation questions
+5. Answer the conjugation question correctly to defeat the enemy
+6. Conjugation gates also appear — answer correctly to pass through
+
+The game uses only local storage for saving progress. No data is transmitted to any server. No in-app purchases are present. All heroes can be unlocked with in-game currency earned through gameplay.

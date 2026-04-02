@@ -1,0 +1,279 @@
+================================================================================
+    CONJUGATIONQUEST — APP STORE CONNECT METADATA (COPY/PASTE READY)
+================================================================================
+
+Use this document to manually fill in App Store Connect fields if you are not
+using the fastlane API approach. Each section maps to a field in App Store
+Connect. Copy the content between the ---- lines.
+
+================================================================================
+  SECTION 1: APP INFORMATION
+================================================================================
+
+App Name:
+----
+ConjugationQuest
+----
+
+Bundle ID:
+----
+com.cquest.CQuest
+----
+
+Primary Category:         Games > Educational
+Secondary Category:       Games > Action
+Primary Language:         English (U.S.)
+Price:                    Free
+
+================================================================================
+  SECTION 2: ENGLISH (U.S.) — METADATA
+================================================================================
+
+Subtitle (max 30 chars):
+----
+Learn French Verbs by Playing
+----
+
+Promotional Text (max 170 chars, can be updated without new build):
+----
+Conquer French conjugation one level at a time! 8 heroes, 5 worlds, and all major verb tenses await.
+----
+
+Description (max 4000 chars):
+----
+Master French verb conjugation through an epic fantasy platformer adventure!
+
+ConjugationQuest turns the challenge of learning French conjugation into a thrilling side-scrolling quest. Jump, run, and battle your way through 5 beautifully crafted biomes — Forest, Desert, Mountain, Snow, and Desolation — while conjugating verbs to defeat enemies and unlock gates.
+
+HOW IT WORKS
+• Encounter enemies and conjugation gates as you progress through each level
+• Answer French conjugation questions correctly to defeat foes and advance
+• Practice all major tenses: Présent, Passé composé, Imparfait, Futur, and Conditionnel
+• Conjugate across all six pronouns (je, tu, il/elle, nous, vous, ils/elles)
+• Cover all three verb groups: regular -er, -ir, and irregular verbs
+
+CHOOSE YOUR HERO
+Pick from 8 unique characters — Paladin, Ninja, Pirate, Mage, Barbarian, Cat Warrior, Golem, and Knight — each with their own projectile attacks. Unlock new heroes in the in-game shop using gold earned through gameplay.
+
+ADVENTURE AWAITS
+• 5 themed worlds with procedurally generated levels for endless replayability
+• Boss battle against a fearsome Dragon with timed conjugation challenges
+• Crumbling platforms, moving obstacles, bonus blocks, and tower dungeons
+• Three difficulty modes: Easy, Normal, and Chaotic
+• Leaderboard to track your scores and compete
+
+DESIGNED FOR LEARNERS
+Whether you are a beginner or brushing up on your French, ConjugationQuest adapts to your level. The game supports both English and French interfaces, making it accessible for learners worldwide.
+
+No internet connection required — play and learn anywhere, anytime.
+----
+
+Keywords (max 100 chars, comma-separated):
+----
+french,conjugation,verbs,learn,language,education,platformer,game,quest,grammar
+----
+
+What's New / Release Notes (version 1.0):
+----
+Initial release of ConjugationQuest!
+
+• 5 themed worlds: Forest, Desert, Mountain, Snow, and Desolation
+• 8 unlockable heroes with unique projectile attacks
+• French verb conjugation across 5 tenses and all 3 verb groups
+• Boss battle against the Dragon
+• Three difficulty modes: Easy, Normal, and Chaotic
+• In-game shop to unlock heroes with earned gold
+• Leaderboard to track your best scores
+• Fully playable offline — no internet required
+• English and French interface support
+----
+
+Support URL:
+----
+https://github.com/gbillois/cquest
+----
+
+Marketing URL:
+----
+https://github.com/gbillois/cquest
+----
+
+Privacy Policy URL:  ⚠️  REVIEW REQUIRED — replace with actual privacy policy
+----
+https://github.com/gbillois/cquest
+----
+
+
+================================================================================
+  SECTION 3: FRENCH (FRANCE) — METADATA
+================================================================================
+
+Subtitle (max 30 chars):
+----
+Apprends les verbes en jouant
+----
+
+Promotional Text (max 170 chars):
+----
+Conquiers la conjugaison française niveau par niveau ! 8 héros, 5 mondes et tous les temps majeurs t'attendent.
+----
+
+Description (max 4000 chars):
+----
+Maîtrise la conjugaison française grâce à une aventure de plateforme fantastique !
+
+ConjugationQuest transforme l'apprentissage de la conjugaison en une quête palpitante. Saute, cours et combats à travers 5 biomes magnifiques — Forêt, Désert, Montagne, Neige et Désolation — tout en conjuguant des verbes pour vaincre tes ennemis et franchir les portes.
+
+COMMENT ÇA MARCHE
+• Rencontre des ennemis et des portes de conjugaison au fil de ta progression
+• Réponds correctement aux questions de conjugaison pour vaincre tes adversaires
+• Pratique tous les temps majeurs : Présent, Passé composé, Imparfait, Futur et Conditionnel
+• Conjugue avec les six pronoms (je, tu, il/elle, nous, vous, ils/elles)
+• Couvre les trois groupes de verbes : verbes en -er, en -ir et verbes irréguliers
+
+CHOISIS TON HÉROS
+8 personnages uniques — Paladin, Ninja, Pirate, Mage, Barbare, Chat Guerrier, Golem et Chevalier — chacun avec ses propres attaques de projectiles. Débloque de nouveaux héros dans la boutique avec l'or gagné en jouant.
+
+L'AVENTURE T'ATTEND
+• 5 mondes thématiques avec des niveaux générés de manière procédurale
+• Combat de boss contre un Dragon redoutable avec des défis de conjugaison chronométrés
+• Plateformes qui s'effondrent, obstacles mobiles, blocs bonus et donjons de tour
+• Trois modes de difficulté : Facile, Normal et Chaotique
+• Classement pour suivre tes scores et te mesurer aux autres
+
+CONÇU POUR L'APPRENTISSAGE
+Que tu sois débutant ou que tu révises ta conjugaison, ConjugationQuest s'adapte à ton niveau. Le jeu est disponible en français et en anglais.
+
+Aucune connexion internet requise — joue et apprends où tu veux, quand tu veux.
+----
+
+Keywords (max 100 chars, comma-separated):
+----
+conjugaison,verbes,français,apprendre,langue,éducation,plateforme,jeu,grammaire,école
+----
+
+What's New / Release Notes (version 1.0):
+----
+Première version de ConjugationQuest !
+
+• 5 mondes thématiques : Forêt, Désert, Montagne, Neige et Désolation
+• 8 héros déblocables avec des attaques de projectiles uniques
+• Conjugaison française à travers 5 temps et les 3 groupes de verbes
+• Combat de boss contre le Dragon
+• Trois modes de difficulté : Facile, Normal et Chaotique
+• Boutique en jeu pour débloquer des héros avec l'or gagné
+• Classement pour suivre tes meilleurs scores
+• Jouable entièrement hors ligne — aucune connexion requise
+• Interface en français et en anglais
+----
+
+
+================================================================================
+  SECTION 4: APP REVIEW INFORMATION
+================================================================================
+
+⚠️  FILL IN YOUR DETAILS BELOW
+
+First Name:        ______________________
+Last Name:         ______________________
+Phone Number:      ______________________
+Email Address:     ______________________
+
+Review Notes (paste into "Notes" field):
+----
+This is an offline educational game that teaches French verb conjugation through
+a platformer adventure. No login, account creation, or internet connection is
+required.
+
+To test the app:
+1. Launch the app
+2. Tap "Play" on the main menu
+3. Select a hero (Paladin is unlocked by default)
+4. Play through the Forest level — you will encounter enemies that prompt
+   conjugation questions
+5. Answer the conjugation question correctly to defeat the enemy
+6. Conjugation gates also appear — answer correctly to pass through
+
+The game uses only local storage for saving progress. No data is transmitted to
+any server. No in-app purchases are present. All heroes can be unlocked with
+in-game currency earned through gameplay.
+----
+
+
+================================================================================
+  SECTION 5: AGE RATING QUESTIONNAIRE ANSWERS
+================================================================================
+
+When App Store Connect asks the age rating questions, answer as follows:
+
+  Cartoon or Fantasy Violence:                              Infrequent/Mild
+  Realistic Violence:                                       None
+  Prolonged Graphic or Sadistic Realistic Violence:         None
+  Profanity or Crude Humor:                                 None
+  Mature/Suggestive Themes:                                 None
+  Horror/Fear Themes:                                       None
+  Medical/Treatment Information:                            None
+  Alcohol, Tobacco, or Drug Use or References:              None
+  Simulated Gambling:                                       None
+  Sexual Content or Nudity:                                 None
+  Graphic Sexual Content and Nudity:                        None
+  Unrestricted Web Access:                                  No
+  Gambling and Contests:                                    None
+
+Expected rating result: 4+ (or possibly 9+ depending on Apple's assessment)
+
+
+================================================================================
+  SECTION 6: EXPORT COMPLIANCE
+================================================================================
+
+  "Does your app use encryption?"                          → No
+  (ITSAppUsesNonExemptEncryption = NO is set in Info.plist)
+
+  Rationale: App is fully offline. Uses WKWebView with standard Apple
+  frameworks only. No custom encryption, no HTTPS calls, no network activity.
+
+
+================================================================================
+  SECTION 7: SCREENSHOTS NEEDED
+================================================================================
+
+You need screenshots at these sizes. Upload them in App Store Connect under
+each locale (English U.S. and French France).
+
+  iPhone 6.9" (required):    1320 x 2868 px (portrait)
+  iPhone 6.7":               1290 x 2796 px (portrait)
+  iPhone 6.5":               1242 x 2688 px (portrait)
+  iPad Pro 13" (if iPad):    2064 x 2752 px (portrait)
+  iPad Pro 12.9":            2048 x 2732 px (portrait)
+
+Suggested screenshots (6 total per locale):
+  1. Forest level gameplay — hero running through biome
+  2. Conjugation quiz — active question during enemy encounter
+  3. Hero selection — shop screen with 8 heroes
+  4. Boss battle — Dragon fight with timed challenge
+  5. Desert or Snow level — shows visual variety
+  6. Leaderboard — score tracking screen
+
+Tip: Run the app on iOS Simulator at each device size, then capture with:
+  xcrun simctl io booted screenshot filename.png
+
+
+================================================================================
+  ⚠️  COMPLIANCE REVIEW CHECKLIST — DO NOT SKIP
+================================================================================
+
+Before submitting, you MUST address these items:
+
+  [ ] Privacy Policy URL — publish a real privacy policy page and update URL
+  [ ] Support URL — verify GitHub repo link is acceptable
+  [ ] App Review contact — fill in your real name, phone, and email
+  [ ] Age rating — confirm "Infrequent Cartoon Violence" is correct
+  [ ] Export compliance — confirm no custom encryption
+  [ ] Categories — confirm Educational Game + Action Game
+  [ ] Pricing — confirm Free with no IAP
+  [ ] Release mode — decide manual vs. automatic release after approval
+  [ ] Screenshots — capture and upload for all required device sizes
+  [ ] App icon — verify 1024x1024 icon has no alpha/transparency
+
+================================================================================
