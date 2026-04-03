@@ -89,6 +89,11 @@ export const TENSE_LABEL = {
 export const TENSE_KEYS = Object.keys(TENSE_LABEL);
 export const PRONOUN_LABEL = ["je", "tu", "il/elle", "nous", "vous", "ils/elles"];
 
+// ─── Target language (the language the player is learning) ───
+export const TARGET_LANGUAGES = ["fr", "ja"];
+export const TARGET_LANG_STORAGE_KEY = "cquest_target_language";
+export const JA_ERROR_DB_STORAGE_KEY = "cquest_ja_errors_v1";
+
 // ─── Asset directories ───
 export const KNOWN_HERO_DIRS = ["mage", "ninja", "paladin", "pirate", "Barbarian", "CatWarrior", "Golem", "Knight"];
 export const KNOWN_ENEMY_DIRS = [

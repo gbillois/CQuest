@@ -1,5 +1,5 @@
 // ─── Imports ───
-import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIPLIER, JUMP_BUFFER_WINDOW_SECONDS, BIOME_PARALLAX_BACKGROUNDS } from "./constants.js";
+import { GAME, WORLD_SCALE, PRONOUN_LABEL, ERROR_DB_STORAGE_KEY, JA_ERROR_DB_STORAGE_KEY, JUMP_CUT_MULTIPLIER, JUMP_BUFFER_WINDOW_SECONDS, BIOME_PARALLAX_BACKGROUNDS, TENSE_KEYS } from "./constants.js";
 import { createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
 import {
@@ -34,6 +34,8 @@ import {
   loadMobileButtonsOffset, loadMobileGameOffset,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups, createConjugationDuelSystem } from "./conjugation.js";
+import { getJapaneseVerbSource, JA_FORM_KEYS, JA_FORM_LABEL } from "./verbs-ja.js";
+import { getTargetLanguage, syncTargetLangAttribute } from "./i18n.js";
 
 // ─── Wire late-binding hooks ───
 setUpdateHudInfo(updateHudInfo);
@@ -115,11 +117,16 @@ async function init() {
   state.mobileButtonsOffsetY = loadMobileButtonsOffset();
   state.mobileGameOffsetY = loadMobileGameOffset();
   syncWorldZoomUi();
-  state.pedagogy.activeGroups = getDefaultActiveGroups();
+  syncTargetLangAttribute();
+  const targetLang = getTargetLanguage();
+  const isJa = targetLang === "ja";
+  const verbSource = isJa ? getJapaneseVerbSource() : getVerbSource();
+  state.pedagogy.activeGroups = Object.keys(verbSource);
+  state.pedagogy.activeTenses = isJa ? JA_FORM_KEYS.slice() : TENSE_KEYS.slice();
   state.duel = createConjugationDuelSystem({
-    verbs: getVerbSource(),
-    pronouns: PRONOUN_LABEL,
-    storageKey: ERROR_DB_STORAGE_KEY,
+    verbs: verbSource,
+    pronouns: isJa ? [""] : PRONOUN_LABEL,
+    storageKey: isJa ? JA_ERROR_DB_STORAGE_KEY : ERROR_DB_STORAGE_KEY,
     settingsGetter: () => ({
       activeGroups: state.pedagogy.activeGroups.slice(),
       activeTenses: state.pedagogy.activeTenses.slice(),
@@ -156,6 +163,9 @@ async function init() {
         defeatEnemy(enemy);
       },
     },
+    soundFn: isJa ? (w) => w : null,
+    tenseKeys: isJa ? JA_FORM_KEYS : null,
+    tenseLabels: isJa ? JA_FORM_LABEL : null,
   });
   // Only expose debug/conjugation APIs in development (localhost or file://, but
   // not inside a native app wrapper which also uses localhost via app:// scheme).

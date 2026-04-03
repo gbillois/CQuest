@@ -1251,3 +1251,22 @@ body {
 #resetGameConfirmModal {
   z-index: 120;
 }
+
+/* ─── Japanese (CJK) font overrides ─── */
+:root[data-target-lang="ja"] .question-prompt,
+:root[data-target-lang="ja"] .answer-btn,
+:root[data-target-lang="ja"] .question-tense,
+:root[data-target-lang="ja"] .question-group,
+:root[data-target-lang="ja"] .error-list,
+:root[data-target-lang="ja"] .check-grid {
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", "Meiryo", "Noto Sans CJK JP", sans-serif;
+}
+
+:root[data-target-lang="ja"] .answer-btn {
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+:root[data-target-lang="ja"] .question-prompt {
+  font-size: 1rem;
+}

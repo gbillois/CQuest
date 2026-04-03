@@ -1,7 +1,11 @@
+import { TARGET_LANG_STORAGE_KEY } from "./constants.js";
+
 const locale = (() => {
   if (typeof navigator === "undefined") return "en";
   const lang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
-  return lang.startsWith("fr") ? "fr" : "en";
+  if (lang.startsWith("fr")) return "fr";
+  if (lang.startsWith("ja")) return "ja";
+  return "en";
 })();
 
 const MESSAGES = {
@@ -273,7 +277,158 @@ const MESSAGES = {
     "hero.golem": "Golem",
     "hero.knight": "Chevalier",
   },
+  ja: {
+    shop: "ショップ",
+    hudScore: "スコア",
+    hudHeart: "ハート",
+    hudGold: "ゴールド",
+    equippedHero: "装備中のヒーロー",
+    heroicMounts: "ヒーローの乗り物",
+    yourGold: "所持ゴールド:",
+    close: "閉じる",
+    settings: "設定",
+    conjugationTraining: "動詞活用トレーニング",
+    availableTenses: "活用形",
+    verbGroups: "動詞グループ",
+    resetErrors: "エラーをリセット",
+    resetGame: "ゲームリセット",
+    errorsMade: "間違えた問題",
+    resetGameConfirm: "ゲームをリセットしますか？スコア、コイン、解放済みヒーロー、選択中のヒーロー、モバイルレイアウト設定、記録済みエラーがすべて消去されます。",
+    resetGameWarning: "注意：エラー、ゴールド、スコア、ショップの購入がリセットされます。よろしいですか？",
+    confirmNo: "いいえ",
+    confirmYes: "はい",
+    dialogCancel: "キャンセル",
+    dialogOk: "OK",
+    apply: "適用",
+    update: "更新",
+    updatePwa: "PWAを更新",
+    titleKicker: "横スクロールアクション",
+    titleSubtitle: "活用の力で王国を解放しよう！敵を倒して宝物を集め、城を開いて新しい世界と新しいヒーローを発見しよう！",
+    leaderboard: "ランキング",
+    leaderboardEmpty: "まだスコアがありません。",
+    leaderboardModeGameover: "敗北",
+    leaderboardModeVictory: "勝利",
+    askPlayerNameGameOver: "ゲームオーバー！ランキング用の名前を入力：",
+    askPlayerNameVictory: "勝利！ランキング用の名前を入力：",
+    invalidPlayerName: "名前に使用できない文字が含まれています。",
+    startGame: "ゲーム開始",
+    leaderboardButton: "ランキング",
+    pause: "一時停止",
+    gamePaused: "一時停止中",
+    resume: "再開",
+    titleScreen: "タイトル画面",
+    tipsTricks: "ヒント",
+    selectLevel: "レベル選択",
+    generationProfile: "生成プロファイル",
+    tileStyle: "タイルスタイル",
+    selectHero: "ヒーロー選択",
+    worldZoom: "ワールドズーム",
+    givePieces: "999コインを付与",
+    visualDebug: "ビジュアルデバッグ",
+    mobileAdjustments: "モバイル用調整",
+    buttonsVerticalOffset: "ボタン縦位置",
+    gameVerticalOffset: "ゲームエリア縦位置",
+    gameMode: "ゲームモード",
+    gameModeNormal: "ノーマル",
+    gameModeEasy: "イージー",
+    mobileLayoutSettings: "モバイルレイアウト",
+    deviceMode: "デバイスモード",
+    deviceModeMobile: "モバイル",
+    deviceModeTablet: "タブレット",
+    deviceModeDesktop: "PC",
+    settingsButtonsOffset: "ボタン縦位置",
+    settingsGameOffset: "ゲームエリア縦位置",
+    sliderHigher: "上へ",
+    sliderLower: "下へ",
+    worldScale: "ワールドスケール",
+    validateLevels: "レベル検証",
+    gameOver: "ゲームオーバー",
+    lostHearts: "ハートがなくなりました。",
+    finalScore: "最終スコア: {value}",
+    coins: "コイン: {value}",
+    restartLevel: "レベルをやり直す",
+    dragonWon: "ドラゴンの勝利",
+    trialFailed: "試練失敗",
+    returningWave: "ウェーブに戻ります...",
+    returningWaveWithNumber: "ウェーブ{wave}に戻ります...",
+    champion: "チャンピオン",
+    dragonDefeated: "ドラゴンを倒しました。",
+    championStatus: "チャンピオンの称号を獲得しました。",
+    dragonTrialLabel: "ドラゴン試練 {current}/{required}",
+    dragonTrialTenseLabel: "10秒",
+    dragonDefeatedMessage: "ドラゴン撃破！",
+    wrongAnswer: "不正解",
+    trialSetupFailed: "試練を開始できません",
+    timeUp: "時間切れ",
+    bossTitle: "ドラゴンボス",
+    bossTrials: "試練: {current}/{required}",
+    bossTimeLeft: "残り: {seconds}秒",
+    bossCeremony: "チャンピオンセレモニー...",
+    bossIntroLine1: "ついにたどり着いた、恐ろしい赤いドラゴン！",
+    bossIntroLine2: "戦う準備はいい？5問、各10秒、",
+    bossIntroLine3: "全問正解で勝利だ！",
+    heroEquipped: "装備中",
+    equip: "装備",
+    buy: "購入",
+    alreadyUnlocked: "解放済み",
+    price: "価格:",
+    pieces: "コイン",
+    levelLabel: "レベル{level} - {biome}",
+    notEnoughPieces: "コインが足りません",
+    heroUnlocked: "{hero}を解放しました",
+    noVerb: "動詞なし",
+    pwaUpdateDone: "アプリを更新しました。再読み込み中...",
+    pwaUpdateFailed: "更新を完了できませんでした。",
+    "biome.forest": "森",
+    "biome.desert": "砂漠",
+    "biome.mountain": "山",
+    "biome.snow": "雪",
+    "biome.desolation": "荒野",
+    "biome.castle": "城",
+    "biome.wood": "林",
+    gateOpened: "門が開いた！",
+    gateRetry: "不正解 - もう一度！",
+    youDied: "倒れてしまった",
+    wrongConjugation: "活用が違います",
+    fell: "落ちてしまった！",
+    enemyDefeatedReward: "+{score}スコア / +{coins}コイン",
+    enemyFirstHitBonus: "一撃ボーナス: {reward}",
+    enemyDefeated: "敵を倒した · {reward}",
+    towerChestOpened: "宝箱を開けた: +{pieces}コイン",
+    towerChestStreak: "宝箱連続: {current}/{required}",
+    towerChestFailed: "失敗: 宝箱が爆発した",
+    towerChestTouchPrompt: "宝箱をタッチ: {required}問連続正解が必要",
+    towerChestAlreadyOpened: "宝箱は開封済み: +{pieces}コイン",
+    towerChestMissing: "宝箱が消えてしまった",
+    towerExit: "塔から出た",
+    castleLocked: "城はロック中: 敵の{pct}%撃破が必要",
+    "hero.paladin": "若き騎士",
+    "hero.ninja": "忍者",
+    "hero.pirate": "海賊",
+    "hero.mage": "魔法使い",
+    "hero.barbarian": "蛮族",
+    "hero.catwarrior": "猫戦士",
+    "hero.golem": "ゴーレム",
+    "hero.knight": "騎士",
+    targetLanguage: "学習言語",
+    targetLangFr: "フランス語 - 活用",
+    targetLangJa: "日本語 - 動詞活用",
+    jlptPreset: "JLPTレベル",
+    jlptCustom: "カスタム",
+  },
 };
+
+// Add target-language-specific keys to en and fr as well
+MESSAGES.en.targetLanguage = "Target language";
+MESSAGES.en.targetLangFr = "French - Conjugation";
+MESSAGES.en.targetLangJa = "日本語 - Verb conjugation";
+MESSAGES.en.jlptPreset = "JLPT level";
+MESSAGES.en.jlptCustom = "Custom";
+MESSAGES.fr.targetLanguage = "Langue cible";
+MESSAGES.fr.targetLangFr = "Français - Conjugaison";
+MESSAGES.fr.targetLangJa = "日本語 - Conjugaison de verbes";
+MESSAGES.fr.jlptPreset = "Niveau JLPT";
+MESSAGES.fr.jlptCustom = "Personnalisé";
 
 export function getLocale() {
   return locale;
@@ -286,4 +441,25 @@ export function t(key, vars = {}) {
     out = out.replaceAll(`{${k}}`, String(v));
   }
   return out;
+}
+
+// ─── Target language (the language the player is learning) ───
+
+export function getTargetLanguage() {
+  try {
+    const stored = localStorage.getItem(TARGET_LANG_STORAGE_KEY);
+    if (stored === "ja" || stored === "fr") return stored;
+  } catch { /* ignore */ }
+  return "fr";
+}
+
+export function setTargetLanguage(lang) {
+  try {
+    localStorage.setItem(TARGET_LANG_STORAGE_KEY, lang);
+  } catch { /* ignore */ }
+  document.documentElement.setAttribute("data-target-lang", lang);
+}
+
+export function syncTargetLangAttribute() {
+  document.documentElement.setAttribute("data-target-lang", getTargetLanguage());
 }

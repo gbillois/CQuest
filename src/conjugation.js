@@ -6,7 +6,7 @@ import { delay, shuffle } from "./utils.js";
  * Returns true only if every group has a label (string) and a list (object)
  * whose entries contain at least an `inf` string and arrays for tense keys.
  */
-function isValidVerbSource(obj) {
+function isValidVerbSource(obj, keys = TENSE_KEYS) {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return false;
   }
@@ -17,7 +17,7 @@ function isValidVerbSource(obj) {
     for (const verb of Object.values(group.list)) {
       if (!verb || typeof verb !== "object") return false;
       if (typeof verb.inf !== "string") return false;
-      for (const tense of TENSE_KEYS) {
+      for (const tense of keys) {
         if (verb[tense] !== undefined && !Array.isArray(verb[tense])) return false;
       }
     }
@@ -193,7 +193,9 @@ export function getDefaultActiveGroups() {
   return Object.keys(getVerbSource() || {});
 }
 
-export function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGetter, uiHooks, gameplayHooks }) {
+export function createConjugationDuelSystem({ verbs, pronouns, storageKey, settingsGetter, uiHooks, gameplayHooks, soundFn = null, tenseKeys = null, tenseLabels = null }) {
+  const effectiveTenseKeys = tenseKeys || TENSE_KEYS;
+  const effectiveTenseLabels = tenseLabels || TENSE_LABEL;
   const QS = { active: false, enemy: null, q: null, mode: "enemy", onCorrect: null, onWrong: null, uiMeta: null, resolving: false };
   const QK = { selectedBtn: null };
   let selectedIndex = -1;
@@ -233,16 +235,17 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
       return null;
     }
     const correct = String(verbDef[vd.tense][vd.pronIdx] || "").trim();
-    const correctSound = frenchSound(correct);
+    const computeSound = soundFn || frenchSound;
+    const correctSound = computeSound(correct);
     const seen = new Set([correct.toLowerCase()]);
     const allForms = [];
 
-    for (const t of TENSE_KEYS) {
+    for (const t of effectiveTenseKeys) {
       const arr = verbDef[t];
       if (!Array.isArray(arr)) {
         continue;
       }
-      for (let p = 0; p < 6; p += 1) {
+      for (let p = 0; p < arr.length; p += 1) {
         const value = String(arr[p] || "").trim();
         if (!value) {
           continue;
@@ -252,7 +255,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
           continue;
         }
         seen.add(k);
-        allForms.push({ value, tense: t, pronIdx: p, sound: frenchSound(value) });
+        allForms.push({ value, tense: t, pronIdx: p, sound: computeSound(value) });
       }
     }
 
@@ -304,7 +307,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
       const fallbackPool = [];
       for (const g of Object.values(verbs || {})) {
         for (const v of Object.values(g.list || {})) {
-          for (const t of TENSE_KEYS) {
+          for (const t of effectiveTenseKeys) {
             const arr = v[t];
             if (Array.isArray(arr)) {
               fallbackPool.push(...arr);
@@ -332,7 +335,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
       gKey: vd.gKey,
       vKey: vd.vKey,
       tense: vd.tense,
-      tenseLabel: TENSE_LABEL[vd.tense] || vd.tense,
+      tenseLabel: effectiveTenseLabels[vd.tense] || vd.tense,
       pronIdx: vd.pronIdx,
       correct,
       options,
@@ -387,7 +390,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
     const s = settingsGetter?.() || {};
     return {
       activeGroups: s.activeGroups?.length ? s.activeGroups : Object.keys(verbs || {}),
-      activeTenses: s.activeTenses?.length ? s.activeTenses : TENSE_KEYS.slice(),
+      activeTenses: s.activeTenses?.length ? s.activeTenses : effectiveTenseKeys.slice(),
     };
   }
 
@@ -437,10 +440,11 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
       const row = document.createElement("div");
       row.className = "error-row";
       const strong = document.createElement("strong");
-      strong.textContent = `${pronouns[entry.pronIdx]} + ${entry.infinitive}`;
+      const pronoun = pronouns[entry.pronIdx] || "";
+      strong.textContent = pronoun ? `${pronoun} + ${entry.infinitive}` : entry.infinitive;
       row.appendChild(strong);
       row.appendChild(document.createElement("br"));
-      const tenseLabel = TENSE_LABEL[entry.tense] || entry.tense;
+      const tenseLabel = effectiveTenseLabels[entry.tense] || entry.tense;
       row.appendChild(document.createTextNode(`${tenseLabel}: `));
       const em = document.createElement("em");
       em.textContent = entry.expected;
@@ -462,8 +466,8 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
         }
         for (const tense of activeTenses) {
           const arr = verbDef?.[tense];
-          if (!Array.isArray(arr) || arr.length < 6) continue;
-          for (let pronIdx = 0; pronIdx < 6; pronIdx += 1) {
+          if (!Array.isArray(arr) || !arr.length) continue;
+          for (let pronIdx = 0; pronIdx < arr.length; pronIdx += 1) {
             if (!arr[pronIdx]) continue;
             byVerb.get(key).push({ gKey, vKey, tense, pronIdx });
           }
@@ -699,5 +703,7 @@ export function createConjugationDuelSystem({ verbs, pronouns, storageKey, setti
     generateLevelVerbDatas,
     handleQuestionKey,
     frenchSound,
+    effectiveTenseKeys,
+    effectiveTenseLabels,
   };
 }

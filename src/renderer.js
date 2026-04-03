@@ -12,7 +12,16 @@ import {
 import { clamp } from "./utils.js";
 import { state, ctx, ui, imageCache } from "./state.js";
 import { isImageRenderable, loadImage } from "./asset-loader.js";
-import { t } from "./i18n.js";
+import { t, getTargetLanguage } from "./i18n.js";
+
+// Returns a CSS font string with the correct fallback for the target language.
+function fontStack(weight, size, base = "Nunito") {
+  const isJa = getTargetLanguage() === "ja";
+  const fallback = isJa
+    ? '"Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif'
+    : `${base}, sans-serif`;
+  return `${weight} ${size}px ${fallback}`;
+}
 import { getSolidTileCollisionRect, getSpriteOpaqueBounds, getEntitySpriteDrawRect } from "./physics.js";
 import { isEndCastleUnlocked, getCastleMetrics, getEndCastleBounds, getEndCastleDoorBounds, getTowerBounds, getTowerInteriorFloorY, getTowerInteriorChestBounds, getBossDragonFrame } from "./entities.js";
 
@@ -289,7 +298,7 @@ export function drawBossScene(timeSeconds) {
     ctx.lineWidth = 2;
     ctx.strokeRect(28, 412, VIRTUAL_WIDTH - 56, 148);
     ctx.fillStyle = "#f7fbff";
-    ctx.font = "700 16px Nunito, sans-serif";
+    ctx.font = fontStack("700", 16);
     ctx.textAlign = "center";
     ctx.fillText(t("bossIntroLine1"), VIRTUAL_WIDTH * 0.5, 448);
     ctx.fillText(t("bossIntroLine2"), VIRTUAL_WIDTH * 0.5, 476);
@@ -298,10 +307,10 @@ export function drawBossScene(timeSeconds) {
 
   const secondsLeft = Math.max(0, Math.ceil((state.boss.trialDeadline - performance.now()) / 1000));
   ctx.fillStyle = "#f7fbff";
-  ctx.font = "bold 18px Nunito, sans-serif";
+  ctx.font = fontStack("bold", 18);
   ctx.textAlign = "center";
   ctx.fillText(t("bossTitle"), VIRTUAL_WIDTH * 0.5, 52);
-  ctx.font = "bold 15px Nunito, sans-serif";
+  ctx.font = fontStack("bold", 15);
   ctx.fillText(t("bossTrials", { current: state.boss.streak, required: state.boss.required }), VIRTUAL_WIDTH * 0.5, 78);
   if (state.boss.phase === "trials") {
     ctx.fillStyle = secondsLeft <= 3 ? "#ff8e42" : "#ffd56a";
@@ -342,7 +351,7 @@ export function drawTowerInteriorScene(timeSeconds) {
     ctx.drawImage(chestImage, chest.x, chest.y, chest.w, chest.h);
     if (state.towerInterior.chestState === "open") {
       ctx.fillStyle = "rgba(255, 215, 106, 0.9)";
-      ctx.font = "bold 18px Nunito, sans-serif";
+      ctx.font = fontStack("bold", 18);
       ctx.textAlign = "center";
       ctx.fillText(`+${state.towerInterior.chestRewardPieces}`, chest.x + chest.w * 0.5, chest.y - 12);
     }
@@ -878,7 +887,7 @@ export function drawGuardSpeech(level) {
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "bold 12px Trebuchet MS";
+  ctx.font = fontStack("bold", 12, "Trebuchet MS");
   for (const guard of level.guardSpawns) {
     if (!guard.inRange || !guard.speechText) continue;
     const screenX = (guard.x + guard.w / 2 - state.cameraX) * zoom;
@@ -1558,7 +1567,13 @@ function drawDebugOverlay() {
 
 /* ── UI rendering ── */
 
+// CJK characters can be broken between any character (no spaces between words).
+const CJK_RANGE = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]/;
+
 function wrapText(ctx, text, maxWidth) {
+  if (CJK_RANGE.test(text)) {
+    return wrapTextCJK(ctx, text, maxWidth);
+  }
   const words = text.split(" ");
   const lines = [];
   let line = "";
@@ -1567,6 +1582,22 @@ function wrapText(ctx, text, maxWidth) {
     if (ctx.measureText(test).width > maxWidth && line) {
       lines.push(line);
       line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function wrapTextCJK(ctx, text, maxWidth) {
+  const lines = [];
+  let line = "";
+  for (const char of text) {
+    const test = line + char;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = char;
     } else {
       line = test;
     }
@@ -1614,7 +1645,7 @@ export function drawFloatingRewards(level) {
 
     ctx.globalAlpha = alpha;
     if (reward.style === "speech") {
-      ctx.font = "bold 12px Trebuchet MS";
+      ctx.font = fontStack("bold", 12, "Trebuchet MS");
       const maxBoxW = Math.min(240, VIRTUAL_WIDTH - 40);
       const padding = 8;
       const lineHeight = 15;
@@ -1637,7 +1668,7 @@ export function drawFloatingRewards(level) {
         ctx.fillText(lines[i], textX, textY);
       }
     } else {
-      ctx.font = "700 13px Trebuchet MS";
+      ctx.font = fontStack("700", 13, "Trebuchet MS");
       ctx.fillStyle = reward.style === "gold" ? "#ffd56a" : "#f2f8ff";
       ctx.strokeStyle = "rgba(6, 8, 14, 0.9)";
       ctx.lineWidth = 3;
@@ -1679,7 +1710,7 @@ export function drawFloatingMessage(text) {
   ctx.strokeRect(x, boxTop, boxW, messageHeight);
 
   ctx.fillStyle = "#f2f8ff";
-  ctx.font = "bold 14px Trebuchet MS";
+  ctx.font = fontStack("bold", 14, "Trebuchet MS");
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, VIRTUAL_WIDTH / 2, boxTop + messageHeight / 2);
