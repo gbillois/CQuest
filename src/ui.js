@@ -9,7 +9,8 @@ import {
 } from "./constants.js";
 import { clamp, capitalize, createRunSeed } from "./utils.js";
 import { state, ui } from "./state.js";
-import { getLocale, t } from "./i18n.js";
+import { getLocale, t, getTargetLanguage, setTargetLanguage, syncTargetLangAttribute } from "./i18n.js";
+import { JA_FORM_KEYS, JA_FORM_LABEL, JA_JLPT_PRESETS } from "./verbs-ja.js";
 import {
   isHeroOwned, ensureSelectedHeroIsOwned, getPaladinIndex,
   saveHeroUnlocks, saveSelectedHeroId, spendPersistentGold,
@@ -22,6 +23,7 @@ import {
   savePedagogyGroups, savePedagogyTenses,
 } from "./persistence.js";
 import { getVerbSource, getDefaultActiveGroups } from "./conjugation.js";
+import { getJapaneseVerbSource } from "./verbs-ja.js";
 import { getManifestHitbox } from "./sprite-manifest.js";
 import { validateAllLevels } from "./level-validator.js";
 
@@ -126,8 +128,17 @@ function applyLocaleToStaticUi() {
   setText("#closeShopBtn", "close");
   setText("#settingsPanel h1", "settings");
   setText("#pedagogyPanel h2", "conjugationTraining");
-  setText("#pedagogyPanel .pedagogy-block:nth-of-type(1) h3", "availableTenses");
-  setText("#pedagogyPanel .pedagogy-block:nth-of-type(2) h3", "verbGroups");
+  setText("#targetLangLabel", "targetLanguage");
+  setText("#targetLangFrOption", "targetLangFr");
+  setText("#targetLangJaOption", "targetLangJa");
+  setText("#jlptPresetLabel", "jlptPreset");
+  setText("#jlptCustomOption", "jlptCustom");
+  // Tense and group headers are inside .pedagogy-block elements that contain h3
+  const pedagogyH3s = document.querySelectorAll("#pedagogyPanel .pedagogy-block h3");
+  if (pedagogyH3s.length >= 2) {
+    pedagogyH3s[0].textContent = t("availableTenses");
+    pedagogyH3s[1].textContent = t("verbGroups");
+  }
   setText("#resetErrorsBtn", "resetErrors");
   setText("#resetGameBtn", "resetGame");
   setText("#resetGameConfirmText", "resetGameWarning");
@@ -389,6 +400,27 @@ export function populateSettingsPanel() {
   if (ui.settingsGameModeSelect) {
     ui.settingsGameModeSelect.value = state.generationProfile === "easy" ? "easy" : "normal";
   }
+
+  // Target language selector
+  if (ui.targetLangSelect) {
+    ui.targetLangSelect.value = getTargetLanguage();
+    ui.targetLangSelect.onchange = () => {
+      setTargetLanguage(ui.targetLangSelect.value);
+      // Reload page to reinitialize duel system with new language
+      window.location.reload();
+    };
+  }
+
+  // JLPT preset selector
+  if (ui.jlptPresetSelect) {
+    ui.jlptPresetSelect.onchange = () => {
+      const val = ui.jlptPresetSelect.value;
+      if (val !== "custom") {
+        applyJlptPreset(val);
+      }
+    };
+  }
+
   syncWorldZoomUi();
   applyMobileVisualDebugOffsets();
   renderHeroShop();
@@ -1434,20 +1466,34 @@ export function populatePedagogyPanel() {
   if (!ui.groupFilters || !ui.tenseFilters) {
     return;
   }
-  const verbs = getVerbSource();
+  const targetLang = getTargetLanguage();
+  const isJa = targetLang === "ja";
+  const duel = state.duel;
+  const verbs = isJa ? getJapaneseVerbSource() : getVerbSource();
+  const currentTenseKeys = duel?.effectiveTenseKeys || (isJa ? JA_FORM_KEYS : TENSE_KEYS);
+  const currentTenseLabels = duel?.effectiveTenseLabels || (isJa ? JA_FORM_LABEL : TENSE_LABEL);
   const groupKeys = Object.keys(verbs);
 
   ui.tenseFilters.textContent = "";
   ui.groupFilters.textContent = "";
+
+  // JLPT preset selector (Japanese only)
+  const jlptRow = ui.jlptPresetRow;
+  if (jlptRow) {
+    jlptRow.hidden = !isJa;
+  }
+
   groupKeys.forEach((g) => {
     const group = verbs[g] || {};
-    const irregularVerbList = (g === "irr1" || g === "irr2" || g === "irr3")
-      ? Object.values(group.list || {})
+    let groupLabel = group.label || g;
+    // For French irregular groups, show verb list
+    if (!isJa && (g === "irr1" || g === "irr2" || g === "irr3")) {
+      const verbList = Object.values(group.list || {})
         .map((verb) => String(verb?.inf || "").trim())
         .filter(Boolean)
-        .join(", ")
-      : "";
-    const groupLabel = `${group.label || g}${irregularVerbList ? ` (${irregularVerbList})` : ""}`;
+        .join(", ");
+      if (verbList) groupLabel += ` (${verbList})`;
+    }
     const label = document.createElement("label");
     const input = document.createElement("input");
     input.type = "checkbox";
@@ -1458,14 +1504,14 @@ export function populatePedagogyPanel() {
     ui.groupFilters.appendChild(label);
   });
 
-  TENSE_KEYS.forEach((t) => {
+  currentTenseKeys.forEach((tk) => {
     const label = document.createElement("label");
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.dataset.tense = t;
-    input.checked = state.pedagogy.activeTenses.includes(t);
+    input.dataset.tense = tk;
+    input.checked = state.pedagogy.activeTenses.includes(tk);
     label.appendChild(input);
-    label.appendChild(document.createTextNode(` ${TENSE_LABEL[t]}`));
+    label.appendChild(document.createTextNode(` ${currentTenseLabels[tk] || tk}`));
     ui.tenseFilters.appendChild(label);
   });
 
@@ -1474,14 +1520,16 @@ export function populatePedagogyPanel() {
       const selected = [...ui.groupFilters.querySelectorAll("input[data-group]:checked")].map((el) => el.dataset.group);
       state.pedagogy.activeGroups = selected.length ? selected : groupKeys.slice();
       savePedagogyGroups(state.pedagogy.activeGroups);
+      syncJlptPresetSelect();
       renderErrorList();
     });
   });
   ui.tenseFilters.querySelectorAll("input[data-tense]").forEach((input) => {
     input.addEventListener("change", () => {
       const selected = [...ui.tenseFilters.querySelectorAll("input[data-tense]:checked")].map((el) => el.dataset.tense);
-      state.pedagogy.activeTenses = selected.length ? selected : TENSE_KEYS.slice();
+      state.pedagogy.activeTenses = selected.length ? selected : currentTenseKeys.slice();
       savePedagogyTenses(state.pedagogy.activeTenses);
+      syncJlptPresetSelect();
       renderErrorList();
     });
   });
@@ -1496,6 +1544,32 @@ export function populatePedagogyPanel() {
       resetGameProgress();
     };
   }
+}
+
+function syncJlptPresetSelect() {
+  const select = ui.jlptPresetSelect;
+  if (!select || getTargetLanguage() !== "ja") return;
+  const activeForms = state.pedagogy.activeTenses;
+  for (const [key, preset] of Object.entries(JA_JLPT_PRESETS)) {
+    const formsMatch = preset.forms.length === activeForms.length &&
+      preset.forms.every((f) => activeForms.includes(f));
+    if (formsMatch) {
+      select.value = key;
+      return;
+    }
+  }
+  select.value = "custom";
+}
+
+function applyJlptPreset(presetKey) {
+  const preset = JA_JLPT_PRESETS[presetKey];
+  if (!preset) return;
+  state.pedagogy.activeTenses = preset.forms.slice();
+  state.pedagogy.activeGroups = preset.groups.slice();
+  savePedagogyTenses(state.pedagogy.activeTenses);
+  savePedagogyGroups(state.pedagogy.activeGroups);
+  populatePedagogyPanel();
+  renderErrorList();
 }
 
 /* ── Question UI hooks ── */
@@ -1545,11 +1619,13 @@ export function buildQuestionUiHooks() {
       if (!ui.questionPanel || !ui.questionPrompt || !ui.answerButtons) {
         return;
       }
-      const verbs = getVerbSource();
+      const targetLang = getTargetLanguage();
+      const isJa = targetLang === "ja";
+      const verbs = isJa ? getJapaneseVerbSource() : getVerbSource();
       const verbDef = verbs?.[question.gKey]?.list?.[question.vKey];
       const inf = verbDef?.inf || question.vKey;
-      const pronoun = PRONOUN_LABEL[question.pronIdx] || "";
-      const tenseText = formatQuestionTense(question.tenseLabel);
+      const pronoun = isJa ? "" : (PRONOUN_LABEL[question.pronIdx] || "");
+      const tenseText = isJa ? question.tenseLabel : formatQuestionTense(question.tenseLabel);
       const groupLabel = verbs?.[question.gKey]?.label || question.gKey;
       const biomeId = state.currentLevel?.biomeId || "forest";
       if (ui.questionEnemy) {
@@ -1569,22 +1645,43 @@ export function buildQuestionUiHooks() {
         ui.questionCountdown.hidden = !state.boss.active;
       }
       ui.questionPrompt.textContent = "";
-      ui.questionPrompt.appendChild(document.createTextNode("Conjugue "));
-      const verbSpan = document.createElement("span");
-      verbSpan.className = "verb";
-      verbSpan.textContent = inf;
-      ui.questionPrompt.appendChild(verbSpan);
-      ui.questionPrompt.appendChild(document.createTextNode(` ${tenseText}`));
-      ui.questionPrompt.appendChild(document.createElement("br"));
-      const pronounSpan = document.createElement("span");
-      pronounSpan.className = "pronoun";
-      pronounSpan.textContent = pronoun;
-      ui.questionPrompt.appendChild(pronounSpan);
-      const blankSpan = document.createElement("span");
-      blankSpan.className = "blank";
-      blankSpan.textContent = "???";
-      ui.questionPrompt.appendChild(document.createTextNode(" "));
-      ui.questionPrompt.appendChild(blankSpan);
+
+      if (isJa) {
+        // Japanese format: "食べる を て形 に活用しなさい\n???"
+        const verbSpan = document.createElement("span");
+        verbSpan.className = "verb";
+        verbSpan.textContent = inf;
+        ui.questionPrompt.appendChild(verbSpan);
+        ui.questionPrompt.appendChild(document.createTextNode(" の "));
+        const formSpan = document.createElement("span");
+        formSpan.className = "pronoun";
+        formSpan.textContent = tenseText;
+        ui.questionPrompt.appendChild(formSpan);
+        ui.questionPrompt.appendChild(document.createTextNode(" は？"));
+        ui.questionPrompt.appendChild(document.createElement("br"));
+        const blankSpan = document.createElement("span");
+        blankSpan.className = "blank";
+        blankSpan.textContent = "???";
+        ui.questionPrompt.appendChild(blankSpan);
+      } else {
+        // French format: "Conjugue [verb] au [tense]\n[pronoun] ???"
+        ui.questionPrompt.appendChild(document.createTextNode("Conjugue "));
+        const verbSpan = document.createElement("span");
+        verbSpan.className = "verb";
+        verbSpan.textContent = inf;
+        ui.questionPrompt.appendChild(verbSpan);
+        ui.questionPrompt.appendChild(document.createTextNode(` ${tenseText}`));
+        ui.questionPrompt.appendChild(document.createElement("br"));
+        const pronounSpan = document.createElement("span");
+        pronounSpan.className = "pronoun";
+        pronounSpan.textContent = pronoun;
+        ui.questionPrompt.appendChild(pronounSpan);
+        const blankSpan = document.createElement("span");
+        blankSpan.className = "blank";
+        blankSpan.textContent = "???";
+        ui.questionPrompt.appendChild(document.createTextNode(" "));
+        ui.questionPrompt.appendChild(blankSpan);
+      }
       ui.answerButtons.innerHTML = "";
       question.options.forEach((option) => {
         const btn = document.createElement("button");

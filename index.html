@@ -96,6 +96,25 @@
 
           <section class="pedagogy" id="pedagogyPanel">
             <h2>Entraînement de conjugaison</h2>
+
+            <div class="pedagogy-block">
+              <label for="targetLangSelect" id="targetLangLabel">Target language</label>
+              <select id="targetLangSelect">
+                <option value="fr" id="targetLangFrOption">Français - Conjugaison</option>
+                <option value="ja" id="targetLangJaOption">日本語 - 動詞活用</option>
+              </select>
+            </div>
+
+            <div class="pedagogy-block" id="jlptPresetRow" hidden>
+              <label for="jlptPresetSelect" id="jlptPresetLabel">JLPT level</label>
+              <select id="jlptPresetSelect">
+                <option value="custom" id="jlptCustomOption">Custom</option>
+                <option value="n5">JLPT N5</option>
+                <option value="n4">JLPT N4</option>
+                <option value="n3">JLPT N3</option>
+              </select>
+            </div>
+
             <div class="pedagogy-block">
               <h3>Temps disponibles</h3>
               <div id="tenseFilters" class="check-grid"></div>
