@@ -1,341 +1,443 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#2d2a68" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; script-src 'self'; frame-ancestors 'self';" />
-    <link rel="manifest" href="./site.webmanifest" />
-    <link rel="icon" href="./favicon.ico" sizes="32x32" />
-    <link rel="icon" href="./assets/pwa/icon-192.png" type="image/png" sizes="192x192" />
-    <link rel="apple-touch-icon" href="./assets/pwa/apple-touch-icon.png" />
-    <title>ConjugationQuest</title>
-    <link rel="preload" href="./assets/fonts/bangers-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="./assets/fonts/nunito-latin-700.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="preload" href="./level_generation_config.json" as="fetch" crossorigin />
-    <link rel="preload" href="./sprite-manifest.json" as="fetch" crossorigin />
-    <link rel="preload" href="./game_assets/backgrounds/forest-background.png" as="image" />
-  </head>
-  <body>
-    <main class="app">
-      <section class="game-shell" aria-label="Vertical platformer game">
-        <div class="game-viewport">
-          <canvas id="gameCanvas" width="432" height="768"></canvas>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cyber Academy Snake Validation</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: rgba(13, 27, 48, 0.88);
+      --panel-strong: #10213b;
+      --accent: #30f2a8;
+      --accent-2: #55b8ff;
+      --danger: #ff5f7a;
+      --warning: #ffd166;
+      --text: #edf7ff;
+      --muted: #a7bad2;
+      --grid: rgba(85, 184, 255, 0.11);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-          <div class="hud">
-            <div class="hud-info" aria-label="Top information">
-              <div class="hud-item">
-                <span class="hud-label">Score</span>
-                <strong id="hudScoreValue">0</strong>
-              </div>
-              <div class="hud-item">
-                <span class="hud-label">Heart</span>
-                <strong id="hudLives">3</strong>
-              </div>
-              <div class="hud-item">
-                <span class="hud-label">Gold</span>
-                <strong id="hudGoldValue">0</strong>
-              </div>
-            </div>
-            <div class="hud-actions">
-              <button id="shopBtn" class="icon-button" aria-label="Open shop">
-                <img id="shopIcon" alt="Shop" />
-              </button>
-              <button id="pauseBtn" class="icon-button" aria-label="Pause game">
-                <img id="pauseIcon" alt="Pause" />
-              </button>
-            </div>
-          </div>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(48, 242, 168, 0.16), transparent 28rem),
+        radial-gradient(circle at 80% 10%, rgba(85, 184, 255, 0.18), transparent 32rem),
+        linear-gradient(135deg, #050a14 0%, var(--bg) 45%, #081a2b 100%);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      display: grid;
+      grid-template-columns: minmax(320px, 620px) minmax(280px, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(167, 186, 210, 0.18);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .game-card { padding: 18px; position: relative; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1; margin-bottom: 8px; }
+    h2 { font-size: 1.2rem; color: var(--accent); }
+    .subtitle { color: var(--muted); margin-bottom: 0; }
+
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    .stat {
+      min-width: 92px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    .stat span { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .stat strong { font-size: 1.35rem; }
+
+    canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: block;
+      border-radius: 22px;
+      background-color: #081421;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      border: 1px solid rgba(85, 184, 255, 0.24);
+    }
+
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+    button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 800;
+      color: #06111f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 24px rgba(48, 242, 168, 0.18);
+    }
+    button.secondary { color: var(--text); background: rgba(255,255,255,0.09); box-shadow: none; border: 1px solid rgba(255,255,255,0.14); }
+    button.choice {
+      width: 100%;
+      text-align: left;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      box-shadow: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      line-height: 1.35;
+    }
+    button.choice:hover, button.choice:focus { outline: 2px solid var(--accent-2); }
+
+    .info-card { padding: 26px; }
+    .module-list { display: grid; gap: 12px; margin: 18px 0; }
+    .module {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border-left: 4px solid var(--accent-2);
+    }
+    .module strong { color: var(--accent); }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 6px; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(2, 8, 18, 0.78);
+      z-index: 10;
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      width: min(680px, 100%);
+      padding: 28px;
+      background: #0d1b30;
+      border: 1px solid rgba(85, 184, 255, .34);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+    .modal-meta { color: var(--warning); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: .8rem; }
+    .question { font-size: clamp(1.2rem, 2.4vw, 1.7rem); line-height: 1.25; margin: 8px 0 18px; }
+    .choices { display: grid; gap: 12px; }
+    .feedback { min-height: 1.5em; margin: 16px 0 0; font-weight: 800; }
+    .good { color: var(--accent); }
+    .bad { color: var(--danger); }
+    .hidden { display: none; }
+
+    @media (max-width: 860px) { .app { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } .stats { justify-content: flex-start; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="game-card card" aria-label="Cybersecurity validation Snake game">
+      <header>
+        <div>
+          <h1>Cyber Snake</h1>
+          <p class="subtitle">Eat data blocks, answer cyber challenges, validate module skills.</p>
         </div>
-
-        <div class="controls-zone">
-          <div class="touch-hit-zone" aria-hidden="true">
-            <button class="touch-hit-btn" id="moveLeftHitBtn" tabindex="-1"></button>
-            <button class="touch-hit-btn" id="moveRightHitBtn" tabindex="-1"></button>
-            <button class="touch-hit-btn" id="castFireHitBtn" tabindex="-1" hidden></button>
-            <button class="touch-hit-btn" id="jumpHitBtn" tabindex="-1"></button>
-          </div>
-          <div class="touch-controls" aria-label="Touch controls">
-            <button class="touch-btn" id="moveLeftBtn" aria-label="Move left">
-              <img id="btnLeft" alt="Left" />
-            </button>
-            <button class="touch-btn" id="moveRightBtn" aria-label="Move right">
-              <img id="btnRight" alt="Right" />
-            </button>
-            <button class="touch-btn" id="castFireBtn" aria-label="Cast fireball" hidden>
-              <img id="btnFire" alt="Fireball" />
-            </button>
-            <button class="touch-btn" id="jumpBtn" aria-label="Jump"><img id="btnUp" alt="Jump" /></button>
-          </div>
+        <div class="stats" aria-live="polite">
+          <div class="stat"><span>Blocks</span><strong id="blocks">0/10</strong></div>
+          <div class="stat"><span>Correct</span><strong id="correct">0</strong></div>
+          <div class="stat"><span>Status</span><strong id="status">Ready</strong></div>
         </div>
+      </header>
+      <canvas id="game" width="600" height="600"></canvas>
+      <div class="controls">
+        <button id="startBtn">Start validation</button>
+        <button id="resetBtn" class="secondary">Reset</button>
+      </div>
+    </section>
 
-        <aside class="panel" id="shopPanel" hidden>
-          <h1>Boutique</h1>
+    <aside class="info-card card">
+      <h2>Mission Rules</h2>
+      <p>Ten questions are randomly drawn from a 30-question bank spanning IAM, GRC, SOC, and AI security.</p>
+      <div class="module-list">
+        <div class="module"><strong>Move:</strong> Arrow keys, <span class="kbd">WASD</span>, or swipe on touch screens.</div>
+        <div class="module"><strong>Validate:</strong> Each block pauses the game for one question with a wrong, almost-right, and correct answer.</div>
+        <div class="module"><strong>Pass mark:</strong> Score above 8/10 to display “Skills validated”.</div>
+      </div>
+      <p class="subtitle">Tip: the snake wraps around walls. Avoid colliding with yourself while chasing blocks.</p>
+    </aside>
+  </main>
 
-          <label for="heroSelect">Héros équipé</label>
-          <select id="heroSelect"></select>
-          <div class="panel-actions panel-actions-center">
-            <button id="closeShopBtn" class="secondary">Fermer</button>
-          </div>
+  <section class="overlay" id="questionOverlay" role="dialog" aria-modal="true" aria-labelledby="questionText">
+    <div class="modal">
+      <div class="modal-meta" id="questionMeta">Question</div>
+      <h2 class="question" id="questionText"></h2>
+      <div class="choices" id="choices"></div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+    </div>
+  </section>
 
-          <section class="hero-shop" id="heroShopPanel">
-            <h2>Montures héroïques</h2>
-            <p class="shop-wallet">Votre or : <strong id="shopGoldValue">0</strong></p>
-            <div id="heroShopList" class="hero-shop-list"></div>
-          </section>
+  <section class="overlay" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="modal">
+      <div class="modal-meta">Assessment complete</div>
+      <h2 class="question" id="endTitle"></h2>
+      <p id="endSummary"></p>
+      <button id="playAgainBtn">Play again</button>
+    </div>
+  </section>
 
-        </aside>
+  <script>
+    const questionBank = [
+      { domain: 'IAM', q: 'What is the strongest practical way to reduce risk from stolen passwords?', choices: ['Share admin passwords only with trusted staff.', 'Require long passwords and rotate them every week.', 'Use phishing-resistant MFA and least-privilege access.'], correct: 2 },
+      { domain: 'IAM', q: 'Which principle limits users to only the permissions needed for their job?', choices: ['Security through obscurity.', 'Role naming consistency.', 'Least privilege.'], correct: 2 },
+      { domain: 'IAM', q: 'What should happen when an employee leaves the organization?', choices: ['Keep access active in case they return.', 'Disable only their email mailbox.', 'Promptly revoke all accounts, sessions, tokens, and privileged access.'], correct: 2 },
+      { domain: 'IAM', q: 'What is privileged access management primarily designed to protect?', choices: ['Marketing preferences.', 'Passwords only for normal users.', 'High-impact accounts and administrative actions.'], correct: 2 },
+      { domain: 'IAM', q: 'Which authentication factor is “something you are”?', choices: ['A password.', 'A hardware token PIN.', 'A biometric such as a fingerprint.'], correct: 2 },
+      { domain: 'IAM', q: 'Why are periodic access reviews important?', choices: ['They replace the need for logging.', 'They make users change departments more often.', 'They detect excessive, stale, or inappropriate permissions.'], correct: 2 },
+      { domain: 'IAM', q: 'What does single sign-on mainly improve when implemented securely?', choices: ['It removes all authorization requirements.', 'It guarantees every app is vulnerability-free.', 'It centralizes authentication and can improve user experience and control.'], correct: 2 },
+      { domain: 'GRC', q: 'What is the main purpose of a risk register?', choices: ['To list employee birthdays.', 'To store every firewall rule.', 'To track risks, owners, likelihood, impact, and treatments.'], correct: 2 },
+      { domain: 'GRC', q: 'What does a control do in a security program?', choices: ['It guarantees no incidents will occur.', 'It documents only failures after audits.', 'It reduces likelihood or impact of a defined risk.'], correct: 2 },
+      { domain: 'GRC', q: 'What is residual risk?', choices: ['Risk that existed before any control.', 'Risk that auditors invented.', 'Risk remaining after controls are applied.'], correct: 2 },
+      { domain: 'GRC', q: 'Which evidence best supports control effectiveness?', choices: ['A verbal promise from the control owner.', 'A policy title with no implementation proof.', 'Time-bound logs, tickets, screenshots, or reports showing the control operated.'], correct: 2 },
+      { domain: 'GRC', q: 'What is a security policy?', choices: ['A one-time project plan.', 'A list of all malware hashes.', 'A management-approved statement of required behavior or rules.'], correct: 2 },
+      { domain: 'GRC', q: 'What should happen to a critical third-party risk?', choices: ['Ignore it if the vendor is popular.', 'Accept it automatically if the contract is signed.', 'Assess, assign ownership, treat, monitor, and document decisions.'], correct: 2 },
+      { domain: 'GRC', q: 'What is the purpose of business impact analysis?', choices: ['To rank employees by technical skill.', 'To choose brand colors for dashboards.', 'To identify critical processes, dependencies, and outage impacts.'], correct: 2 },
+      { domain: 'SOC', q: 'What is the first goal during incident triage?', choices: ['Delete all evidence immediately.', 'Post details publicly.', 'Validate the alert, scope potential impact, and prioritize response.'], correct: 2 },
+      { domain: 'SOC', q: 'Why is log correlation useful?', choices: ['It makes logs smaller by deleting duplicates.', 'It prevents all false positives.', 'It connects events across sources to reveal attack patterns.'], correct: 2 },
+      { domain: 'SOC', q: 'What is an indicator of compromise?', choices: ['A company logo.', 'A generic training slide.', 'Observable evidence such as a malicious IP, hash, domain, or behavior.'], correct: 2 },
+      { domain: 'SOC', q: 'What should a SOC analyst preserve during investigation?', choices: ['Only rumors from chat.', 'The attacker’s preferred color scheme.', 'Evidence integrity, timestamps, and chain of custody where needed.'], correct: 2 },
+      { domain: 'SOC', q: 'What is containment in incident response?', choices: ['Writing the final report before action.', 'Turning off monitoring tools.', 'Limiting attacker activity or spread while preserving investigation options.'], correct: 2 },
+      { domain: 'SOC', q: 'What is a playbook?', choices: ['A random list of jokes.', 'A dashboard color theme.', 'A repeatable response procedure for a known alert or incident type.'], correct: 2 },
+      { domain: 'SOC', q: 'What metric often indicates how quickly the SOC detects incidents?', choices: ['Mean time to decorate.', 'Total number of coffee cups.', 'Mean time to detect.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is prompt injection?', choices: ['Making a prompt visually pretty.', 'Asking an AI model a difficult question.', 'Input that attempts to override instructions or make the model misuse tools/data.'], correct: 2 },
+      { domain: 'AI Security', q: 'How should sensitive data be handled in AI prompts?', choices: ['Paste everything because models forget instantly.', 'Mask only vowels in secrets.', 'Minimize, redact, or tokenize sensitive data according to policy.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is model output validation?', choices: ['Assuming every answer is true.', 'Checking only grammar.', 'Checking AI responses for correctness, safety, format, and policy compliance before use.'], correct: 2 },
+      { domain: 'AI Security', q: 'Why are AI tool permissions important?', choices: ['Tools never change system state.', 'More permissions always improves security.', 'Excessive permissions can let manipulated outputs perform harmful actions.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is training data poisoning?', choices: ['Encrypting a dataset.', 'Compressing training files.', 'Manipulating training data to influence model behavior maliciously.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is a key control for AI-generated code?', choices: ['Deploy it without reading to save time.', 'Trust it when it has comments.', 'Review, test, scan, and understand it before production use.'], correct: 2 },
+      { domain: 'AI Security', q: 'What does retrieval-augmented generation security need to consider?', choices: ['Only font size.', 'Whether documents are interesting.', 'Data access controls, source trust, relevance, and prompt-injection content in retrieved documents.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is an AI hallucination?', choices: ['A certified audit finding.', 'A guaranteed secure answer.', 'A plausible-sounding but false or unsupported model output.'], correct: 2 },
+      { domain: 'AI Security', q: 'What is human-in-the-loop review best used for?', choices: ['Replacing all security controls.', 'Approving every low-risk typo.', 'Adding accountable review for high-impact or uncertain AI actions.'], correct: 2 }
+    ];
 
-        <aside class="panel" id="settingsPanel" hidden>
-          <h1>Settings</h1>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const blocksEl = document.getElementById('blocks');
+    const correctEl = document.getElementById('correct');
+    const statusEl = document.getElementById('status');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const questionOverlay = document.getElementById('questionOverlay');
+    const questionMeta = document.getElementById('questionMeta');
+    const questionText = document.getElementById('questionText');
+    const choicesEl = document.getElementById('choices');
+    const feedbackEl = document.getElementById('feedback');
+    const endOverlay = document.getElementById('endOverlay');
+    const endTitle = document.getElementById('endTitle');
+    const endSummary = document.getElementById('endSummary');
+    const playAgainBtn = document.getElementById('playAgainBtn');
 
-          <section class="pedagogy" id="pedagogyPanel">
-            <h2>Entraînement de conjugaison</h2>
+    const cells = 25;
+    const size = canvas.width / cells;
+    let snake, direction, pendingDirection, food, loopId, isRunning, isPaused, selectedQuestions, currentQuestionIndex, correctAnswers, touchStart;
 
-            <div class="pedagogy-block">
-              <label for="targetLangSelect" id="targetLangLabel">Target language</label>
-              <select id="targetLangSelect">
-                <option value="fr" id="targetLangFrOption">Français - Conjugaison</option>
-                <option value="ja" id="targetLangJaOption">日本語 - 動詞活用</option>
-              </select>
-            </div>
+    function shuffle(items) {
+      return [...items].map(value => ({ value, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(({ value }) => value);
+    }
 
-            <div class="pedagogy-block" id="jlptPresetRow" hidden>
-              <label for="jlptPresetSelect" id="jlptPresetLabel">JLPT level</label>
-              <select id="jlptPresetSelect">
-                <option value="custom" id="jlptCustomOption">Custom</option>
-                <option value="n5">JLPT N5</option>
-                <option value="n4">JLPT N4</option>
-                <option value="n3">JLPT N3</option>
-              </select>
-            </div>
+    function newGame() {
+      snake = [{ x: 12, y: 12 }, { x: 11, y: 12 }, { x: 10, y: 12 }];
+      direction = { x: 1, y: 0 };
+      pendingDirection = { x: 1, y: 0 };
+      selectedQuestions = shuffle(questionBank).slice(0, 10);
+      currentQuestionIndex = 0;
+      correctAnswers = 0;
+      isRunning = false;
+      isPaused = false;
+      placeFood();
+      updateHud('Ready');
+      hideOverlays();
+      draw();
+    }
 
-            <div class="pedagogy-block">
-              <h3>Temps disponibles</h3>
-              <div id="tenseFilters" class="check-grid"></div>
-            </div>
-            <div class="pedagogy-block">
-              <h3>Groupes de verbes</h3>
-              <div id="groupFilters" class="check-grid"></div>
-            </div>
-            <p id="errorListLabel">Erreurs réalisées</p>
-            <div id="errorList" class="error-list"></div>
-            <div class="error-tools">
-              <button id="resetErrorsBtn" class="secondary">Reset Errors</button>
-            </div>
-          </section>
+    function updateHud(status) {
+      blocksEl.textContent = `${currentQuestionIndex}/10`;
+      correctEl.textContent = correctAnswers;
+      statusEl.textContent = status;
+    }
 
-          <section class="pedagogy" id="gameModePanel">
-            <h2 id="gameModePanelTitle">Mode de jeu</h2>
+    function hideOverlays() {
+      questionOverlay.classList.remove('active');
+      endOverlay.classList.remove('active');
+    }
 
-            <div class="pedagogy-block">
-              <label for="settingsGameModeSelect" id="settingsGameModeLabel">Mode</label>
-              <select id="settingsGameModeSelect">
-                <option value="normal" id="settingsGameModeNormalOption">Normal</option>
-                <option value="easy" id="settingsGameModeEasyOption">Facile</option>
-              </select>
-            </div>
+    function startGame() {
+      if (isRunning || currentQuestionIndex >= 10) return;
+      isRunning = true;
+      isPaused = false;
+      updateHud('Live');
+      clearInterval(loopId);
+      loopId = setInterval(tick, 115);
+    }
 
-          </section>
+    function placeFood() {
+      do {
+        food = { x: Math.floor(Math.random() * cells), y: Math.floor(Math.random() * cells) };
+      } while (snake.some(part => part.x === food.x && part.y === food.y));
+    }
 
-          <section class="pedagogy" id="mobileLayoutPanel">
-            <h2>Réglages mobile</h2>
+    function tick() {
+      if (!isRunning || isPaused) return;
+      direction = pendingDirection;
+      const head = snake[0];
+      const next = { x: (head.x + direction.x + cells) % cells, y: (head.y + direction.y + cells) % cells };
+      if (snake.some(part => part.x === next.x && part.y === next.y)) {
+        updateHud('Crashed');
+        clearInterval(loopId);
+        isRunning = false;
+        setTimeout(() => showEnd(true), 350);
+        return;
+      }
+      snake.unshift(next);
+      if (next.x === food.x && next.y === food.y) {
+        pauseForQuestion();
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
 
-            <div class="pedagogy-block device-mode-indicator">
-              <span id="settingsDeviceModeLabel">Mode de l'appareil</span>
-              <strong id="settingsDeviceModeValue">Mobile</strong>
-            </div>
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#081421';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(85,184,255,.10)';
+      for (let i = 0; i <= cells; i++) {
+        ctx.beginPath(); ctx.moveTo(i * size, 0); ctx.lineTo(i * size, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * size); ctx.lineTo(canvas.width, i * size); ctx.stroke();
+      }
+      ctx.fillStyle = '#ffd166';
+      roundedCell(food.x, food.y, 7);
+      snake.forEach((part, index) => {
+        ctx.fillStyle = index === 0 ? '#30f2a8' : '#16b981';
+        roundedCell(part.x, part.y, index === 0 ? 8 : 6);
+      });
+    }
 
-            <div class="pedagogy-block">
-              <label for="settingsButtonsOffsetSlider">Position verticale des boutons</label>
-              <input id="settingsButtonsOffsetSlider" type="range" min="0" max="120" step="1" value="120" />
-              <div class="slider-hint-row" aria-hidden="true">
-                <span id="mobileButtonsOffsetLower">Plus bas</span>
-                <span id="mobileButtonsOffsetHigher">Plus haut</span>
-              </div>
-            </div>
+    function roundedCell(x, y, radius) {
+      const pad = 3;
+      const px = x * size + pad;
+      const py = y * size + pad;
+      const s = size - pad * 2;
+      ctx.beginPath();
+      ctx.roundRect(px, py, s, s, radius);
+      ctx.fill();
+    }
 
-            <div class="pedagogy-block">
-              <label for="settingsGameOffsetSlider">Position verticale de la zone de jeu</label>
-              <input id="settingsGameOffsetSlider" type="range" min="0" max="200" step="1" value="200" />
-              <div class="slider-hint-row" aria-hidden="true">
-                <span id="mobileGameOffsetHigher">Plus haut</span>
-                <span id="mobileGameOffsetLower">Plus bas</span>
-              </div>
-            </div>
-          </section>
+    function pauseForQuestion() {
+      isPaused = true;
+      updateHud('Question');
+      showQuestion(selectedQuestions[currentQuestionIndex]);
+    }
 
-          <div class="settings-apply-row">
-            <button id="applySettingsBtn">Apply</button>
-          </div>
-</aside>
+    function showQuestion(question) {
+      questionMeta.textContent = `${question.domain} · Question ${currentQuestionIndex + 1} of 10`;
+      questionText.textContent = question.q;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+      choicesEl.innerHTML = '';
+      shuffle(question.choices.map((text, index) => ({ text, index }))).forEach(choice => {
+        const button = document.createElement('button');
+        button.className = 'choice';
+        button.textContent = choice.text;
+        button.addEventListener('click', () => answerQuestion(choice.index === question.correct));
+        choicesEl.appendChild(button);
+      });
+      questionOverlay.classList.add('active');
+    }
 
-        <aside class="panel question-panel" id="questionPanel" hidden>
-          <div class="question-actors">
-            <div class="question-actor question-actor-hero">
-              <img id="questionHeroSprite" class="question-actor-sprite" alt="Hero" hidden />
-            </div>
-            <div class="question-ask-icon" aria-hidden="true">❓</div>
-            <div class="question-actor question-actor-enemy">
-              <img id="questionEnemySprite" class="question-actor-sprite" alt="Enemy" hidden />
-              <div class="question-enemy" id="questionEnemy">⚔️</div>
-            </div>
-          </div>
-          <p id="questionGroup" class="question-group">Duel</p>
-          <p id="questionTense" class="question-tense">Conjugaison</p>
-          <p id="questionCountdown" class="question-countdown" hidden>10s</p>
-          <p id="questionPrompt" class="question-prompt"></p>
-          <div id="answerButtons" class="answer-buttons"></div>
-        </aside>
+    function answerQuestion(isCorrect) {
+      [...choicesEl.children].forEach(button => button.disabled = true);
+      if (isCorrect) {
+        correctAnswers += 1;
+        feedbackEl.textContent = 'Correct — control validated.';
+        feedbackEl.classList.add('good');
+      } else {
+        feedbackEl.textContent = 'Not quite — review the concept after the run.';
+        feedbackEl.classList.add('bad');
+      }
+      currentQuestionIndex += 1;
+      updateHud('Resume');
+      setTimeout(() => {
+        questionOverlay.classList.remove('active');
+        if (currentQuestionIndex >= 10) {
+          clearInterval(loopId);
+          isRunning = false;
+          showEnd(false);
+        } else {
+          placeFood();
+          isPaused = false;
+          updateHud('Live');
+        }
+      }, 900);
+    }
 
-        <section id="titleScreen" class="title-screen">
-          <div class="title-card">
-            <p class="title-kicker">Plateformer horizontal</p>
-            <h1>ConjugationQuest</h1>
-            <p>Libère le royaume grâce à tes pouvoirs de conjugaison ! Interroge les personnages du niveau et collecte des trésors pour ouvrir le château et découvrir de nouveaux mondes et de nouveaux héros !</p>
-            <div class="title-actions">
-              <button id="startBtn" type="button">Start Game</button>
-              <button id="openLeaderboardBtn" type="button">Leaderboard</button>
-              <button id="openSettingsFromTitleBtn" type="button">Settings</button>
-            </div>
-          </div>
-        </section>
+    function showEnd(crashed) {
+      const validated = correctAnswers > 8;
+      endTitle.textContent = validated ? 'Skills validated' : 'Skills not yet validated';
+      endSummary.textContent = `${correctAnswers}/10 correct.${crashed ? ' The snake crashed before all validation blocks were collected.' : ''} ${validated ? 'Excellent performance across the cyber academy outcomes.' : 'Replay to strengthen IAM, GRC, SOC, and AI security skills.'}`;
+      endOverlay.classList.add('active');
+      updateHud('Done');
+    }
 
+    function setDirection(x, y) {
+      if (direction.x + x === 0 && direction.y + y === 0) return;
+      pendingDirection = { x, y };
+    }
 
-        <section id="leaderboardModal" class="menu-modal hidden">
-          <div class="menu-card">
-            <h2 id="leaderboardTitle">Leaderboard</h2>
-            <ol id="leaderboardList" class="leaderboard-list">
-              <li class="leaderboard-empty">No score yet.</li>
-            </ol>
-            <div class="menu-actions">
-              <button id="closeLeaderboardBtn" class="secondary-btn" type="button">Close</button>
-            </div>
-          </div>
-        </section>
+    document.addEventListener('keydown', event => {
+      const keyMap = { ArrowUp: [0, -1], w: [0, -1], W: [0, -1], ArrowDown: [0, 1], s: [0, 1], S: [0, 1], ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0], ArrowRight: [1, 0], d: [1, 0], D: [1, 0] };
+      if (keyMap[event.key]) { event.preventDefault(); setDirection(...keyMap[event.key]); }
+    });
 
-        <section id="pauseModal" class="menu-modal hidden">
-          <div class="menu-card">
-            <h2>Pause</h2>
-            <p>Game paused.</p>
-            <div class="menu-actions">
-              <button id="resumeBtn" type="button">Resume</button>
-              <button id="openSettingsFromPauseBtn" type="button">Settings</button>
-              <button id="backToTitleBtn" class="secondary-btn" type="button">Title Screen</button>
-            </div>
-          </div>
-        </section>
+    canvas.addEventListener('touchstart', event => { touchStart = event.touches[0]; }, { passive: true });
+    canvas.addEventListener('touchend', event => {
+      if (!touchStart) return;
+      const touchEnd = event.changedTouches[0];
+      const dx = touchEnd.clientX - touchStart.clientX;
+      const dy = touchEnd.clientY - touchStart.clientY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      Math.abs(dx) > Math.abs(dy) ? setDirection(Math.sign(dx), 0) : setDirection(0, Math.sign(dy));
+      touchStart = null;
+    }, { passive: true });
 
-        <section id="resetGameConfirmModal" class="menu-modal hidden" aria-modal="true" role="dialog" aria-labelledby="resetGameConfirmTitle">
-          <div class="menu-card reset-confirm-card">
-            <h2 id="resetGameConfirmTitle">Confirmation</h2>
-            <p id="resetGameConfirmText">Attention : la remise à zéro des erreurs, de l'or, du score et des achats dans la boutique sera définitive. Êtes-vous sûr ?</p>
-            <div class="menu-actions reset-confirm-actions">
-              <button id="resetGameCancelBtn" class="warn-btn" type="button">Non</button>
-              <button id="resetGameConfirmBtn" type="button">Oui</button>
-            </div>
-          </div>
-        </section>
-
-<section id="cheatModal" class="menu-modal hidden">
-          <div class="menu-card cheat-card">
-            <h2>Tips &amp; Tricks</h2>
-            <label for="cheatLevelSelect">Select level</label>
-            <select id="cheatLevelSelect"></select>
-
-            <label for="cheatDifficultySelect">Generation Profile</label>
-            <select id="cheatDifficultySelect">
-              <option value="easy">Easy</option>
-              <option value="normal">Normal</option>
-              <option value="chaotic">Chaotic</option>
-            </select>
-
-            <label for="cheatTileStyleSelect">Tile style</label>
-            <select id="cheatTileStyleSelect">
-              <option value="new">New</option>
-              <option value="basic">Basic</option>
-            </select>
-
-            <label for="cheatHeroSelect">Select hero</label>
-            <select id="cheatHeroSelect"></select>
-
-            <label for="cheatWorldZoomSlider">World zoom</label>
-            <div class="cheat-zoom-row">
-              <input id="cheatWorldZoomSlider" type="range" min="0.1" max="3" step="0.1" value="1.0" />
-              <strong id="cheatWorldZoomValue">1.0x</strong>
-            </div>
-
-            <div class="menu-actions">
-              <button id="cheatGivePiecesBtn" type="button">Give 999 pieces</button>
-              <button id="cheatApplyBtn" type="button">Apply</button>
-              <button id="cheatCloseBtn" class="secondary-btn" type="button">Close</button>
-            </div>
-          </div>
-        </section>
-
-        <section id="visualDebugPanel" class="debug-panel hidden" aria-label="Visual debug controls">
-          <h2>Debug visuel</h2>
-          <p>Ajustements live pour mobile</p>
-
-          <label for="debugButtonsOffsetSlider">Offset vertical boutons</label>
-          <div class="debug-slider-row">
-            <input id="debugButtonsOffsetSlider" type="range" min="0" max="120" step="1" value="43" />
-            <strong id="debugButtonsOffsetValue">43px</strong>
-          </div>
-
-          <label for="debugGameOffsetSlider">Offset vertical zone de jeu</label>
-          <div class="debug-slider-row">
-            <input id="debugGameOffsetSlider" type="range" min="0" max="200" step="1" value="150" />
-            <strong id="debugGameOffsetValue">150px</strong>
-          </div>
-
-          <label for="debugScaleSlider">Échelle monde (BASE_UNIT)</label>
-          <div class="debug-slider-row">
-            <input id="debugScaleSlider" type="range" min="0.5" max="3.0" step="0.1" value="1.0" />
-            <strong id="debugScaleValue">1.0x</strong>
-          </div>
-
-          <button id="validateLevelsBtn" class="secondary-btn" type="button">Validate Levels</button>
-          <pre id="validateLevelsOutput" class="debug-output" hidden></pre>
-
-          <button id="closeVisualDebugBtn" class="secondary-btn" type="button">Fermer</button>
-        </section>
-
-        <section id="gameOverPanel" class="game-over hidden">
-          <h2 id="gameOverTitle">Game Over</h2>
-          <p id="gameOverText">You lost all hearts.</p>
-          <p id="finalScoreText" class="final-score-text">Final score: 0</p>
-          <p id="finalCoinsText" class="final-coins-text">Coins: 0</p>
-          <div class="menu-actions">
-            <button id="restartBtn" type="button">Restart Level</button>
-            <button id="backToTitleFromGameOverBtn" class="secondary-btn" type="button">
-              Title Screen
-            </button>
-          </div>
-        </section>
-
-        <section id="bossDefeatPanel" class="game-over boss-defeat hidden">
-          <h2>Dragon Won</h2>
-          <p id="bossDefeatText">Trial failed.</p>
-          <p id="bossDefeatRetryText">Returning to wave...</p>
-        </section>
-
-        <section id="finalVictoryPanel" class="game-over final-victory hidden">
-          <h2>Champion</h2>
-          <p>The Dragon is defeated.</p>
-          <p>You earned champion status.</p>
-          <div class="menu-actions">
-            <button id="backToTitleFromVictoryBtn" class="secondary-btn" type="button">Title Screen</button>
-          </div>
-        </section>
-      </section>
-    </main>
-
-    <script type="module" src="./src/main.js"></script>
-  </body>
+    startBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', newGame);
+    playAgainBtn.addEventListener('click', () => { newGame(); startGame(); });
+    newGame();
+  </script>
+</body>
 </html>
